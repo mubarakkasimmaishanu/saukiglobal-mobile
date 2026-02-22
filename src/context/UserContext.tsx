@@ -18,6 +18,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshUser = async () => {
     try {
       const userData = await api.getUser();
+      // Robust mapping for legacy data structures
+      if (userData) {
+        if (!userData.firstName && (userData as any).name) {
+          const parts = (userData as any).name.split(' ');
+          userData.firstName = parts[0] || 'User';
+          userData.lastName = parts.slice(1).join(' ') || '';
+        }
+        // Ensure properties exist to prevent crashes
+        userData.firstName = userData.firstName || 'User';
+        userData.lastName = userData.lastName || '';
+      }
       setUser(userData);
     } catch (error) {
       console.error('Failed to fetch user', error);
