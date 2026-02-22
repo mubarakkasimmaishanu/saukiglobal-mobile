@@ -30,9 +30,17 @@ interface ProfileSettingsProps {
 type ProfileView = 'main' | 'personal' | 'password' | 'pin';
 
 export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport, onViewReferrals }: ProfileSettingsProps) {
-  const { user } = useUser();
+  const { user, loading } = useUser();
   const [currentView, setCurrentView] = useState<ProfileView>('main');
   const [copied, setCopied] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
 
   // Mock Referral Data (could be in user object later)
   const referralData = {

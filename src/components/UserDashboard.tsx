@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Bell, 
-  Wallet, 
-  PlusCircle, 
-  Send, 
-  Smartphone, 
-  Wifi, 
-  GraduationCap, 
-  Lightbulb, 
-  Tv, 
-  FileText, 
-  History, 
-  User as UserIcon, 
-  Home, 
-  Eye, 
+import {
+  Bell,
+  Wallet,
+  PlusCircle,
+  Send,
+  Smartphone,
+  Wifi,
+  GraduationCap,
+  Lightbulb,
+  Tv,
+  FileText,
+  History,
+  User as UserIcon,
+  Home,
+  Eye,
   EyeOff,
   TrendingUp,
   ArrowUpRight,
@@ -86,21 +86,21 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   return (
     <div className="min-h-screen bg-gray-50 font-sans md:py-8">
       <div className="max-w-md mx-auto bg-gray-50 min-h-screen md:min-h-[auto] md:rounded-3xl md:shadow-xl overflow-hidden relative pb-20 md:pb-0">
-        
+
         {/* Top Header */}
         <header className="px-5 pt-6 pb-2 sticky top-0 bg-gray-50/90 backdrop-blur-md z-30 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="w-11 h-11 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm border-2 border-white">
-                {user.firstName.charAt(0)}
+                {user?.firstName?.charAt(0) || 'U'}
               </div>
             </div>
             <div>
               <p className="text-xs text-gray-500 font-medium">Good morning,</p>
-              <h1 className="text-base font-black text-gray-900 leading-tight">{user.firstName} 👋</h1>
+              <h1 className="text-base font-black text-gray-900 leading-tight">{user?.firstName || 'User'} 👋</h1>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => onNavigate('notifications')}
             className="relative p-2.5 bg-white rounded-full shadow-sm border border-gray-100 hover:bg-gray-100 transition-colors"
           >
@@ -110,7 +110,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
         </header>
 
         <main className="px-5 pt-4">
-          
+
           {/* Main Wallet Card */}
           <div className="bg-gradient-to-br from-green-600 to-emerald-800 rounded-[1.5rem] p-6 text-white shadow-xl shadow-green-200 mb-6 relative overflow-hidden">
             {/* Decorative background shapes */}
@@ -129,23 +129,23 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
                   {user.isReseller ? 'Reseller Pro' : 'Basic'}
                 </span>
               </div>
-              
+
               <h2 className="text-3xl md:text-4xl font-black mb-6 tracking-tight">
-                {showBalance ? `₦${user.balance.toLocaleString('en-US', {minimumFractionDigits: 2})}` : '****'}
+                {showBalance ? `₦${user.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '****'}
               </h2>
 
               <div className="flex gap-3">
-                <button 
+                <button
                   onClick={() => onNavigate('fund')}
                   className="flex-1 bg-white text-green-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-colors active:scale-95"
                 >
-                  <PlusCircle size={18}/> Fund Wallet
+                  <PlusCircle size={18} /> Fund Wallet
                 </button>
-                <button 
+                <button
                   onClick={() => onNavigate('transfer')}
                   className="flex-1 bg-green-700/50 backdrop-blur-md border border-green-500/50 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700/70 transition-colors active:scale-95"
                 >
-                  <Send size={18}/> Transfer
+                  <Send size={18} /> Transfer
                 </button>
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               <div onClick={() => onNavigate('exams')}>
                 <ServiceIcon icon={BookOpen} title="Result Checkers" bg="bg-indigo-50" color="text-indigo-600" />
               </div>
-              
+
               <div onClick={() => onNavigate('electricity')}>
                 <ServiceIcon icon={Lightbulb} title="Electricity" bg="bg-orange-50" color="text-orange-600" />
               </div>
@@ -188,7 +188,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
           </div>
 
           {/* Reseller Upsell Banner */}
-          <div 
+          <div
             onClick={() => onNavigate('referral')}
             className="bg-slate-900 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-lg relative overflow-hidden group cursor-pointer"
           >
@@ -209,14 +209,14 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
           <div className="mb-4">
             <div className="flex justify-between items-center mb-4 px-1">
               <h3 className="text-sm font-bold text-gray-900">Recent Transactions</h3>
-              <button 
+              <button
                 onClick={() => onNavigate('history')}
                 className="text-xs font-bold text-green-600 hover:text-green-700"
               >
                 View All
               </button>
             </div>
-            
+
             <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
               {recentTransactions.map((tx, index) => {
                 const Icon = getIconForType(tx.type);
@@ -243,7 +243,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
 
         {/* Bottom Navigation Bar */}
         <nav className="fixed md:absolute bottom-0 w-full bg-white border-t border-gray-200 px-6 py-3 flex justify-between items-center z-40 pb-safe">
-          <button 
+          <button
             onClick={() => onNavigate('dashboard')}
             className="flex flex-col items-center gap-1 group"
           >
@@ -252,8 +252,8 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             </div>
             <span className={`text-[10px] font-bold ${true ? 'text-green-600' : 'text-gray-400'}`}>Home</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => onNavigate('history')}
             className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-900 transition-colors"
           >
@@ -262,8 +262,8 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             </div>
             <span className="text-[10px] font-bold">History</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => onNavigate('support')}
             className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-900 transition-colors"
           >
@@ -272,8 +272,8 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             </div>
             <span className="text-[10px] font-bold">Support</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => onNavigate('profile')}
             className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-900 transition-colors"
           >
@@ -283,7 +283,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             <span className="text-[10px] font-bold">Profile</span>
           </button>
         </nav>
-        
+
       </div>
     </div>
   );
