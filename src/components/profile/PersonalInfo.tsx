@@ -8,9 +8,9 @@ interface PersonalInfoProps {
 
 export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
   const [formData, setFormData] = useState({
-    name: user.name,
-    email: user.email,
-    phone: user.phone,
+    name: user ? `${user.firstName} ${user.lastName}`.trim() : '',
+    email: user?.email || '',
+    phone: user?.phone || '',
     address: "No 12, Kaduna Road, Zaria",
     dob: "1995-05-15"
   });
@@ -41,9 +41,8 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
       <div className="px-5 pb-10">
         <form onSubmit={handleSave} className="space-y-6">
           {message && (
-            <div className={`p-4 rounded-2xl flex gap-3 items-center border ${
-              message.type === 'success' ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'
-            }`}>
+            <div className={`p-4 rounded-2xl flex gap-3 items-center border ${message.type === 'success' ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'
+              }`}>
               {message.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
               <p className="text-sm font-medium">{message.text}</p>
             </div>
@@ -56,10 +55,10 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
                   <User size={18} />
                 </div>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
                 />
               </div>
@@ -72,10 +71,10 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
                   <Mail size={18} />
                 </div>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
                 />
               </div>
@@ -87,8 +86,8 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
                   <Phone size={18} />
                 </div>
-                <input 
-                  type="tel" 
+                <input
+                  type="tel"
                   value={formData.phone}
                   readOnly
                   className="w-full pl-11 pr-4 py-3.5 bg-gray-100 border border-gray-200 rounded-xl text-sm font-bold text-gray-500 cursor-not-allowed"
@@ -105,10 +104,10 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
                   <MapPin size={18} />
                 </div>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
                 />
               </div>
@@ -120,17 +119,17 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
                   <Calendar size={18} />
                 </div>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   value={formData.dob}
-                  onChange={(e) => setFormData({...formData, dob: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
                   className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
                 />
               </div>
             </div>
           </div>
 
-          <button 
+          <button
             type="submit"
             disabled={isSaving}
             className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-4 rounded-2xl shadow-md transition-all flex justify-center items-center gap-2"
