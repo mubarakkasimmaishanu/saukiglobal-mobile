@@ -19,7 +19,7 @@ const initialState: AppState = {
   user: {
     id: '1',
     firstName: 'Mubarak',
-    lastName: 'Olawale',
+    lastName: 'Kasim',
     email: 'mubarak@buydigital.ng',
     phone: '08123456789',
     balance: 12500,
