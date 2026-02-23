@@ -38,7 +38,7 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
       </div>
     );
   }
@@ -117,7 +117,7 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
         <header className="px-5 pt-8 pb-4 sticky top-0 z-20 flex items-center gap-4 bg-gray-50">
           <button
             onClick={onBack}
-            className="p-2 -ml-2 text-gray-600 hover:text-green-600 transition-colors"
+            className="p-2 -ml-2 text-gray-600 hover:text-emerald-600 transition-colors"
           >
             <ChevronLeft size={24} />
           </button>
@@ -129,10 +129,10 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
           {/* Profile Card */}
           <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 mb-6 flex items-center gap-4">
             <div className="relative">
-              <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md">
+              <div className="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md">
                 {user?.firstName?.charAt(0) || 'U'}
               </div>
-              <div className="absolute bottom-0 right-0 w-5 h-5 bg-green-500 border-2 border-white rounded-full flex items-center justify-center">
+              <div className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full flex items-center justify-center">
                 <CheckCircle2 size={12} className="text-white" />
               </div>
             </div>
@@ -156,7 +156,7 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
                   <p className="text-gray-400 text-xs font-medium mb-1">Commission Balance</p>
                   <p className="text-2xl font-bold">₦{(user?.commissionBalance || 0).toLocaleString()}</p>
                 </div>
-                <button className="bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+                <button className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
                   Withdraw
                 </button>
               </div>
@@ -164,7 +164,7 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
               <div className="pt-4 border-t border-gray-700 flex justify-between items-center">
                 <div>
                   <p className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Referral Code</p>
-                  <p className="text-sm font-bold tracking-widest text-green-400">{referralCode}</p>
+                  <p className="text-sm font-bold tracking-widest text-emerald-400">{referralCode}</p>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -175,7 +175,7 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
                   </button>
                   <button
                     onClick={handleCopyReferral}
-                    className={`p-2 rounded-lg flex items-center gap-1 text-xs font-bold transition-colors ${copied ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                    className={`p-2 rounded-lg flex items-center gap-1 text-xs font-bold transition-colors ${copied ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
                   >
                     {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
                     {copied ? 'Copied' : 'Copy'}
@@ -252,14 +252,14 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
               icon={MessageCircle}
               title="WhatsApp Support"
               subtitle="Chat with us directly on WhatsApp"
-              bg="bg-green-50" color="text-green-600"
-              onClick={onViewSupport}
+              bg="bg-emerald-50" color="text-emerald-600"
+              onClick={() => window.open('https://wa.me/2348000000000', '_blank')}
             />
             <SettingsItem
               icon={HelpCircle}
               title="FAQs & Guides"
               subtitle="Learn how to use BuyDigital"
-              bg="bg-gray-100" color="text-gray-600"
+              bg="bg-emerald-50" color="text-emerald-600"
               isLast={true}
               onClick={onViewSupport}
             />

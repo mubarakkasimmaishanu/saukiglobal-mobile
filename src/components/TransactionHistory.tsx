@@ -72,7 +72,7 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
 
   const getIconBgForType = (type: string) => {
     switch (type) {
-      case 'Airtime': return 'bg-green-50 text-green-600';
+      case 'Airtime': return 'bg-emerald-50 text-emerald-600';
       case 'Data': return 'bg-yellow-50 text-yellow-600';
       case 'Transfer': return 'bg-blue-50 text-blue-600';
       case 'Electricity': return 'bg-orange-50 text-orange-600';
@@ -87,7 +87,7 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Success':
-        return <span className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full"><CheckCircle2 size={12} /> Successful</span>;
+        return <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full"><CheckCircle2 size={12} /> Successful</span>;
       case 'Failed':
         return <span className="flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full"><XCircle size={12} /> Failed</span>;
       case 'Pending':
@@ -129,7 +129,7 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
             </button>
             <button
               onClick={() => setActiveTab('in')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'in' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'in' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
               Money In
@@ -148,7 +148,7 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
         <div className="px-5 pb-6">
           {isLoading ? (
             <div className="flex justify-center py-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
             </div>
           ) : (
             <div className="space-y-3">
@@ -158,7 +158,7 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
                   <button
                     key={tx.id}
                     onClick={() => setSelectedTx(tx)}
-                    className="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between hover:border-green-200 transition-colors shadow-sm active:bg-gray-50 text-left"
+                    className="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between hover:border-emerald-200 transition-colors shadow-sm active:bg-gray-50 text-left"
                   >
                     <div className="flex items-center gap-3">
                       <div className={`p-3 rounded-full ${getIconBgForType(tx.type)}`}>
@@ -170,7 +170,7 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
                       </div>
                     </div>
                     <div className="text-right flex flex-col items-end gap-1">
-                      <span className={`text-sm font-bold ${tx.type === 'Funding' ? 'text-green-600' : 'text-gray-900'}`}>
+                      <span className={`text-sm font-bold ${tx.type === 'Funding' ? 'text-emerald-600' : 'text-gray-900'}`}>
                         {tx.type === 'Funding' ? '+' : '-'} ₦{tx.amount.toLocaleString()}
                       </span>
                       {tx.profit && tx.profit > 0 && user?.isReseller && (
@@ -252,11 +252,11 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
 
                 {/* Action Buttons */}
                 <div className="flex gap-3">
-                  <button className="flex-1 bg-green-50 text-green-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-green-100 transition-colors">
+                  <button className="flex-1 bg-emerald-50 text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors">
                     <Download size={18} />
                     Save
                   </button>
-                  <button className="flex-1 bg-green-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700 transition-colors shadow-md">
+                  <button className="flex-1 bg-emerald-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors shadow-md">
                     <Share2 size={18} />
                     Share
                   </button>

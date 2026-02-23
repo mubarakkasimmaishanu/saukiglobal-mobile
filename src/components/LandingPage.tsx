@@ -54,9 +54,9 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
 
   const services = [
     { icon: Smartphone, title: 'Data & Airtime', desc: 'Instant VTU top-ups with up to 4% discount on airtime and the cheapest data rates.', color: 'text-emerald-600', bg: 'bg-emerald-100' },
-    { icon: GraduationCap, title: 'Education Pins', desc: 'Generate JAMB E-Pins and WAEC/NECO Result Checkers automatically.', color: 'text-purple-600', bg: 'bg-purple-100' },
-    { icon: Lightbulb, title: 'Utility Bills', desc: 'Pay KEDCO, AEDC, and renew DSTV/GOTV with zero hidden charges.', color: 'text-orange-600', bg: 'bg-orange-100' },
-    { icon: ShieldCheck, title: 'Identity Printing', desc: 'Print premium NIN slips and BVN documents securely in minutes.', color: 'text-blue-600', bg: 'bg-blue-100' },
+    { icon: GraduationCap, title: 'Education Pins', desc: 'Generate JAMB E-Pins and WAEC/NECO Result Checkers automatically.', color: 'text-emerald-600', bg: 'bg-emerald-100' },
+    { icon: Lightbulb, title: 'Utility Bills', desc: 'Pay KEDCO, AEDC, and renew DSTV/GOTV with zero hidden charges.', color: 'text-emerald-600', bg: 'bg-emerald-100' },
+    { icon: ShieldCheck, title: 'Identity Printing', desc: 'Print premium NIN slips and BVN documents securely in minutes.', color: 'text-emerald-600', bg: 'bg-emerald-100' },
   ];
 
   return (

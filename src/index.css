@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* ============================================
+   BUYDIGITAL BRAND COLOR SYSTEM
+   Primary: Emerald (#059669)
+   Like OPay = Green, PalmPay = Purple
+   BuyDigital = Emerald Green
+   ============================================ */
+
 /* Global Font */
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -12,17 +19,36 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Brand Color CSS Variables - Single Source of Truth */
+:root {
+  --brand: #059669;
+  /* emerald-600 */
+  --brand-light: #d1fae5;
+  /* emerald-100 */
+  --brand-lighter: #ecfdf5;
+  /* emerald-50 */
+  --brand-dark: #047857;
+  /* emerald-700 */
+  --brand-darker: #065f46;
+  /* emerald-800 */
+  --brand-darkest: #064e3b;
+  /* emerald-900 */
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }

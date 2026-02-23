@@ -59,7 +59,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
   const networks = [
     { id: 'mtn', name: 'MTN', color: 'bg-yellow-400', text: 'text-yellow-900', border: 'border-yellow-400' },
     { id: 'airtel', name: 'Airtel', color: 'bg-red-500', text: 'text-white', border: 'border-red-500' },
-    { id: 'glo', name: 'GLO', color: 'bg-green-500', text: 'text-white', border: 'border-green-500' },
+    { id: 'glo', name: 'GLO', color: 'bg-emerald-500', text: 'text-white', border: 'border-emerald-500' },
     { id: '9mobile', name: '9mobile', color: 'bg-emerald-800', text: 'text-white', border: 'border-emerald-800' },
   ];
 

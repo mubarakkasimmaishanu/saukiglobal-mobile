@@ -82,7 +82,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                 <span className="text-sm font-semibold text-gray-500 flex items-center gap-1">
                   <Wallet size={16} /> Current Balance
                 </span>
-                <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md flex items-center gap-1">
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md flex items-center gap-1">
                   <ShieldCheck size={14} /> Secured
                 </span>
               </div>
@@ -95,7 +95,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                 <button
                   onClick={() => setActiveTab('transfer')}
                   className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${activeTab === 'transfer'
-                      ? 'bg-white text-green-600 shadow-sm'
+                      ? 'bg-white text-emerald-600 shadow-sm'
                       : 'text-gray-500 hover:text-gray-700'
                     }`}
                 >
@@ -105,7 +105,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                 <button
                   onClick={() => setActiveTab('card')}
                   className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${activeTab === 'card'
-                      ? 'bg-white text-green-600 shadow-sm'
+                      ? 'bg-white text-emerald-600 shadow-sm'
                       : 'text-gray-500 hover:text-gray-700'
                     }`}
                 >
@@ -125,7 +125,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                   </div>
 
                   <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
 
                     <div className="mb-5">
                       <p className="text-xs text-gray-500 font-medium mb-1">Account Name</p>
@@ -139,7 +139,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                       </div>
                       <button
                         onClick={() => handleCopy('8123456789', 'accNum')}
-                        className={`p-2 rounded-lg flex items-center gap-1 text-xs font-bold transition-colors ${copiedStates.accNum ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                        className={`p-2 rounded-lg flex items-center gap-1 text-xs font-bold transition-colors ${copiedStates.accNum ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                       >
                         {copiedStates.accNum ? <CheckCircle2 size={16} /> : <Copy size={16} />}
                         {copiedStates.accNum ? 'Copied' : 'Copy'}
@@ -176,7 +176,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                         min="100"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-lg text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                        className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-lg text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                       />
                     </div>
                   </div>
@@ -190,7 +190,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                           key={amt}
                           type="button"
                           onClick={() => setAmount(amt.toString())}
-                          className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 text-sm font-bold rounded-lg hover:bg-green-50 hover:text-green-600 hover:border-green-200 transition-colors"
+                          className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 text-sm font-bold rounded-lg hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-colors"
                         >
                           ₦{amt.toLocaleString()}
                         </button>
@@ -202,7 +202,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                     <button
                       type="submit"
                       disabled={!amount || Number(amount) < 100}
-                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
                     >
                       <CreditCard size={20} />
                       Pay ₦{amount ? Number(amount).toLocaleString() : '0.00'}
@@ -222,12 +222,12 @@ export default function FundWallet({ onBack }: FundWalletProps) {
         {step === 'processing' && (
           <div className="p-6 h-[60vh] flex flex-col items-center justify-center text-center animate-in fade-in duration-300">
             <div className="relative w-20 h-20 mb-6">
-              <svg className="animate-spin w-full h-full text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin w-full h-full text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
                 <path className="opacity-100" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <CreditCard size={24} className="text-green-600 animate-pulse" />
+                <CreditCard size={24} className="text-emerald-600 animate-pulse" />
               </div>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Connecting to Gateway...</h2>
@@ -238,8 +238,8 @@ export default function FundWallet({ onBack }: FundWalletProps) {
         {/* SUCCESS STATE (For Card Payment) */}
         {step === 'success' && (
           <div className="p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-500 pt-12">
-            <div className="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6 relative">
-              <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-green-400 opacity-20"></span>
+            <div className="w-24 h-24 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-6 relative">
+              <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
               <CheckCircle2 size={48} />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Funding Successful!</h2>
@@ -254,7 +254,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Amount Added</span>
-                <span className="font-bold text-green-600">+ ₦{Number(amount).toLocaleString()}</span>
+                <span className="font-bold text-emerald-600">+ ₦{Number(amount).toLocaleString()}</span>
               </div>
               <div className="pt-2 border-t border-gray-200 flex justify-between text-base">
                 <span className="text-gray-800 font-bold">New Balance</span>

@@ -32,7 +32,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
   const networks: Record<string, any> = {
     mtn: { name: 'MTN', color: 'bg-yellow-400', text: 'text-yellow-900', border: 'border-yellow-400', prefixes: ['0803', '0806', '0814', '0810', '0813', '0816', '0703', '0706', '0903', '0906'] },
     airtel: { name: 'Airtel', color: 'bg-red-500', text: 'text-white', border: 'border-red-500', prefixes: ['0802', '0808', '0812', '0701', '0708', '0902', '0907', '0901'] },
-    glo: { name: 'GLO', color: 'bg-green-500', text: 'text-white', border: 'border-green-500', prefixes: ['0805', '0807', '0811', '0815', '0705', '0905'] },
+    glo: { name: 'GLO', color: 'bg-emerald-500', text: 'text-white', border: 'border-emerald-500', prefixes: ['0805', '0807', '0811', '0815', '0705', '0905'] },
     '9mobile': { name: '9mobile', color: 'bg-emerald-800', text: 'text-white', border: 'border-emerald-800', prefixes: ['0809', '0818', '0817', '0909', '0908'] }
   };
 
@@ -121,14 +121,14 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
               <div className="flex p-1 bg-gray-100 rounded-xl">
                 <button
                   onClick={() => setActiveTab('vtu')}
-                  className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'vtu' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'vtu' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                     }`}
                 >
                   Buy Airtime
                 </button>
                 <button
                   onClick={() => setActiveTab('a2c')}
-                  className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${activeTab === 'a2c' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${activeTab === 'a2c' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                     }`}
                 >
                   <RefreshCcw size={14} /> Airtime 2 Cash
@@ -147,7 +147,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                 </p>
                 <button
                   onClick={() => setActiveTab('vtu')}
-                  className="mt-6 text-sm font-bold text-green-600 bg-green-50 px-6 py-3 rounded-full"
+                  className="mt-6 text-sm font-bold text-emerald-600 bg-emerald-50 px-6 py-3 rounded-full"
                 >
                   Go back to Top-up
                 </button>
@@ -155,14 +155,14 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
             ) : (
               <div className="p-5">
                 {/* Wallet Balance */}
-                <div className="flex items-center justify-between bg-green-50 p-4 rounded-2xl mb-6 border border-green-100">
+                <div className="flex items-center justify-between bg-emerald-50 p-4 rounded-2xl mb-6 border border-emerald-100">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 rounded-full text-green-600">
+                    <div className="p-2 bg-emerald-100 rounded-full text-emerald-600">
                       <Wallet size={20} />
                     </div>
                     <div>
-                      <p className="text-xs text-green-800 font-medium">Available Balance</p>
-                      <p className="text-sm font-bold text-green-900">₦ {user?.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                      <p className="text-xs text-emerald-800 font-medium">Available Balance</p>
+                      <p className="text-sm font-bold text-emerald-900">₦ {user?.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                     </div>
                   </div>
                 </div>
@@ -189,10 +189,10 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                         maxLength={11}
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className={`w-full pl-11 pr-12 py-4 bg-gray-50 border-2 rounded-xl text-lg text-gray-900 font-bold focus:outline-none transition-all tracking-wide ${detectedNetwork ? detectedNetwork.border : 'border-gray-200 focus:border-green-500'
+                        className={`w-full pl-11 pr-12 py-4 bg-gray-50 border-2 rounded-xl text-lg text-gray-900 font-bold focus:outline-none transition-all tracking-wide ${detectedNetwork ? detectedNetwork.border : 'border-gray-200 focus:border-emerald-500'
                           }`}
                       />
-                      <button type="button" className="absolute inset-y-0 right-0 pr-4 flex items-center text-green-600 hover:text-green-700">
+                      <button type="button" className="absolute inset-y-0 right-0 pr-4 flex items-center text-emerald-600 hover:text-emerald-700">
                         <Contact size={20} />
                       </button>
                     </div>
@@ -234,7 +234,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                         min="50"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-xl text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                        className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-xl text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                       />
                     </div>
 
@@ -245,7 +245,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                           key={amt}
                           type="button"
                           onClick={() => setAmount(amt.toString())}
-                          className="flex-1 py-2 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-green-50 hover:text-green-600 transition-colors"
+                          className="flex-1 py-2 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                         >
                           ₦{amt}
                         </button>
@@ -255,9 +255,9 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
 
                   {/* Discount Banner (Tier-Aware) */}
                   {Number(amount) > 0 && isReseller && (
-                    <div className="flex justify-between items-center px-4 py-3 bg-green-50 rounded-xl border border-green-100">
-                      <span className="text-xs text-green-800 font-medium">Reseller Discount (4%)</span>
-                      <span className="text-sm font-bold text-green-700">- ₦{(Number(amount) * discountRate).toFixed(2)}</span>
+                    <div className="flex justify-between items-center px-4 py-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                      <span className="text-xs text-emerald-800 font-medium">Reseller Discount (4%)</span>
+                      <span className="text-sm font-bold text-emerald-700">- ₦{(Number(amount) * discountRate).toFixed(2)}</span>
                     </div>
                   )}
                   {Number(amount) > 0 && !isReseller && (
@@ -272,7 +272,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                     <button
                       type="submit"
                       disabled={phone.length < 11 || !amount || !detectedNetwork}
-                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-between items-center px-6"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-between items-center px-6"
                     >
                       <span>Pay</span>
                       <span>₦{amountToPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
@@ -287,7 +287,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
         {/* STEP 2: PIN VERIFICATION */}
         {step === 'pin' && (
           <div className="p-6 flex flex-col items-center animate-in slide-in-from-bottom-8 duration-300">
-            <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-6">
+            <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-6">
               <Lock size={32} />
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Confirm Recharge</h2>
@@ -305,7 +305,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
             <button
               onClick={handlePinSubmit}
               disabled={isProcessing || transactionPin.join('').length !== 4}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
             >
               {isProcessing ? (
                 <><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...</>
@@ -319,8 +319,8 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
         {/* STEP 3: SUCCESS */}
         {step === 'success' && (
           <div className="p-6 flex flex-col items-center animate-in zoom-in-95 duration-500 pt-12">
-            <div className="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6 relative">
-              <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-green-400 opacity-20"></span>
+            <div className="w-24 h-24 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-6 relative">
+              <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
               <CheckCircle2 size={48} />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Recharge Successful!</h2>
@@ -335,7 +335,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Amount Charged</span>
-                <span className="font-bold text-green-600">₦{amountToPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <span className="font-bold text-emerald-600">₦{amountToPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
                 <span className="text-gray-500">New Balance</span>

@@ -27,8 +27,8 @@ export default function Notifications({ onBack }: NotificationsProps) {
       time: '10 mins ago',
       isRead: false,
       icon: Wallet,
-      color: 'text-green-600',
-      bg: 'bg-green-100'
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-100'
     },
     {
       id: 2,
@@ -142,7 +142,7 @@ export default function Notifications({ onBack }: NotificationsProps) {
           <div className="px-5 py-3 bg-gray-50 flex justify-end border-b border-gray-100">
             <button 
               onClick={markAllAsRead}
-              className="text-xs font-bold text-green-600 hover:text-green-700 flex items-center gap-1"
+              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
             >
               <CheckCheck size={14} /> Mark all as read
             </button>

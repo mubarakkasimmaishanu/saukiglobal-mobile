@@ -289,7 +289,7 @@ export default function JambServices({ onBack }: JambServicesProps) {
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Upload Document</label>
                   
-                  <div className={`relative border-2 border-dashed rounded-2xl p-6 text-center transition-all ${uploadedFile ? 'border-green-400 bg-green-50' : 'border-gray-300 bg-gray-50 hover:bg-purple-50 hover:border-purple-300'}`}>
+                  <div className={`relative border-2 border-dashed rounded-2xl p-6 text-center transition-all ${uploadedFile ? 'border-emerald-400 bg-emerald-50' : 'border-gray-300 bg-gray-50 hover:bg-purple-50 hover:border-purple-300'}`}>
                     <input 
                       type="file" 
                       accept="image/*,.pdf"
@@ -299,9 +299,9 @@ export default function JambServices({ onBack }: JambServicesProps) {
                     
                     {uploadedFile ? (
                       <div className="flex flex-col items-center">
-                        <FileImage size={32} className="text-green-500 mb-2" />
-                        <p className="text-sm font-bold text-green-700 mb-1">File Attached</p>
-                        <p className="text-xs text-green-600 truncate max-w-[200px]">{uploadedFile}</p>
+                        <FileImage size={32} className="text-emerald-500 mb-2" />
+                        <p className="text-sm font-bold text-emerald-700 mb-1">File Attached</p>
+                        <p className="text-xs text-emerald-600 truncate max-w-[200px]">{uploadedFile}</p>
                         <p className="text-[10px] text-gray-500 mt-2 underline">Tap to change file</p>
                       </div>
                     ) : (

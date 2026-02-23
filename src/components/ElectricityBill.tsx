@@ -291,7 +291,7 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
         {/* STEP 4: SUCCESS / TOKEN RECEIPT */}
         {step === 'success' && (
           <div className="p-6 flex flex-col items-center animate-in zoom-in-95 duration-500">
-            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 size={32} />
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-1">Payment Successful!</h2>
@@ -319,7 +319,7 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] text-gray-400 uppercase">Units</p>
-                    <p className="text-sm font-bold text-green-400">142.5 kWh</p>
+                    <p className="text-sm font-bold text-emerald-400">142.5 kWh</p>
                   </div>
                 </div>
               </div>

@@ -36,7 +36,7 @@ export default function CableTV({ onBack }: CableTVProps) {
   // Nigerian Cable Providers
   const providers = [
     { id: 'dstv', name: 'DSTV', color: 'bg-blue-500' },
-    { id: 'gotv', name: 'GOTV', color: 'bg-green-500' },
+    { id: 'gotv', name: 'GOTV', color: 'bg-emerald-500' },
     { id: 'startimes', name: 'Startimes', color: 'bg-orange-500' },
     { id: 'showmax', name: 'Showmax', color: 'bg-pink-500' }
   ];
@@ -303,8 +303,8 @@ export default function CableTV({ onBack }: CableTVProps) {
         {/* STEP 4: SUCCESS / RECEIPT */}
         {step === 'success' && customerDetails && (
           <div className="p-6 flex flex-col items-center animate-in zoom-in-95 duration-500 pt-8">
-            <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4 relative">
-              <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-green-400 opacity-20"></span>
+            <div className="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-4 relative">
+              <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
               <CheckCircle2 size={40} />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Recharge Successful!</h2>
