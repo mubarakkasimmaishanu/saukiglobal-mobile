@@ -413,12 +413,14 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
           <div className="flex flex-col md:flex-row items-center gap-12 bg-white rounded-[3rem] p-10 md:p-16 shadow-xl border border-slate-100">
             <div className="md:w-1/3 flex flex-col items-center">
               <div className="w-48 h-48 bg-emerald-100 rounded-full flex items-center justify-center mb-6 overflow-hidden border-4 border-white shadow-lg">
-                <div className="w-full h-full bg-emerald-600 flex items-center justify-center text-white text-6xl font-black">
-                  M
-                </div>
+                <img
+                  src="/images/mubarak.jpg"
+                  alt="Mubarak Kasim Maishanu - CEO & Founder of BuyDigital"
+                  className="w-full h-full object-cover object-top"
+                />
               </div>
               <div className="text-center">
-                <h4 className="text-2xl font-black text-slate-900">Mubarak Olawale</h4>
+                <h4 className="text-2xl font-black text-slate-900">Mubarak Kasim Maishanu</h4>
                 <p className="text-emerald-600 font-bold text-sm tracking-widest uppercase mt-1">CEO & Founder</p>
               </div>
             </div>
