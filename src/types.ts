@@ -1,4 +1,5 @@
 export type Network = 'mtn' | 'airtel' | 'glo' | '9mobile';
+export type AccountTier = 'basic' | 'reseller';
 
 export interface User {
   id: string;
@@ -9,6 +10,11 @@ export interface User {
   balance: number;
   referralCode: string;
   isReseller: boolean;
+  // Commission & Tier fields
+  commissionBalance?: number;
+  totalEarnings?: number;
+  totalReferrals?: number;
+  upgradeDate?: string;
 }
 
 export interface Transaction {
@@ -20,6 +26,7 @@ export interface Transaction {
   details: string;
   recipient?: string;
   network?: string;
+  profit?: number; // Reseller profit margin
 }
 
 export interface DataPlan {
@@ -38,4 +45,18 @@ export interface ServiceRequest {
   status: 'Pending' | 'Processing' | 'Completed' | 'Error';
   price: number;
   details: string;
+}
+
+// Tier comparison types for landing/upgrade pages
+export interface TierFeature {
+  name: string;
+  basic: string | boolean;
+  reseller: string | boolean;
+}
+
+export interface TierPricing {
+  service: string;
+  basic: string;
+  reseller: string;
+  savings: string;
 }

@@ -1,15 +1,19 @@
 import { User, Transaction, ServiceRequest } from '../types';
 
-// This service is designed to be easily replaced with real API calls (fetch/axios)
-// For now, it uses localStorage to persist state for a "100% ready" frontend experience.
+// Configuration for Backend Integration
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || !BASE_URL;
 
 const STORAGE_KEY = 'buydigital_data';
+const TOKEN_KEY = 'buydigital_token';
 
 interface AppState {
   user: User | null;
   transactions: Transaction[];
   requests: ServiceRequest[];
 }
+
+// --- MOCK LOGIC (For development without backend) ---
 
 const initialState: AppState = {
   user: {
@@ -43,97 +47,167 @@ const saveState = (state: AppState) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 };
 
+// --- REAL BACKEND LOGIC (Fetch Wrapper) ---
+
+async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
+
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || data.error || 'Something went wrong');
+  }
+
+  return data as T;
+}
+
+// --- API EXPORTS (Unified Interface) ---
+
 export const api = {
   // Auth
   login: async (email: string, pass: string): Promise<User> => {
-    await new Promise(r => setTimeout(r, 1000));
-    const state = getState();
-    if (!state.user) throw new Error('User not found');
-    return state.user;
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 1000));
+      const state = getState();
+      if (!state.user) throw new Error('User not found');
+      return state.user;
+    }
+
+    const response = await request<{ user: User, token: string }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password: pass }),
+    });
+
+    localStorage.setItem(TOKEN_KEY, response.token);
+    return response.user;
   },
 
   signup: async (userData: Partial<User>): Promise<User> => {
-    await new Promise(r => setTimeout(r, 1500));
-    const newUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      firstName: userData.firstName || '',
-      lastName: userData.lastName || '',
-      email: userData.email || '',
-      phone: userData.phone || '',
-      balance: 0,
-      referralCode: 'NEWUSER' + Math.floor(Math.random() * 1000),
-      isReseller: false,
-      ...userData
-    };
-    const state = getState();
-    state.user = newUser;
-    saveState(state);
-    return newUser;
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 1500));
+      const newUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        balance: 0,
+        referralCode: 'NEWUSER' + Math.floor(Math.random() * 1000),
+        isReseller: false,
+        ...userData
+      };
+      const state = getState();
+      state.user = newUser;
+      saveState(state);
+      return newUser;
+    }
+
+    const response = await request<{ user: User, token: string }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+
+    localStorage.setItem(TOKEN_KEY, response.token);
+    return response.user;
   },
 
   // User
   getUser: async (): Promise<User | null> => {
-    return getState().user;
+    if (USE_MOCK) return getState().user;
+    return request<User>('/user/profile');
   },
 
   updateBalance: async (amount: number): Promise<number> => {
-    const state = getState();
-    if (state.user) {
-      state.user.balance += amount;
-      saveState(state);
-      return state.user.balance;
+    if (USE_MOCK) {
+      const state = getState();
+      if (state.user) {
+        state.user.balance += amount;
+        saveState(state);
+        return state.user.balance;
+      }
+      return 0;
     }
-    return 0;
+
+    const res = await request<{ balance: number }>('/user/balance', {
+      method: 'PATCH',
+      body: JSON.stringify({ amount }),
+    });
+    return res.balance;
   },
 
   // Transactions
   getTransactions: async (): Promise<Transaction[]> => {
-    return getState().transactions;
+    if (USE_MOCK) return getState().transactions;
+    return request<Transaction[]>('/transactions');
   },
 
   addTransaction: async (tx: Omit<Transaction, 'id' | 'date'>): Promise<Transaction> => {
-    await new Promise(r => setTimeout(r, 1000));
-    const state = getState();
-    const newTx: Transaction = {
-      ...tx,
-      id: 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-      date: new Date().toLocaleString(),
-    };
-    state.transactions = [newTx, ...state.transactions];
-    
-    // Deduct from balance if it's a payment
-    if (state.user && tx.type !== 'Funding') {
-      state.user.balance -= tx.amount;
-    } else if (state.user && tx.type === 'Funding') {
-      state.user.balance += tx.amount;
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 1000));
+      const state = getState();
+      const newTx: Transaction = {
+        ...tx,
+        id: 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+        date: new Date().toLocaleString(),
+      };
+      state.transactions = [newTx, ...state.transactions];
+
+      if (state.user && tx.type !== 'Funding') {
+        state.user.balance -= tx.amount;
+      } else if (state.user && tx.type === 'Funding') {
+        state.user.balance += tx.amount;
+      }
+
+      saveState(state);
+      return newTx;
     }
-    
-    saveState(state);
-    return newTx;
+
+    return request<Transaction>('/transactions', {
+      method: 'POST',
+      body: JSON.stringify(tx),
+    });
   },
 
-  // Requests
+  // Requests (JAMB, NIN, etc.)
   getRequests: async (): Promise<ServiceRequest[]> => {
-    return getState().requests;
+    if (USE_MOCK) return getState().requests;
+    return request<ServiceRequest[]>('/requests');
   },
 
   addRequest: async (req: Omit<ServiceRequest, 'id' | 'date' | 'status'>): Promise<ServiceRequest> => {
-    await new Promise(r => setTimeout(r, 1000));
-    const state = getState();
-    const newReq: ServiceRequest = {
-      ...req,
-      id: 'REQ-' + Math.floor(100000 + Math.random() * 900000),
-      date: new Date().toLocaleString(),
-      status: 'Pending'
-    };
-    state.requests = [newReq, ...state.requests];
-    
-    // Deduct from balance
-    if (state.user) {
-      state.user.balance -= req.price;
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 1000));
+      const state = getState();
+      const newReq: ServiceRequest = {
+        ...req,
+        id: 'REQ-' + Math.floor(100000 + Math.random() * 900000),
+        date: new Date().toLocaleString(),
+        status: 'Pending'
+      };
+      state.requests = [newReq, ...state.requests];
+
+      if (state.user) {
+        state.user.balance -= req.price;
+      }
+
+      saveState(state);
+      return newReq;
     }
-    
-    saveState(state);
-    return newReq;
+
+    return request<ServiceRequest>('/requests', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
   }
 };
+

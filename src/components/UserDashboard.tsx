@@ -187,23 +187,47 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             </div>
           </div>
 
-          {/* Reseller Upsell Banner */}
-          <div
-            onClick={() => onNavigate('referral')}
-            className="bg-slate-900 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-lg relative overflow-hidden group cursor-pointer"
-          >
-            <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-500/20 rounded-full blur-xl group-hover:bg-emerald-500/30 transition-all"></div>
-            <div className="relative z-10 flex items-center gap-4">
-              <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                <TrendingUp size={20} className="text-emerald-400" />
+          {/* Tier-Aware Banner */}
+          {!user.isReseller ? (
+            /* BASIC USER: Upgrade CTA */
+            <div
+              onClick={() => onNavigate('upgrade')}
+              className="bg-slate-900 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-lg relative overflow-hidden group cursor-pointer"
+            >
+              <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-500/20 rounded-full blur-xl group-hover:bg-emerald-500/30 transition-all"></div>
+              <div className="relative z-10 flex items-center gap-4">
+                <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                  <TrendingUp size={20} className="text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mb-0.5">Save More Money</p>
+                  <p className="text-sm font-bold text-white">Upgrade to Reseller Pro — ₦2,000</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mb-0.5">Earn More</p>
-                <p className="text-sm font-bold text-white">Upgrade to Reseller Pro</p>
+              <ArrowUpRight size={20} className="text-slate-400 group-hover:text-white transition-colors relative z-10" />
+            </div>
+          ) : (
+            /* RESELLER USER: Earnings Summary */
+            <div
+              onClick={() => onNavigate('referral')}
+              className="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-lg relative overflow-hidden group cursor-pointer"
+            >
+              <div className="absolute right-0 top-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+              <div className="relative z-10 flex items-center gap-4">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <TrendingUp size={20} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-emerald-100 font-bold tracking-widest uppercase mb-0.5">Today's Commission</p>
+                  <p className="text-lg font-black text-white">₦{(user.commissionBalance || 0).toLocaleString()}</p>
+                </div>
+              </div>
+              <div className="relative z-10 text-right">
+                <p className="text-[10px] text-emerald-100 font-bold uppercase tracking-wider">Referrals</p>
+                <p className="text-lg font-black text-white">{user.totalReferrals || 0}</p>
               </div>
             </div>
-            <ArrowUpRight size={20} className="text-slate-400 group-hover:text-white transition-colors relative z-10" />
-          </div>
+          )}
 
           {/* Recent Transactions List */}
           <div className="mb-4">
