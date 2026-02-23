@@ -24,7 +24,10 @@ const initialState: AppState = {
     phone: '08123456789',
     balance: 12500,
     referralCode: 'BUYDIGI99',
-    isReseller: true
+    isReseller: false,
+    commissionBalance: 0,
+    totalEarnings: 0,
+    totalReferrals: 0
   },
   transactions: [
     { id: '1', type: 'Data', amount: 2500, status: 'Success', date: '2024-02-22 09:12 AM', details: 'MTN 10GB SME Data', recipient: '08031234567' },
@@ -207,6 +210,43 @@ export const api = {
     return request<ServiceRequest>('/requests', {
       method: 'POST',
       body: JSON.stringify(req),
+    });
+  },
+
+  // Upgrade to Reseller
+  upgradeToReseller: async (): Promise<User> => {
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 1500));
+      const state = getState();
+      if (!state.user) throw new Error('User not found');
+      if (state.user.isReseller) throw new Error('Already a reseller');
+      if (state.user.balance < 2000) throw new Error('Insufficient balance. You need at least ₦2,000.');
+
+      // Deduct upgrade fee
+      state.user.balance -= 2000;
+      state.user.isReseller = true;
+      state.user.commissionBalance = 0;
+      state.user.totalEarnings = 0;
+      state.user.totalReferrals = 0;
+      state.user.upgradeDate = new Date().toISOString();
+
+      // Add upgrade transaction
+      const upgradeTx: Transaction = {
+        id: 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+        type: 'Funding',
+        amount: -2000,
+        status: 'Success',
+        date: new Date().toLocaleString(),
+        details: 'Reseller Pro Upgrade — Lifetime Access'
+      };
+      state.transactions = [upgradeTx, ...state.transactions];
+
+      saveState(state);
+      return state.user;
+    }
+
+    return request<User>('/user/upgrade', {
+      method: 'POST',
     });
   }
 };
