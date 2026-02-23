@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Wallet, 
-  Phone, 
+import {
+  Wallet,
+  Phone,
   Contact,
-  CheckCircle2, 
-  Lock, 
+  CheckCircle2,
+  Lock,
   RefreshCcw,
   AlertCircle,
   ChevronLeft
@@ -21,7 +21,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
   const { user, refreshUser } = useUser();
   const [activeTab, setActiveTab] = useState('vtu'); // 'vtu' or 'a2c'
   const [step, setStep] = useState('form'); // 'form', 'pin', 'success'
-  
+
   const [phone, setPhone] = useState('');
   const [amount, setAmount] = useState('');
   const [detectedNetwork, setDetectedNetwork] = useState<any>(null);
@@ -55,8 +55,9 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
     }
   }, [phone]);
 
-  // Calculate discount (e.g., Resellers get 2% discount on Airtime)
-  const discountRate = 0.02;
+  // Calculate discount: Resellers get 4%, Basic gets 0%
+  const isReseller = user?.isReseller ?? false;
+  const discountRate = isReseller ? 0.04 : 0;
   const numAmount = Number(amount) || 0;
   const amountToPay = numAmount - (numAmount * discountRate);
 
@@ -73,7 +74,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
   const handlePinSubmit = async () => {
     if (transactionPin.join('').length !== 4) return;
     setIsProcessing(true);
-    
+
     try {
       await api.addTransaction({
         type: 'Airtime',
@@ -95,10 +96,10 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
   return (
     <div className="min-h-screen bg-gray-50 font-sans md:py-8">
       <div className="max-w-md mx-auto bg-white min-h-screen md:min-h-[auto] md:rounded-3xl md:shadow-xl overflow-hidden relative">
-        
+
         {/* Header */}
         <header className="px-5 pt-6 pb-4 bg-white sticky top-0 z-20 flex items-center border-b border-gray-100">
-          <button 
+          <button
             onClick={() => {
               if (step === 'success') { setStep('form'); setPhone(''); setAmount(''); }
               else if (step === 'pin') setStep('form');
@@ -114,23 +115,21 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
         {/* STEP 1: FILL DETAILS */}
         {step === 'form' && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-            
+
             {/* Tabs */}
             <div className="px-5 pt-4 pb-2">
               <div className="flex p-1 bg-gray-100 rounded-xl">
                 <button
                   onClick={() => setActiveTab('vtu')}
-                  className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${
-                    activeTab === 'vtu' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'vtu' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                    }`}
                 >
                   Buy Airtime
                 </button>
                 <button
                   onClick={() => setActiveTab('a2c')}
-                  className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
-                    activeTab === 'a2c' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${activeTab === 'a2c' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                    }`}
                 >
                   <RefreshCcw size={14} /> Airtime 2 Cash
                 </button>
@@ -146,7 +145,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                 <p className="text-sm text-gray-500 leading-relaxed max-w-[250px]">
                   Convert your excess airtime back to cash in your wallet at the best rates. Stay tuned!
                 </p>
-                <button 
+                <button
                   onClick={() => setActiveTab('vtu')}
                   className="mt-6 text-sm font-bold text-green-600 bg-green-50 px-6 py-3 rounded-full"
                 >
@@ -163,13 +162,13 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                     </div>
                     <div>
                       <p className="text-xs text-green-800 font-medium">Available Balance</p>
-                      <p className="text-sm font-bold text-green-900">₦ {user?.balance.toLocaleString('en-US', {minimumFractionDigits: 2})}</p>
+                      <p className="text-sm font-bold text-green-900">₦ {user?.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                     </div>
                   </div>
                 </div>
 
                 <form onSubmit={handleProcessPayment} className="space-y-6">
-                  
+
                   {/* Phone Number Input with Auto-Detect */}
                   <div>
                     <div className="flex justify-between items-end mb-2">
@@ -184,15 +183,14 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <Phone size={18} className="text-gray-400" />
                       </div>
-                      <input 
-                        type="tel" 
+                      <input
+                        type="tel"
                         placeholder="0801 234 5678"
                         maxLength={11}
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className={`w-full pl-11 pr-12 py-4 bg-gray-50 border-2 rounded-xl text-lg text-gray-900 font-bold focus:outline-none transition-all tracking-wide ${
-                          detectedNetwork ? detectedNetwork.border : 'border-gray-200 focus:border-green-500'
-                        }`}
+                        className={`w-full pl-11 pr-12 py-4 bg-gray-50 border-2 rounded-xl text-lg text-gray-900 font-bold focus:outline-none transition-all tracking-wide ${detectedNetwork ? detectedNetwork.border : 'border-gray-200 focus:border-green-500'
+                          }`}
                       />
                       <button type="button" className="absolute inset-y-0 right-0 pr-4 flex items-center text-green-600 hover:text-green-700">
                         <Contact size={20} />
@@ -207,14 +205,14 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                       <p className="text-xs text-red-700 font-medium">Unrecognized prefix. Please select network manually below.</p>
                     </div>
                   )}
-                  
+
                   {!detectedNetwork && (
                     <div className="grid grid-cols-4 gap-2">
                       {Object.entries(networks).map(([key, net]) => (
                         <button
                           key={key}
                           type="button"
-                          onClick={() => setDetectedNetwork({id: key, ...net})}
+                          onClick={() => setDetectedNetwork({ id: key, ...net })}
                           className={`py-2 rounded-lg text-xs font-bold border ${net.color} bg-opacity-10 text-gray-700 border-gray-200 hover:border-gray-300`}
                         >
                           {net.name}
@@ -230,8 +228,8 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <span className="text-gray-500 font-bold text-lg">₦</span>
                       </div>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         placeholder="0.00"
                         min="50"
                         value={amount}
@@ -239,7 +237,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                         className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-xl text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
                       />
                     </div>
-                    
+
                     {/* Quick Amounts */}
                     <div className="flex gap-2">
                       {quickAmounts.map(amt => (
@@ -255,23 +253,29 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                     </div>
                   </div>
 
-                  {/* Discount Banner (Reseller Incentive) */}
-                  {Number(amount) > 0 && (
+                  {/* Discount Banner (Tier-Aware) */}
+                  {Number(amount) > 0 && isReseller && (
                     <div className="flex justify-between items-center px-4 py-3 bg-green-50 rounded-xl border border-green-100">
-                      <span className="text-xs text-green-800 font-medium">Reseller Discount (2%)</span>
+                      <span className="text-xs text-green-800 font-medium">Reseller Discount (4%)</span>
                       <span className="text-sm font-bold text-green-700">- ₦{(Number(amount) * discountRate).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {Number(amount) > 0 && !isReseller && (
+                    <div className="flex justify-between items-center px-4 py-3 bg-amber-50 rounded-xl border border-amber-100">
+                      <span className="text-xs text-amber-800 font-medium">Upgrade to Reseller for 4% discount</span>
+                      <span className="text-sm font-bold text-amber-600">Save ₦{(Number(amount) * 0.04).toFixed(0)}</span>
                     </div>
                   )}
 
                   {/* Action Button */}
                   <div className="pt-4">
-                    <button 
+                    <button
                       type="submit"
                       disabled={phone.length < 11 || !amount || !detectedNetwork}
                       className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-between items-center px-6"
                     >
                       <span>Pay</span>
-                      <span>₦{amountToPay.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                      <span>₦{amountToPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </button>
                   </div>
                 </form>
@@ -291,14 +295,14 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
               Sending <strong className="text-gray-800">₦{amount} {detectedNetwork.name}</strong> to <strong className="text-gray-800">{phone}</strong>.
             </p>
 
-            <PinInput 
-              pin={transactionPin} 
-              setPin={setTransactionPin} 
+            <PinInput
+              pin={transactionPin}
+              setPin={setTransactionPin}
               onComplete={handlePinSubmit}
               disabled={isProcessing}
             />
 
-            <button 
+            <button
               onClick={handlePinSubmit}
               disabled={isProcessing || transactionPin.join('').length !== 4}
               className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
@@ -331,16 +335,16 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Amount Charged</span>
-                <span className="font-bold text-green-600">₦{amountToPay.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span className="font-bold text-green-600">₦{amountToPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
                 <span className="text-gray-500">New Balance</span>
-                <span className="font-bold text-gray-900">₦{user?.balance.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span className="font-bold text-gray-900">₦{user?.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
 
-            <button 
-              onClick={() => { setStep('form'); setPhone(''); setAmount(''); setTransactionPin(['','','','']); }}
+            <button
+              onClick={() => { setStep('form'); setPhone(''); setAmount(''); setTransactionPin(['', '', '', '']); }}
               className="w-full bg-gray-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-md transition-all mb-3"
             >
               Done

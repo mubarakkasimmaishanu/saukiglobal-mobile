@@ -70,17 +70,11 @@ export default function UpgradeToReseller({ onBack, onSuccess }: UpgradeToResell
 
         setIsProcessing(true);
         try {
-            // Deduct upgrade fee and mark as reseller
-            await api.addTransaction({
-                type: 'Funding',
-                amount: -UPGRADE_FEE,
-                status: 'Success',
-                details: 'Reseller Account Upgrade',
-            });
+            await api.upgradeToReseller();
             await refreshUser();
             setStep('success');
-        } catch (err) {
-            alert('Upgrade failed. Please try again.');
+        } catch (err: any) {
+            alert(err.message || 'Upgrade failed. Please try again.');
         } finally {
             setIsProcessing(false);
         }

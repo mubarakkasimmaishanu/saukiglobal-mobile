@@ -59,6 +59,7 @@ export default function App() {
           onViewPricing={() => navigateTo('pricing')}
           onViewSupport={() => navigateTo('support')}
           onViewReferrals={() => navigateTo('referral')}
+          onUpgrade={() => navigateTo('upgrade')}
         />
       )}
 

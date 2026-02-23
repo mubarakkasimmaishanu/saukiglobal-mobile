@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ArrowLeft, 
-  Filter, 
-  Download, 
-  Share2, 
-  Smartphone, 
-  Wifi, 
-  GraduationCap, 
-  Landmark, 
+import {
+  ArrowLeft,
+  Filter,
+  Download,
+  Share2,
+  Smartphone,
+  Wifi,
+  GraduationCap,
+  Landmark,
   X,
   CheckCircle2,
   XCircle,
@@ -22,12 +22,14 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Transaction } from '../types';
+import { useUser } from '../context/UserContext';
 
 interface TransactionHistoryProps {
   onBack: () => void;
 }
 
 export default function TransactionHistory({ onBack }: TransactionHistoryProps) {
+  const { user } = useUser();
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'in', 'out'
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -83,13 +85,13 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
   };
 
   const getStatusBadge = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'Success':
-        return <span className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full"><CheckCircle2 size={12}/> Successful</span>;
+        return <span className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full"><CheckCircle2 size={12} /> Successful</span>;
       case 'Failed':
-        return <span className="flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full"><XCircle size={12}/> Failed</span>;
+        return <span className="flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full"><XCircle size={12} /> Failed</span>;
       case 'Pending':
-        return <span className="flex items-center gap-1 text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-1 rounded-full"><Clock size={12}/> Pending</span>;
+        return <span className="flex items-center gap-1 text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-1 rounded-full"><Clock size={12} /> Pending</span>;
       default:
         return null;
     }
@@ -98,11 +100,11 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
   return (
     <div className="min-h-screen bg-gray-50 font-sans md:py-8 relative">
       <div className="max-w-md mx-auto bg-white min-h-screen md:min-h-[auto] md:rounded-3xl md:shadow-xl overflow-hidden relative">
-        
+
         {/* Header */}
         <header className="px-5 pt-6 pb-4 bg-white sticky top-0 z-20 flex justify-between items-center border-b border-gray-100">
           <div className="flex items-center">
-            <button 
+            <button
               onClick={onBack}
               className="p-2 -ml-2 hover:bg-gray-50 rounded-full transition-colors"
             >
@@ -120,25 +122,22 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
           <div className="flex p-1 bg-gray-100 rounded-xl">
             <button
               onClick={() => setActiveTab('all')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
             >
               All
             </button>
             <button
               onClick={() => setActiveTab('in')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'in' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'in' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
             >
               Money In
             </button>
             <button
               onClick={() => setActiveTab('out')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'out' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'out' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
             >
               Money Out
             </button>
@@ -156,7 +155,7 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
               {filteredTransactions.map((tx) => {
                 const Icon = getIconForType(tx.type);
                 return (
-                  <button 
+                  <button
                     key={tx.id}
                     onClick={() => setSelectedTx(tx)}
                     className="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between hover:border-green-200 transition-colors shadow-sm active:bg-gray-50 text-left"
@@ -174,6 +173,11 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
                       <span className={`text-sm font-bold ${tx.type === 'Funding' ? 'text-green-600' : 'text-gray-900'}`}>
                         {tx.type === 'Funding' ? '+' : '-'} ₦{tx.amount.toLocaleString()}
                       </span>
+                      {tx.profit && tx.profit > 0 && user?.isReseller && (
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                          +₦{tx.profit} profit
+                        </span>
+                      )}
                       {getStatusBadge(tx.status)}
                     </div>
                   </button>
@@ -187,11 +191,11 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
         {selectedTx && (
           <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white w-full max-w-md rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl animate-in slide-in-from-bottom-full md:slide-in-from-bottom-0 md:zoom-in-95 duration-300">
-              
+
               {/* Receipt Header */}
               <div className="bg-gray-50 p-5 flex justify-between items-center border-b border-gray-100">
                 <h2 className="font-bold text-gray-800">Transaction Receipt</h2>
-                <button 
+                <button
                   onClick={() => setSelectedTx(null)}
                   className="p-1.5 bg-gray-200 text-gray-600 rounded-full hover:bg-gray-300 transition-colors"
                 >
@@ -223,7 +227,7 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
                     <span className="text-xs text-gray-500 font-medium">Recipient/Details</span>
                     <span className="text-sm font-bold text-gray-900 text-right max-w-[60%]">{selectedTx.details}</span>
                   </div>
-                  
+
                   <div className="flex justify-between items-start">
                     <span className="text-xs text-gray-500 font-medium">Date & Time</span>
                     <span className="text-sm font-bold text-gray-900 text-right">{selectedTx.date}</span>
@@ -232,10 +236,16 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
                     <span className="text-xs text-gray-500 font-medium">Reference ID</span>
                     <span className="text-xs font-mono font-bold text-gray-600 text-right">{selectedTx.id}</span>
                   </div>
-                  
+
                   {selectedTx.note && (
                     <div className="pt-3 border-t border-gray-200">
                       <p className="text-xs text-red-600 font-medium">{selectedTx.note}</p>
+                    </div>
+                  )}
+                  {selectedTx.profit && selectedTx.profit > 0 && user?.isReseller && (
+                    <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
+                      <span className="text-xs text-emerald-600 font-bold">Reseller Profit</span>
+                      <span className="text-sm font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg">+₦{selectedTx.profit}</span>
                     </div>
                   )}
                 </div>
@@ -252,7 +262,7 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
                   </button>
                 </div>
 
-                <button 
+                <button
                   onClick={() => setSelectedTx(null)}
                   className="w-full mt-3 py-3 text-sm font-bold text-gray-500 hover:text-gray-800"
                 >
