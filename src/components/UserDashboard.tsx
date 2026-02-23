@@ -60,7 +60,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
 
   const getIconBgForType = (type: string) => {
     switch (type) {
-      case 'Airtime': return 'bg-green-100 text-green-600';
+      case 'Airtime': return 'bg-emerald-100 text-emerald-600';
       case 'Data': return 'bg-yellow-100 text-yellow-600';
       case 'Transfer': return 'bg-blue-100 text-blue-600';
       case 'Electricity': return 'bg-orange-100 text-orange-600';
@@ -91,7 +91,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
         <header className="px-5 pt-6 pb-2 sticky top-0 bg-gray-50/90 backdrop-blur-md z-30 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-11 h-11 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm border-2 border-white">
+              <div className="w-11 h-11 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm border-2 border-white">
                 {user?.firstName?.charAt(0) || 'U'}
               </div>
             </div>
@@ -112,14 +112,14 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
         <main className="px-5 pt-4">
 
           {/* Main Wallet Card */}
-          <div className="bg-gradient-to-br from-green-600 to-emerald-800 rounded-[1.5rem] p-6 text-white shadow-xl shadow-green-200 mb-6 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-[1.5rem] p-6 text-white shadow-xl shadow-emerald-200 mb-6 relative overflow-hidden">
             {/* Decorative background shapes */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10 blur-xl"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-black opacity-10 rounded-full -ml-8 -mb-8 blur-lg"></div>
 
             <div className="relative z-10">
               <div className="flex justify-between items-center mb-1">
-                <p className="text-green-100 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <p className="text-emerald-100 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                   Available Balance
                   <button onClick={() => setShowBalance(!showBalance)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
                     {showBalance ? <Eye size={14} /> : <EyeOff size={14} />}
@@ -137,13 +137,13 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               <div className="flex gap-3">
                 <button
                   onClick={() => onNavigate('fund')}
-                  className="flex-1 bg-white text-green-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-colors active:scale-95"
+                  className="flex-1 bg-white text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-colors active:scale-95"
                 >
                   <PlusCircle size={18} /> Fund Wallet
                 </button>
                 <button
                   onClick={() => onNavigate('transfer')}
-                  className="flex-1 bg-green-700/50 backdrop-blur-md border border-green-500/50 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700/70 transition-colors active:scale-95"
+                  className="flex-1 bg-emerald-700/50 backdrop-blur-md border border-emerald-500/50 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700/70 transition-colors active:scale-95"
                 >
                   <Send size={18} /> Transfer
                 </button>
@@ -156,32 +156,32 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             <h3 className="text-sm font-bold text-gray-900 mb-4 px-1">Quick Services</h3>
             <div className="grid grid-cols-4 gap-y-6 gap-x-2">
               <div onClick={() => onNavigate('data')}>
-                <ServiceIcon icon={Wifi} title="Buy Data" bg="bg-blue-50" color="text-blue-600" />
+                <ServiceIcon icon={Wifi} title="Buy Data" bg="bg-emerald-50" color="text-emerald-600" />
               </div>
               <div onClick={() => onNavigate('airtime')}>
-                <ServiceIcon icon={Smartphone} title="Airtime" bg="bg-green-50" color="text-green-600" />
+                <ServiceIcon icon={Smartphone} title="Airtime" bg="bg-emerald-50" color="text-emerald-600" />
               </div>
               <div onClick={() => onNavigate('jamb-pins')}>
-                <ServiceIcon icon={GraduationCap} title="JAMB Pins" bg="bg-purple-50" color="text-purple-600" />
+                <ServiceIcon icon={GraduationCap} title="JAMB Pins" bg="bg-emerald-50" color="text-emerald-600" />
               </div>
               <div onClick={() => onNavigate('jamb')}>
-                <ServiceIcon icon={FileText} title="JAMB Services" bg="bg-indigo-50" color="text-indigo-600" />
+                <ServiceIcon icon={FileText} title="JAMB Services" bg="bg-emerald-50" color="text-emerald-600" />
               </div>
               <div onClick={() => onNavigate('exams')}>
-                <ServiceIcon icon={BookOpen} title="Result Checkers" bg="bg-indigo-50" color="text-indigo-600" />
+                <ServiceIcon icon={BookOpen} title="Result Checkers" bg="bg-emerald-50" color="text-emerald-600" />
               </div>
 
               <div onClick={() => onNavigate('electricity')}>
-                <ServiceIcon icon={Lightbulb} title="Electricity" bg="bg-orange-50" color="text-orange-600" />
+                <ServiceIcon icon={Lightbulb} title="Electricity" bg="bg-emerald-50" color="text-emerald-600" />
               </div>
               <div onClick={() => onNavigate('cable')}>
-                <ServiceIcon icon={Tv} title="Cable TV" bg="bg-rose-50" color="text-rose-600" />
+                <ServiceIcon icon={Tv} title="Cable TV" bg="bg-emerald-50" color="text-emerald-600" />
               </div>
               <div onClick={() => onNavigate('nin')}>
-                <ServiceIcon icon={FileText} title="Print NIN" bg="bg-teal-50" color="text-teal-600" />
+                <ServiceIcon icon={FileText} title="Print NIN" bg="bg-emerald-100" color="text-emerald-700" />
               </div>
               <div onClick={() => onNavigate('requests')}>
-                <ServiceIcon icon={Clock} title="My Requests" bg="bg-orange-50" color="text-orange-600" />
+                <ServiceIcon icon={Clock} title="My Requests" bg="bg-emerald-50" color="text-emerald-600" />
               </div>
               <ServiceIcon icon={TrendingUp} title="More" bg="bg-gray-100" color="text-gray-600" />
             </div>
@@ -235,7 +235,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               <h3 className="text-sm font-bold text-gray-900">Recent Transactions</h3>
               <button
                 onClick={() => onNavigate('history')}
-                className="text-xs font-bold text-green-600 hover:text-green-700"
+                className="text-xs font-bold text-emerald-600 hover:text-emerald-700"
               >
                 View All
               </button>
@@ -255,7 +255,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
                         <p className="text-xs text-gray-500 truncate max-w-[150px]">{tx.details}</p>
                       </div>
                     </div>
-                    <p className={`text-sm font-black ${tx.type === 'Funding' ? 'text-green-600' : 'text-gray-900'}`}>
+                    <p className={`text-sm font-black ${tx.type === 'Funding' ? 'text-emerald-600' : 'text-gray-900'}`}>
                       {tx.type === 'Funding' ? '+' : '-'}₦{tx.amount.toLocaleString()}
                     </p>
                   </div>
@@ -271,10 +271,10 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             onClick={() => onNavigate('dashboard')}
             className="flex flex-col items-center gap-1 group"
           >
-            <div className={`p-1 rounded-xl ${true ? 'bg-green-50 text-green-600' : 'text-gray-400'}`}>
+            <div className={`p-1 rounded-xl ${true ? 'bg-emerald-50 text-emerald-600' : 'text-gray-400'}`}>
               <Home size={22} className="stroke-[2.5px]" />
             </div>
-            <span className={`text-[10px] font-bold ${true ? 'text-green-600' : 'text-gray-400'}`}>Home</span>
+            <span className={`text-[10px] font-bold ${true ? 'text-emerald-600' : 'text-gray-400'}`}>Home</span>
           </button>
 
           <button

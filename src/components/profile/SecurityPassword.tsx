@@ -48,7 +48,7 @@ export default function SecurityPassword({ onBack }: SecurityPasswordProps) {
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-300">
       <header className="px-5 pt-8 pb-4 sticky top-0 z-20 flex items-center gap-4 bg-gray-50">
-        <button onClick={onBack} className="p-2 -ml-2 text-gray-600 hover:text-green-600 transition-colors">
+        <button onClick={onBack} className="p-2 -ml-2 text-gray-600 hover:text-emerald-600 transition-colors">
           <ChevronLeft size={24} />
         </button>
         <h1 className="text-xl font-bold text-gray-900">Security & Password</h1>
@@ -65,7 +65,7 @@ export default function SecurityPassword({ onBack }: SecurityPasswordProps) {
         <form onSubmit={handleSave} className="space-y-6">
           {message && (
             <div className={`p-4 rounded-2xl flex gap-3 items-center border ${
-              message.type === 'success' ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'
+              message.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-red-50 border-red-100 text-red-700'
             }`}>
               {message.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
               <p className="text-sm font-medium">{message.text}</p>
@@ -84,7 +84,7 @@ export default function SecurityPassword({ onBack }: SecurityPasswordProps) {
                   value={formData.currentPassword}
                   onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
                   required
-                  className="w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                  className="w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                 />
                 <button 
                   type="button"
@@ -109,7 +109,7 @@ export default function SecurityPassword({ onBack }: SecurityPasswordProps) {
                   value={formData.newPassword}
                   onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
                   required
-                  className="w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                  className="w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                 />
                 <button 
                   type="button"
@@ -132,7 +132,7 @@ export default function SecurityPassword({ onBack }: SecurityPasswordProps) {
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                   required
-                  className="w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                  className="w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                 />
                 <button 
                   type="button"
@@ -148,7 +148,7 @@ export default function SecurityPassword({ onBack }: SecurityPasswordProps) {
           <button 
             type="submit"
             disabled={isSaving}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-4 rounded-2xl shadow-md transition-all flex justify-center items-center gap-2"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold py-4 rounded-2xl shadow-md transition-all flex justify-center items-center gap-2"
           >
             {isSaving ? (
               <><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Updating Password...</>

@@ -108,14 +108,14 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
             
             <div className="p-5">
               {/* Wallet Balance Snippet */}
-              <div className="flex items-center justify-between bg-green-50 p-4 rounded-2xl mb-6 border border-green-100">
+              <div className="flex items-center justify-between bg-emerald-50 p-4 rounded-2xl mb-6 border border-emerald-100">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-full text-green-600">
+                  <div className="p-2 bg-emerald-100 rounded-full text-emerald-600">
                     <Wallet size={20} />
                   </div>
                   <div>
-                    <p className="text-xs text-green-800 font-medium">Available Balance</p>
-                    <p className="text-sm font-bold text-green-900">₦ {user?.balance.toLocaleString('en-US', {minimumFractionDigits: 2})}</p>
+                    <p className="text-xs text-emerald-800 font-medium">Available Balance</p>
+                    <p className="text-sm font-bold text-emerald-900">₦ {user?.balance.toLocaleString('en-US', {minimumFractionDigits: 2})}</p>
                   </div>
                 </div>
               </div>
@@ -135,7 +135,7 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
                       value={recipientIdentifier}
                       onChange={(e) => setRecipientIdentifier(e.target.value)}
                       required
-                      className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                      className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                     />
                   </div>
                 </div>
@@ -155,7 +155,7 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       required
-                      className="w-full pl-10 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-lg text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                      className="w-full pl-10 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-lg text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                     />
                   </div>
                 </div>
@@ -169,7 +169,7 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
                     value={narration}
                     maxLength={50}
                     onChange={(e) => setNarration(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                   />
                 </div>
 
@@ -178,7 +178,7 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
                   <button 
                     type="submit"
                     disabled={!recipientIdentifier || !amount || Number(amount) < 100 || isVerifying}
-                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
                   >
                     {isVerifying ? (
                       <><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Verifying User...</>
@@ -198,7 +198,7 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
                   <button 
                     key={beneficiary.id}
                     onClick={() => handleSelectBeneficiary(beneficiary)}
-                    className="w-full bg-white border border-gray-100 p-3 rounded-xl flex items-center gap-3 hover:border-green-200 hover:bg-green-50/50 transition-all text-left group"
+                    className="w-full bg-white border border-gray-100 p-3 rounded-xl flex items-center gap-3 hover:border-emerald-200 hover:bg-emerald-50/50 transition-all text-left group"
                   >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${beneficiary.color}`}>
                       {beneficiary.initials}
@@ -207,7 +207,7 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
                       <h4 className="font-bold text-gray-900 text-sm">{beneficiary.name}</h4>
                       <p className="text-xs text-gray-500">{beneficiary.identifier}</p>
                     </div>
-                    <ChevronRight size={18} className="text-gray-300 group-hover:text-green-500 transition-colors" />
+                    <ChevronRight size={18} className="text-gray-300 group-hover:text-emerald-500 transition-colors" />
                   </button>
                 ))}
               </div>
@@ -236,13 +236,13 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
               
               <div className="w-full pt-4 border-t border-gray-100 flex justify-between items-center">
                 <p className="text-sm text-gray-500 font-medium">Amount to Send</p>
-                <p className="text-2xl font-black text-green-600">₦{Number(amount).toLocaleString()}</p>
+                <p className="text-2xl font-black text-emerald-600">₦{Number(amount).toLocaleString()}</p>
               </div>
             </div>
 
             <button 
               onClick={() => setStep('pin')}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center"
             >
               Confirm & Continue
             </button>
@@ -270,7 +270,7 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
             <button 
               onClick={handlePinSubmit}
               disabled={isProcessing || transactionPin.join('').length !== 4}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
             >
               {isProcessing ? (
                 <><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...</>
@@ -284,8 +284,8 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
         {/* STEP 4: SUCCESS / RECEIPT */}
         {step === 'success' && (
           <div className="p-6 flex flex-col items-center animate-in zoom-in-95 duration-500 pt-10">
-            <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4 relative">
-              <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-green-400 opacity-20"></span>
+            <div className="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-4 relative">
+              <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
               <Send size={32} className="ml-1" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Transfer Successful!</h2>
@@ -296,7 +296,7 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
             <div className="w-full bg-gray-50 rounded-2xl p-5 mb-6 text-left border border-gray-200 shadow-sm space-y-4">
               <div className="flex justify-between items-start text-sm">
                 <span className="text-gray-500 font-medium">Amount Sent</span>
-                <span className="font-black text-green-600 text-lg">₦{Number(amount).toLocaleString()}</span>
+                <span className="font-black text-emerald-600 text-lg">₦{Number(amount).toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-start text-sm">
                 <span className="text-gray-500 font-medium">Recipient</span>

@@ -1,0 +1,23 @@
+{
+    "name": "BuyDigital - VTU Platform",
+    "short_name": "BuyDigital",
+    "description": "Cheapest Data & VTU Platform in Nigeria. Buy data, airtime, pay bills, JAMB pins & more.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#059669",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "finance",
+        "utilities",
+        "shopping"
+    ]
+}

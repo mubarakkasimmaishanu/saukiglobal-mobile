@@ -85,7 +85,7 @@ export default function PinInput({ pin, setPin, onComplete, label, error, disabl
             className={`w-14 h-14 text-center text-2xl font-bold bg-gray-50 border rounded-xl outline-none transition-all ${
               error 
                 ? 'border-red-500 ring-2 ring-red-100' 
-                : 'border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-100'
+                : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'
             } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           />
         ))}

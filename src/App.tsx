@@ -72,6 +72,7 @@ export default function App() {
       {currentView === 'pricing' && (
         <PricingList
           onBack={() => navigateTo('profile')}
+          onUpgrade={() => navigateTo('upgrade')}
         />
       )}
 
@@ -102,6 +103,7 @@ export default function App() {
       {currentView === 'referral' && (
         <ReferAndEarn
           onBack={() => navigateTo('profile')}
+          onUpgrade={() => navigateTo('upgrade')}
         />
       )}
 

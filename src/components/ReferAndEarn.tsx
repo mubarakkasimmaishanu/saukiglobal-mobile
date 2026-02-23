@@ -1,39 +1,44 @@
 import React, { useState } from 'react';
-import { 
-  Gift, 
-  Copy, 
-  Share2, 
-  Users, 
-  CheckCircle2, 
+import {
+  Gift,
+  Copy,
+  Share2,
+  Users,
+  CheckCircle2,
   TrendingUp,
   ChevronRight,
   Info,
-  ChevronLeft
+  ChevronLeft,
+  Crown,
+  Lock
 } from 'lucide-react';
+import { useUser } from '../context/UserContext';
 
 interface ReferAndEarnProps {
   onBack: () => void;
+  onUpgrade?: () => void;
 }
 
-export default function ReferAndEarn({ onBack }: ReferAndEarnProps) {
+export default function ReferAndEarn({ onBack, onUpgrade }: ReferAndEarnProps) {
+  const { user } = useUser();
   const [copied, setCopied] = useState(false);
 
-  // Mock User Data
-  const user = {
-    referralCode: "MUB-8921",
-    referralLink: "https://buydigital.ng/ref/MUB-8921",
-    totalEarned: 14500,
-    availableCommission: 4550,
-    totalReferrals: 24,
-    activeReferrals: 18
-  };
+  const isReseller = user?.isReseller ?? false;
+  const referralCode = user?.referralCode || 'NEWUSER000';
+  const referralLink = `https://buydigital.ng/ref/${referralCode}`;
+  const totalEarnings = user?.totalEarnings ?? 0;
+  const commissionBalance = user?.commissionBalance ?? 0;
+  const totalReferrals = user?.totalReferrals ?? 0;
+
+  // Tier-specific bonus amount
+  const bonusPerReferral = isReseller ? 500 : 100;
 
   // Mock Downlines (Referrals)
   const referrals = [
-    { id: 1, name: 'Aisha Bello', phone: '0803 *** 1234', date: 'Today', status: 'active', earned: 500 },
-    { id: 2, name: 'Chinedu Okeke', phone: '0902 *** 5678', date: 'Yesterday', status: 'active', earned: 250 },
+    { id: 1, name: 'Aisha Bello', phone: '0803 *** 1234', date: 'Today', status: 'active', earned: isReseller ? 500 : 100 },
+    { id: 2, name: 'Chinedu Okeke', phone: '0902 *** 5678', date: 'Yesterday', status: 'active', earned: isReseller ? 500 : 100 },
     { id: 3, name: 'Sani Musa', phone: '0812 *** 9012', date: 'Feb 18', status: 'pending', earned: 0 },
-    { id: 4, name: 'Fatima Umar', phone: '0706 *** 3456', date: 'Feb 15', status: 'active', earned: 1200 },
+    { id: 4, name: 'Fatima Umar', phone: '0706 *** 3456', date: 'Feb 15', status: 'active', earned: isReseller ? 1200 : 300 },
   ];
 
   const handleCopy = (text: string) => {
@@ -46,10 +51,10 @@ export default function ReferAndEarn({ onBack }: ReferAndEarnProps) {
   return (
     <div className="min-h-screen bg-gray-50 font-sans md:py-8">
       <div className="max-w-md mx-auto bg-white min-h-screen md:min-h-[auto] md:rounded-3xl md:shadow-xl overflow-hidden relative">
-        
+
         {/* Header */}
         <header className="px-5 pt-6 pb-4 bg-emerald-600 text-white sticky top-0 z-20 flex items-center shadow-md">
-          <button 
+          <button
             onClick={onBack}
             className="p-2 -ml-2 hover:bg-emerald-700 rounded-full transition-colors"
           >
@@ -59,7 +64,36 @@ export default function ReferAndEarn({ onBack }: ReferAndEarnProps) {
         </header>
 
         <div className="p-5 animate-in fade-in slide-in-from-right-4 duration-300">
-          
+
+          {/* Tier-Aware Bonus Banner */}
+          <div className={`rounded-2xl p-4 mb-6 flex items-center gap-3 border ${isReseller
+              ? 'bg-emerald-50 border-emerald-100'
+              : 'bg-amber-50 border-amber-100'
+            }`}>
+            <div className={`p-2 rounded-full ${isReseller ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+              {isReseller ? <Crown size={20} /> : <Lock size={20} />}
+            </div>
+            <div className="flex-1">
+              <p className={`text-xs font-bold ${isReseller ? 'text-emerald-800' : 'text-amber-800'}`}>
+                {isReseller ? `Reseller Bonus: ₦${bonusPerReferral} per referral` : `Basic Bonus: ₦${bonusPerReferral} per referral`}
+              </p>
+              <p className="text-[10px] text-gray-500 mt-0.5">
+                {isReseller
+                  ? 'You earn 5x more per referral as a Reseller!'
+                  : 'Upgrade to Reseller to earn ₦500 per referral instead of ₦100'
+                }
+              </p>
+            </div>
+            {!isReseller && (
+              <button
+                onClick={onUpgrade}
+                className="text-[10px] font-bold text-amber-700 bg-amber-200 px-3 py-1.5 rounded-lg"
+              >
+                Upgrade
+              </button>
+            )}
+          </div>
+
           {/* Main Reward Card */}
           <div className="bg-gradient-to-br from-emerald-800 to-emerald-900 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 mb-8 relative overflow-hidden">
             {/* Decorative BG */}
@@ -67,12 +101,12 @@ export default function ReferAndEarn({ onBack }: ReferAndEarnProps) {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-yellow-600"></div>
 
             <p className="text-emerald-100 text-xs font-medium uppercase tracking-wider mb-1">Total Earned</p>
-            <h2 className="text-3xl font-black mb-6">₦ {user.totalEarned.toLocaleString()}</h2>
+            <h2 className="text-3xl font-black mb-6">₦ {totalEarnings.toLocaleString()}</h2>
 
             <div className="bg-emerald-950 bg-opacity-40 rounded-2xl p-4 flex justify-between items-center border border-emerald-700 backdrop-blur-sm">
               <div>
                 <p className="text-emerald-200 text-[10px] uppercase tracking-wider mb-1">Available to Withdraw</p>
-                <p className="text-xl font-bold text-yellow-400">₦ {user.availableCommission.toLocaleString()}</p>
+                <p className="text-xl font-bold text-yellow-400">₦ {commissionBalance.toLocaleString()}</p>
               </div>
               <button className="bg-yellow-500 hover:bg-yellow-600 text-emerald-900 text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-md">
                 Move to Wallet
@@ -83,15 +117,15 @@ export default function ReferAndEarn({ onBack }: ReferAndEarnProps) {
           {/* Share Code Section */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-8 text-center">
             <h3 className="text-sm font-bold text-gray-800 mb-1">Your Referral Link</h3>
-            <p className="text-xs text-gray-500 mb-4">Share this link with friends to earn when they buy.</p>
-            
+            <p className="text-xs text-gray-500 mb-4">Share this link with friends to earn ₦{bonusPerReferral} when they sign up and transact.</p>
+
             <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl p-1 mb-4">
               <div className="flex-1 px-3 text-sm font-bold text-gray-700 truncate">
-                {user.referralLink}
+                {referralLink}
               </div>
-              <button 
-                onClick={() => handleCopy(user.referralLink)}
-                className={`px-4 py-3 rounded-lg flex items-center gap-1 text-xs font-bold transition-colors ${copied ? 'bg-green-100 text-green-700' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm'}`}
+              <button
+                onClick={() => handleCopy(referralLink)}
+                className={`px-4 py-3 rounded-lg flex items-center gap-1 text-xs font-bold transition-colors ${copied ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm'}`}
               >
                 {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
                 {copied ? 'Copied' : 'Copy'}
@@ -110,16 +144,16 @@ export default function ReferAndEarn({ onBack }: ReferAndEarnProps) {
               <div className="p-2 bg-orange-100 text-orange-600 rounded-full w-max mb-3">
                 <Users size={20} />
               </div>
-              <p className="text-2xl font-black text-gray-900">{user.totalReferrals}</p>
+              <p className="text-2xl font-black text-gray-900">{totalReferrals}</p>
               <p className="text-xs font-medium text-gray-500 mt-1">Total Referrals</p>
             </div>
-            
+
             <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
               <div className="p-2 bg-blue-100 text-blue-600 rounded-full w-max mb-3">
                 <TrendingUp size={20} />
               </div>
-              <p className="text-2xl font-black text-gray-900">{user.activeReferrals}</p>
-              <p className="text-xs font-medium text-gray-500 mt-1">Active (Paid)</p>
+              <p className="text-2xl font-black text-gray-900">₦{bonusPerReferral}</p>
+              <p className="text-xs font-medium text-gray-500 mt-1">Per Referral</p>
             </div>
           </div>
 
@@ -144,13 +178,13 @@ export default function ReferAndEarn({ onBack }: ReferAndEarnProps) {
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[10px] text-gray-500">{ref.date}</span>
                         <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                        <span className={`text-[10px] font-bold ${ref.status === 'active' ? 'text-green-600' : 'text-orange-500'}`}>
+                        <span className={`text-[10px] font-bold ${ref.status === 'active' ? 'text-emerald-600' : 'text-orange-500'}`}>
                           {ref.status === 'active' ? 'Active' : 'Pending'}
                         </span>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
                     <p className="text-xs text-gray-500 mb-0.5">Earned</p>
                     <p className={`text-sm font-black ${ref.earned > 0 ? 'text-emerald-600' : 'text-gray-400'}`}>
@@ -160,12 +194,13 @@ export default function ReferAndEarn({ onBack }: ReferAndEarnProps) {
                 </div>
               ))}
             </div>
-            
+
             {/* Info Banner */}
             <div className="mt-6 bg-gray-50 rounded-xl p-4 flex gap-3 border border-gray-200">
               <Info size={20} className="text-gray-400 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-gray-500 leading-relaxed">
-                You earn a commission every time your referral buys JAMB Pins, Data, or performs a transaction. Pending referrals have registered but not funded their wallet yet.
+                You earn <strong>₦{bonusPerReferral}</strong> every time your referral funds their wallet and makes their first transaction.
+                {!isReseller && <> <strong className="text-amber-600">Upgrade to Reseller</strong> to earn ₦500 per referral instead.</>}
               </p>
             </div>
 

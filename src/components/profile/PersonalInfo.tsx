@@ -32,7 +32,7 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-300">
       <header className="px-5 pt-8 pb-4 sticky top-0 z-20 flex items-center gap-4 bg-gray-50">
-        <button onClick={onBack} className="p-2 -ml-2 text-gray-600 hover:text-green-600 transition-colors">
+        <button onClick={onBack} className="p-2 -ml-2 text-gray-600 hover:text-emerald-600 transition-colors">
           <ChevronLeft size={24} />
         </button>
         <h1 className="text-xl font-bold text-gray-900">Personal Information</h1>
@@ -41,7 +41,7 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
       <div className="px-5 pb-10">
         <form onSubmit={handleSave} className="space-y-6">
           {message && (
-            <div className={`p-4 rounded-2xl flex gap-3 items-center border ${message.type === 'success' ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'
+            <div className={`p-4 rounded-2xl flex gap-3 items-center border ${message.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-red-50 border-red-100 text-red-700'
               }`}>
               {message.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
               <p className="text-sm font-medium">{message.text}</p>
@@ -59,7 +59,7 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                 />
               </div>
               <p className="text-[10px] text-gray-400 mt-1.5 ml-1">Your official name as it appears on your ID.</p>
@@ -75,7 +75,7 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                 />
               </div>
             </div>
@@ -108,7 +108,7 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
                   type="text"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                 />
               </div>
             </div>
@@ -123,7 +123,7 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
                   type="date"
                   value={formData.dob}
                   onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                 />
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
           <button
             type="submit"
             disabled={isSaving}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-4 rounded-2xl shadow-md transition-all flex justify-center items-center gap-2"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold py-4 rounded-2xl shadow-md transition-all flex justify-center items-center gap-2"
           >
             {isSaving ? (
               <><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving Changes...</>
