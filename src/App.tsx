@@ -19,8 +19,9 @@ import CableTV from './components/CableTV';
 import ElectricityBill from './components/ElectricityBill';
 import NINPrint from './components/NINPrint';
 import RequestedServices from './components/RequestedServices';
+import UpgradeToReseller from './components/UpgradeToReseller';
 
-type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'referral' | 'fund' | 'data' | 'transfer' | 'jamb' | 'jamb-pins' | 'cable' | 'electricity' | 'nin' | 'requests';
+type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'referral' | 'fund' | 'data' | 'transfer' | 'jamb' | 'jamb-pins' | 'cable' | 'electricity' | 'nin' | 'requests' | 'upgrade';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('landing');
@@ -33,14 +34,14 @@ export default function App() {
   return (
     <div className="min-h-screen">
       {currentView === 'landing' && (
-        <LandingPage 
-          onGetStarted={() => navigateTo('signup')} 
-          onSignIn={() => navigateTo('login')} 
+        <LandingPage
+          onGetStarted={() => navigateTo('signup')}
+          onSignIn={() => navigateTo('login')}
         />
       )}
 
       {(currentView === 'login' || currentView === 'signup') && (
-        <AuthPage 
+        <AuthPage
           initialMode={currentView === 'login' ? 'login' : 'signup'}
           onBack={() => navigateTo('landing')}
           onSuccess={() => navigateTo('dashboard')}
@@ -52,7 +53,7 @@ export default function App() {
       )}
 
       {currentView === 'profile' && (
-        <ProfileSettings 
+        <ProfileSettings
           onBack={() => navigateTo('dashboard')}
           onLogout={() => navigateTo('landing')}
           onViewPricing={() => navigateTo('pricing')}
@@ -62,99 +63,106 @@ export default function App() {
       )}
 
       {currentView === 'notifications' && (
-        <Notifications 
+        <Notifications
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'pricing' && (
-        <PricingList 
+        <PricingList
           onBack={() => navigateTo('profile')}
         />
       )}
 
       {currentView === 'support' && (
-        <HelpSupport 
+        <HelpSupport
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'airtime' && (
-        <BuyAirtime 
+        <BuyAirtime
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'history' && (
-        <TransactionHistory 
+        <TransactionHistory
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'exams' && (
-        <ResultChecker 
+        <ResultChecker
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'referral' && (
-        <ReferAndEarn 
+        <ReferAndEarn
           onBack={() => navigateTo('profile')}
         />
       )}
 
       {currentView === 'fund' && (
-        <FundWallet 
+        <FundWallet
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'data' && (
-        <BuyData 
+        <BuyData
           onBack={() => navigateTo('dashboard')}
           onFund={() => navigateTo('fund')}
         />
       )}
 
       {currentView === 'transfer' && (
-        <WalletTransfer 
+        <WalletTransfer
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'jamb' && (
-        <JambServices 
+        <JambServices
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'jamb-pins' && (
-        <JambPins 
+        <JambPins
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'cable' && (
-        <CableTV 
+        <CableTV
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'electricity' && (
-        <ElectricityBill 
+        <ElectricityBill
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'nin' && (
-        <NINPrint 
+        <NINPrint
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
       {currentView === 'requests' && (
-        <RequestedServices 
+        <RequestedServices
           onBack={() => navigateTo('dashboard')}
+        />
+      )}
+
+      {currentView === 'upgrade' && (
+        <UpgradeToReseller
+          onBack={() => navigateTo('dashboard')}
+          onSuccess={() => navigateTo('dashboard')}
         />
       )}
     </div>

@@ -1,15 +1,38 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# BuyDigital.ng - Automated Utility Hub
 
+BuyDigital is a premium VTU and utility billing platform designed for speed, reliability, and affordability. We provide the cheapest data, airtime, and educational pins in Nigeria.
 
-## Run Locally
+## Features
+- **Cheapest Data**: MTN 1GB for as low as ₦255.
+- **Instant VTU**: Automated airtime top-up for all networks.
+- **Education Pins**: Bulk generation of JAMB, WAEC, and NECO pins.
+- **Bill Payments**: Seamless payment for Electricity (KEDCO, AEDC) and Cable TV (DSTV, GOTV).
+- **Identity Printing**: Secure NIN and BVN slip generation.
+- **Reseller Program**: Earn massive commissions by selling our services.
 
-**Prerequisites:**  Node.js
+## Development Setup
 
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+2. **Configuration**:
+   Copy `.env.example` to `.env` and configure your backend URL:
+   ```bash
+   VITE_API_BASE_URL="http://localhost:8000/api"
+   VITE_USE_MOCK=true
+   ```
+
+3. **Run Locally**:
+   ```bash
+   npm run dev
+   ```
+
+## Production Build
+```bash
+npm run build
+```
+
+---
+© 2026 BuyDigital.ng
