@@ -85,7 +85,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       {/* Navigation Bar */}
       <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-slate-200/50' : 'bg-transparent pt-2'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between items-center h-20 text-left">
             {/* Logo */}
             <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
               <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200">
@@ -131,7 +131,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
 
         {/* Mobile Menu Panel */}
         <div className={`md:hidden absolute w-full bg-white border-t border-slate-100 shadow-2xl transition-all duration-300 origin-top ${isMobileMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'}`}>
-          <div className="px-4 pt-4 pb-8 space-y-2">
+          <div className="px-4 pt-4 pb-8 space-y-2 text-left">
             <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 text-base font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl">Pricing</a>
             <a href="#services" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 text-base font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl">Services</a>
             <a href="#reseller" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 text-base font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl">Become an Agent</a>
@@ -144,7 +144,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden">
+      <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden text-left">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col lg:flex-row items-center gap-12">
 
@@ -204,7 +204,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
 
             {/* Right Graphic (Live Pricing Widget) */}
             <div className="flex-1 w-full max-w-md lg:ml-auto">
-              <div className="bg-white rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-slate-100 relative">
+              <div className="bg-white rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-slate-100 relative text-left">
                 <div className="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-lg transform rotate-3">
                   Hot Deals 🔥
                 </div>
@@ -216,7 +216,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                     <button
                       key={net}
                       onClick={() => setActiveNetwork(net)}
-                      className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${activeNetwork === net ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}`}
+                      className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${activeNetwork === net ? 'bg-white shadow-sm text-slate-900' : 'text-slate-50'}`}
                     >
                       {net}
                     </button>
@@ -254,7 +254,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       </section>
 
       {/* Trust Ribbon */}
-      <div className="bg-white border-y border-slate-200 py-6">
+      <div className="bg-white border-y border-slate-200 py-6 text-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center divide-x divide-slate-100">
             <div className="flex flex-col items-center justify-center">
@@ -284,12 +284,12 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       {/* Services Grid Section */}
       <section id="services" className="py-24 bg-[#F8FAFC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="text-center max-w-2xl mx-auto mb-16 underline-offset-auto">
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">One Wallet. Everything You Need.</h2>
             <p className="text-lg text-slate-600">Why download 5 different apps when BuyDigital does it all at wholesale prices?</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
             {services.map((service, index) => (
               <div key={index} className="bg-white rounded-[2rem] p-8 border border-slate-100 hover:-translate-y-2 transition-transform duration-300 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 group">
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${service.bg} ${service.color} transform group-hover:scale-110 transition-transform duration-300`}>
@@ -304,7 +304,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       </section>
 
       {/* Pricing Tiers Section */}
-      <section id="pricing" className="py-24 bg-white">
+      <section id="pricing" className="py-24 bg-white text-left">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 font-bold text-xs uppercase tracking-widest mb-4">
@@ -446,7 +446,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       </section>
 
       {/* CEO Message Section */}
-      <section className="py-24 bg-slate-50 relative overflow-hidden">
+      <section className="py-24 bg-slate-50 relative overflow-hidden text-left">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center gap-12 bg-white rounded-[3rem] p-10 md:p-16 shadow-xl border border-slate-100">
             <div className="md:w-1/3 flex flex-col items-center">
@@ -481,7 +481,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       </section>
 
       {/* Minimal Footer */}
-      <footer className="bg-white border-t border-slate-200 py-12">
+      <footer className="bg-white border-t border-slate-200 py-12 text-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
@@ -491,9 +491,9 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
           </div>
 
           <div className="flex gap-6 text-sm font-bold text-slate-600">
-            <button onClick={onSignIn} className="hover:text-emerald-600">Login</button>
-            <button onClick={onGetStarted} className="hover:text-emerald-600">Register</button>
-            <a href="https://wa.me/2349068500544" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600">WhatsApp Support</a>
+            <button onClick={onSignIn} className="hover:text-emerald-600 transition-colors">Login</button>
+            <button onClick={onGetStarted} className="hover:text-emerald-600 transition-colors">Register</button>
+            <a href="https://wa.me/2349068500544" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600 transition-colors">WhatsApp Support</a>
           </div>
 
           <p className="text-sm font-medium text-slate-400">&copy; {new Date().getFullYear()} BuyDigital. All rights reserved.</p>
