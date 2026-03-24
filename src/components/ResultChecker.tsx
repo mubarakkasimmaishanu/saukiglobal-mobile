@@ -12,12 +12,15 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import PinInput from './PinInput';
+import { api } from '../services/api';
+import { useUser } from '../context/UserContext';
 
 interface ResultCheckerProps {
   onBack: () => void;
 }
 
 export default function ResultChecker({ onBack }: ResultCheckerProps) {
+  const { user, refreshUser } = useUser();
   const [step, setStep] = useState('form'); // 'form', 'pin', 'success'
   
   // Form States
@@ -32,7 +35,7 @@ export default function ResultChecker({ onBack }: ResultCheckerProps) {
   // Exam Pricing & Details
   const exams = {
     waec: { id: 'waec', name: 'WAEC Result Checker', price: 3500, color: 'bg-indigo-50', border: 'border-indigo-500', text: 'text-indigo-700' },
-    neco: { id: 'neco', name: 'NECO Token', price: 1200, color: 'bg-emerald-50', border: 'border-emerald-500', text: 'text-emerald-700' },
+    neco: { id: 'neco', name: 'NECO Token', price: 1000, color: 'bg-emerald-50', border: 'border-emerald-500', text: 'text-emerald-700' },
     nabteb: { id: 'nabteb', name: 'NABTEB Scratch Card', price: 1000, color: 'bg-rose-50', border: 'border-rose-500', text: 'text-rose-700' },
   };
 
@@ -47,30 +50,51 @@ export default function ResultChecker({ onBack }: ResultCheckerProps) {
     setStep('pin');
   };
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = async () => {
     if (transactionPin.join('').length !== 4) return;
     setIsProcessing(true);
     
-    // Simulate Payment and PIN Generation
-    setTimeout(() => {
-      setIsProcessing(false);
-      
-      // Generate mock pins based on quantity
+    try {
       const mockPins = Array.from({ length: quantity }).map((_, i) => ({
         serial: `${examType.toUpperCase()}${Math.floor(10000000 + Math.random() * 90000000)}`,
         pin: Math.floor(100000000000 + Math.random() * 900000000000).toString()
       }));
+
+      await api.addTransaction({
+        type: 'Exam',
+        amount: totalAmount,
+        status: 'Success',
+        details: `${quantity}x ${exams[examType].name} PINs Generated`,
+        recipient: examType.toUpperCase()
+      });
       
+      await refreshUser();
       setGeneratedPins(mockPins);
       setStep('success');
-    }, 2000);
+    } catch (err) {
+      alert('Payment failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCopyAll = () => {
     const textToCopy = generatedPins.map((p, i) => `Pin ${i+1}: ${p.pin} | S/N: ${p.serial}`).join('\n');
     navigator.clipboard.writeText(textToCopy).then(() => {
-      // Success feedback could be added here
+      alert('All PINs copied to clipboard!');
     });
+  };
+
+  const handleShareReceipt = () => {
+    const text = generatedPins.map((p, i) => `P${i+1}: ${p.pin}`).join(', ');
+    if (navigator.share) {
+      navigator.share({
+        title: `${exams[examType].name} Receipt`,
+        text: `I just bought my ${exams[examType].name} PINs on BuyDigital! ${text}`,
+      }).catch(() => {});
+    } else {
+      alert('Sharing not supported on this browser.');
+    }
   };
 
   const totalAmount = exams[examType].price * quantity;
@@ -106,7 +130,7 @@ export default function ResultChecker({ onBack }: ResultCheckerProps) {
                 </div>
                 <div>
                   <p className="text-xs text-indigo-800 font-medium">Available Balance</p>
-                  <p className="text-sm font-bold text-indigo-900">₦ 12,500.00</p>
+                  <p className="text-sm font-bold text-indigo-900">₦ {user?.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </div>
@@ -179,10 +203,10 @@ export default function ResultChecker({ onBack }: ResultCheckerProps) {
                 </div>
                 <button 
                   type="submit"
-                  disabled={totalAmount > 12500} // Mock balance check
+                  disabled={!user || totalAmount > user.balance}
                   className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
                 >
-                  {totalAmount > 12500 ? 'Insufficient Funds' : `Pay ₦${totalAmount.toLocaleString()}`}
+                  {(!user || totalAmount > user.balance) ? 'Insufficient Funds' : `Pay ₦${totalAmount.toLocaleString()}`}
                 </button>
               </div>
             </form>
@@ -274,7 +298,10 @@ export default function ResultChecker({ onBack }: ResultCheckerProps) {
                   <Copy size={18} />
                   Copy All
                 </button>
-                <button className="bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors">
+                <button 
+                  onClick={handleShareReceipt}
+                  className="bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
+                >
                   <Share2 size={18} />
                   Share Receipt
                 </button>

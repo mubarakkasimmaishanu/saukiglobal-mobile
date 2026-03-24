@@ -12,12 +12,15 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import PinInput from './PinInput';
+import { api } from '../services/api';
+import { useUser } from '../context/UserContext';
 
 interface NINPrintProps {
   onBack: () => void;
 }
 
 export default function NINPrint({ onBack }: NINPrintProps) {
+  const { user, refreshUser } = useUser();
   const [step, setStep] = useState('form'); // 'form', 'pin', 'success'
   
   // Form States
@@ -40,16 +43,35 @@ export default function NINPrint({ onBack }: NINPrintProps) {
     setStep('pin');
   };
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = async () => {
     if (transactionPin.join('').length !== 4) return;
     setIsProcessing(true);
     
-    // Simulate Payment and Task Creation
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      await api.addTransaction({
+        type: 'General',
+        amount: pricing[slipType],
+        status: 'Success',
+        details: `NIN Print (${slipType.toUpperCase()}) for ${ninNumber}`,
+        recipient: ninNumber
+      });
+      
+      await api.addRequest({
+        service: 'NIN Printing',
+        price: pricing[slipType],
+        details: `Type: ${slipType.toUpperCase()} | NIN: ${ninNumber}`
+      });
+      
+      await refreshUser();
       setStep('success');
-    }, 2000);
+    } catch (err) {
+      alert('Payment failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
+
+  const currentPrice = pricing[slipType];
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans md:py-8">
@@ -82,7 +104,7 @@ export default function NINPrint({ onBack }: NINPrintProps) {
                 </div>
                 <div>
                   <p className="text-xs text-teal-800 font-medium">Available Balance</p>
-                  <p className="text-sm font-bold text-teal-900">₦ 12,500.00</p>
+                  <p className="text-sm font-bold text-teal-900">₦ {user?.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </div>
@@ -171,10 +193,10 @@ export default function NINPrint({ onBack }: NINPrintProps) {
               <div className="pt-2">
                 <button 
                   type="submit"
-                  disabled={ninNumber.length !== 11}
+                  disabled={ninNumber.length !== 11 || !user || currentPrice > user.balance}
                   className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center"
                 >
-                  Pay ₦{pricing[slipType]}
+                  {(!user || currentPrice > user.balance) ? 'Insufficient Funds' : `Pay ₦${currentPrice.toLocaleString()}`}
                 </button>
               </div>
             </form>
@@ -189,7 +211,7 @@ export default function NINPrint({ onBack }: NINPrintProps) {
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Confirm Payment</h2>
             <p className="text-sm text-gray-500 text-center mb-8 px-4">
-              You are paying <strong className="text-gray-800">₦{pricing[slipType]}</strong> to process NIN <strong className="text-gray-800">{ninNumber}</strong>.
+              You are paying <strong className="text-gray-800">₦{currentPrice.toLocaleString()}</strong> to process NIN <strong className="text-gray-800">{ninNumber}</strong>.
             </p>
 
             <PinInput 
@@ -222,7 +244,7 @@ export default function NINPrint({ onBack }: NINPrintProps) {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Request Submitted!</h2>
             <p className="text-sm text-gray-500 mb-8 text-center max-w-[280px]">
-              Your payment of <strong>₦{pricing[slipType]}</strong> was successful. Our admin is currently processing your NIN slip.
+              Your payment of <strong>₦{currentPrice.toLocaleString()}</strong> was successful. Our admin is currently processing your NIN slip.
             </p>
 
             <div className="w-full bg-gray-50 rounded-2xl p-5 mb-6 text-left border border-gray-200 shadow-sm space-y-4">

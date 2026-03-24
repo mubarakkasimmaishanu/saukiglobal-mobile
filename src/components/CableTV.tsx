@@ -12,12 +12,15 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import PinInput from './PinInput';
+import { api } from '../services/api';
+import { useUser } from '../context/UserContext';
 
 interface CableTVProps {
   onBack: () => void;
 }
 
 export default function CableTV({ onBack }: CableTVProps) {
+  const { user, refreshUser } = useUser();
   const [step, setStep] = useState('form'); // 'form', 'verify', 'pin', 'success'
   
   // Form States
@@ -77,15 +80,44 @@ export default function CableTV({ onBack }: CableTVProps) {
     }, 1500);
   };
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = async () => {
     if (transactionPin.join('').length !== 4) return;
     setIsProcessing(true);
     
-    // Simulate Payment
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      await api.addTransaction({
+        type: 'Cable',
+        amount: getSelectedPrice(),
+        status: 'Success',
+        details: `${provider.toUpperCase()} ${getSelectedPackageName()} for ${iucNumber}`,
+        recipient: iucNumber,
+        network: provider.toUpperCase()
+      });
+      await refreshUser();
       setStep('success');
-    }, 2000);
+    } catch (err) {
+      alert('Payment failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCopyReceipt = () => {
+    const text = `TV Subscription\nProvider: ${provider.toUpperCase()}\nPackage: ${getSelectedPackageName()}\nIUC: ${iucNumber}\nAmount: ₦${getSelectedPrice()}\nRef: BD-TV-${Math.random().toString(36).substring(7).toUpperCase()}`;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Receipt copied!');
+    });
+  };
+
+  const handleShareReceipt = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'TV Subscription Receipt',
+        text: `I just renewed my ${provider.toUpperCase()} subscription on BuyDigital!`,
+      }).catch(() => {});
+    } else {
+      alert('Sharing not supported on this browser.');
+    }
   };
 
   const getSelectedPrice = () => {
@@ -132,7 +164,7 @@ export default function CableTV({ onBack }: CableTVProps) {
                 </div>
                 <div>
                   <p className="text-xs text-blue-800 font-medium">Available Balance</p>
-                  <p className="text-sm font-bold text-blue-900">₦ 12,500.00</p>
+                  <p className="text-sm font-bold text-blue-900">₦ {user?.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </div>
@@ -333,11 +365,17 @@ export default function CableTV({ onBack }: CableTVProps) {
 
             {/* Action Buttons */}
             <div className="flex gap-3 w-full mb-4">
-              <button className="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors">
+              <button 
+                onClick={handleCopyReceipt}
+                className="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
+              >
                 <Copy size={18} />
                 Copy Details
               </button>
-              <button className="flex-1 bg-blue-100 text-blue-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-200 transition-colors">
+              <button 
+                onClick={handleShareReceipt}
+                className="flex-1 bg-blue-100 text-blue-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-200 transition-colors"
+              >
                 <Share2 size={18} />
                 Share Receipt
               </button>

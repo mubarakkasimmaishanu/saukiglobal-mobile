@@ -525,7 +525,21 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 </div>
                 <div className="ml-2 text-xs">
                   <label htmlFor="terms" className="text-gray-500 font-medium">
-                    I agree to the <a href="#" className="text-emerald-600 font-bold hover:underline">Terms of Service</a> and <a href="#" className="text-emerald-600 font-bold hover:underline">Privacy Policy</a>.
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      onClick={() => alert('Terms of Service\n\nBy using BuyDigital, you agree to:\n\n1. Use the platform for lawful purposes only.\n2. Provide accurate personal information.\n3. Not engage in fraudulent transactions.\n4. Accept that service prices may change without notice.\n5. Accept that completed transactions are non-reversible.\n\nFor full terms, contact support@buydigital.ng')}
+                      className="text-emerald-600 font-bold hover:underline"
+                    >
+                      Terms of Service
+                    </button>{' '}and{' '}
+                    <button
+                      type="button"
+                      onClick={() => alert('Privacy Policy\n\nBuyDigital respects your privacy:\n\n1. We collect only necessary personal data (name, email, phone).\n2. Your data is encrypted and stored securely.\n3. We never sell your information to third parties.\n4. Transaction data is kept for regulatory compliance.\n5. You can request data deletion by contacting support.\n\nFor full policy, contact support@buydigital.ng')}
+                      className="text-emerald-600 font-bold hover:underline"
+                    >
+                      Privacy Policy
+                    </button>.
                   </label>
                 </div>
               </div>
