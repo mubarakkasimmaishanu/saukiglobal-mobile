@@ -27,26 +27,6 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeNetwork, setActiveNetwork] = useState('MTN');
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-
-  // PWA Install Logic
-  useEffect(() => {
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
-  const handleInstallClick = () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
-        setDeferredPrompt(null);
-      });
-    }
-  };
 
   // Handle scroll for nav shadow
   useEffect(() => {
@@ -175,29 +155,16 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                   Get Started Free <ArrowRight size={20} />
                 </button>
                 <div className="flex items-center gap-4">
-                  {deferredPrompt ? (
-                    <button
-                      onClick={handleInstallClick}
-                      className="w-full sm:w-auto bg-slate-900 text-white px-6 py-4 rounded-full flex items-center gap-3 cursor-pointer hover:bg-black transition-all shadow-xl group border border-slate-700"
-                    >
-                      <DownloadCloud size={24} className="group-hover:animate-bounce text-emerald-400" />
-                      <div className="text-left">
-                        <p className="text-[10px] uppercase tracking-wider text-emerald-400 font-black">Install App</p>
-                        <p className="font-black text-sm leading-tight text-white">Download BuyDigital</p>
-                      </div>
-                    </button>
-                  ) : (
-                    <div
-                      onClick={() => alert('BuyDigital app coming soon to Google Play! You can also install directly from this browser menu.')}
-                      className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer hover:bg-slate-800 transition-colors relative"
-                    >
-                      <DownloadCloud size={24} />
-                      <div className="text-left">
-                        <p className="text-[10px] uppercase tracking-wider text-slate-300">Coming Soon</p>
-                        <p className="font-bold text-sm leading-tight">Google Play</p>
-                      </div>
+                  <div
+                    onClick={() => alert('BuyDigital app coming soon to Google Play! Create an account on our website for now.')}
+                    className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer hover:bg-slate-800 transition-colors relative"
+                  >
+                    <DownloadCloud size={24} />
+                    <div className="text-left">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-300">Coming Soon</p>
+                      <p className="font-bold text-sm leading-tight">Google Play</p>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
