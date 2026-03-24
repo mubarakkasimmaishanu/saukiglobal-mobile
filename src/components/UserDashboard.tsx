@@ -35,21 +35,26 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   const { user } = useUser();
   const [showBalance, setShowBalance] = useState(true);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
-
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      const txs = await api.getTransactions();
-      setRecentTransactions(txs.slice(0, 3));
+      try {
+        const txs = await api.getTransactions();
+        if (Array.isArray(txs)) {
+          setRecentTransactions(txs.slice(0, 3));
+        }
+      } catch (err) {
+        console.error("Failed to fetch transactions:", err);
+      }
     };
     fetchTransactions();
 
-    // PWA Install Logic
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
+
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
@@ -70,7 +75,11 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
     return 'Good evening';
   };
 
-  if (!user) return null;
+  if (!user) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
+    </div>
+  );
 
   const getIconForType = (type: string) => {
     switch (type) {
@@ -116,7 +125,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
       <div className="max-w-md mx-auto bg-gray-50 min-h-screen md:min-h-[auto] md:rounded-3xl md:shadow-xl overflow-hidden relative pb-20 md:pb-0">
 
         {/* Top Header */}
-        <header className="px-5 pt-6 pb-2 sticky top-0 bg-gray-50/90 backdrop-blur-md z-30 flex justify-between items-center">
+        <header className="px-5 pt-6 pb-2 sticky top-0 bg-gray-50/90 backdrop-blur-md z-30 flex justify-between items-center text-left">
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="w-11 h-11 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm border-2 border-white">
@@ -140,7 +149,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
         <main className="px-5 pt-4">
 
           {/* Main Wallet Card */}
-          <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-[1.5rem] p-6 text-white shadow-xl shadow-emerald-200 mb-6 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-[1.5rem] p-6 text-white shadow-xl shadow-emerald-200 mb-6 relative overflow-hidden text-left">
             {/* Decorative background shapes */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10 blur-xl"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-black opacity-10 rounded-full -ml-8 -mb-8 blur-lg"></div>
@@ -159,7 +168,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               </div>
 
               <h2 className="text-3xl md:text-4xl font-black mb-6 tracking-tight">
-                {showBalance ? `₦${user.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '****'}
+                {showBalance ? `₦${(user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '****'}
               </h2>
 
               <div className="flex gap-3">
@@ -181,7 +190,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
 
           {/* PWA Install Banner */}
           {deferredPrompt && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-sm animate-in slide-in-from-top-4 duration-500">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-sm animate-in slide-in-from-top-4 duration-500 text-left">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
                   <Download size={20} />
@@ -209,7 +218,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
           )}
 
           {/* Quick Services Grid */}
-          <div className="mb-8">
+          <div className="mb-8 text-left">
             <h3 className="text-sm font-bold text-gray-900 mb-4 px-1">Quick Services</h3>
             <div className="grid grid-cols-4 gap-y-6 gap-x-2">
               <div onClick={() => onNavigate('data')}>
@@ -251,7 +260,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             /* BASIC USER: Upgrade CTA */
             <div
               onClick={() => onNavigate('upgrade')}
-              className="bg-slate-900 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-lg relative overflow-hidden group cursor-pointer"
+              className="bg-slate-900 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-lg relative overflow-hidden group cursor-pointer text-left"
             >
               <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-500/20 rounded-full blur-xl group-hover:bg-emerald-500/30 transition-all"></div>
               <div className="relative z-10 flex items-center gap-4">
@@ -269,7 +278,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             /* RESELLER USER: Earnings Summary */
             <div
               onClick={() => onNavigate('referral')}
-              className="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-lg relative overflow-hidden group cursor-pointer"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-lg relative overflow-hidden group cursor-pointer text-left"
             >
               <div className="absolute right-0 top-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
               <div className="relative z-10 flex items-center gap-4">
@@ -289,7 +298,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
           )}
 
           {/* Recent Transactions List */}
-          <div className="mb-4">
+          <div className="mb-4 text-left">
             <div className="flex justify-between items-center mb-4 px-1">
               <h3 className="text-sm font-bold text-gray-900">Recent Transactions</h3>
               <button
@@ -301,25 +310,29 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             </div>
 
             <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
-              {recentTransactions.map((tx, index) => {
-                const Icon = getIconForType(tx.type);
-                return (
-                  <div key={tx.id} className={`flex items-center justify-between p-3 ${index !== recentTransactions.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getIconBgForType(tx.type)}`}>
-                        <Icon size={18} />
+              {recentTransactions.length > 0 ? (
+                recentTransactions.map((tx, index) => {
+                  const Icon = getIconForType(tx.type);
+                  return (
+                    <div key={tx.id} className={`flex items-center justify-between p-3 ${index !== recentTransactions.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getIconBgForType(tx.type)}`}>
+                          <Icon size={18} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">{tx.type}</p>
+                          <p className="text-xs text-gray-500 truncate max-w-[150px]">{tx.details}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold text-gray-900">{tx.type}</p>
-                        <p className="text-xs text-gray-500 truncate max-w-[150px]">{tx.details}</p>
-                      </div>
+                      <p className={`text-sm font-black ${tx.type === 'Funding' ? 'text-emerald-600' : 'text-gray-900'}`}>
+                        {tx.type === 'Funding' ? '+' : '-'}₦{(tx.amount || 0).toLocaleString()}
+                      </p>
                     </div>
-                    <p className={`text-sm font-black ${tx.type === 'Funding' ? 'text-emerald-600' : 'text-gray-900'}`}>
-                      {tx.type === 'Funding' ? '+' : '-'}₦{tx.amount.toLocaleString()}
-                    </p>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div className="py-4 text-center text-gray-400 text-xs">No recent transactions</div>
+              )}
             </div>
           </div>
         </main>
@@ -330,10 +343,10 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             onClick={() => onNavigate('dashboard')}
             className="flex flex-col items-center gap-1 group"
           >
-            <div className={`p-1 rounded-xl ${true ? 'bg-emerald-50 text-emerald-600' : 'text-gray-400'}`}>
+            <div className={`p-1 rounded-xl bg-emerald-50 text-emerald-600`}>
               <Home size={22} className="stroke-[2.5px]" />
             </div>
-            <span className={`text-[10px] font-bold ${true ? 'text-emerald-600' : 'text-gray-400'}`}>Home</span>
+            <span className={`text-[10px] font-bold text-emerald-600`}>Home</span>
           </button>
 
           <button
