@@ -12,12 +12,15 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import PinInput from './PinInput';
+import { api } from '../services/api';
+import { useUser } from '../context/UserContext';
 
 interface ElectricityBillProps {
   onBack: () => void;
 }
 
 export default function ElectricityBill({ onBack }: ElectricityBillProps) {
+  const { user, refreshUser } = useUser();
   const [step, setStep] = useState('form'); // 'form', 'verify', 'pin', 'success'
   
   // Form States
@@ -57,24 +60,48 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
     }, 1500);
   };
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = async () => {
     if (transactionPin.join('').length !== 4) return;
     setIsProcessing(true);
     
-    // Simulate Payment and Token Generation via API
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      await api.addTransaction({
+        type: 'Electricity',
+        amount: Number(amount),
+        status: 'Success',
+        details: `${provider.toUpperCase()} ${meterType.toUpperCase()} for ${meterNumber}`,
+        recipient: meterNumber,
+        network: provider.toUpperCase()
+      });
+      
       if (meterType === 'prepaid') {
         setGeneratedToken('1234 5678 9012 3456 7890');
       }
+      
+      await refreshUser();
       setStep('success');
-    }, 2000);
+    } catch (err) {
+      alert('Payment failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCopyToken = () => {
     navigator.clipboard.writeText(generatedToken).then(() => {
-      // Success feedback
+      alert('Token copied to clipboard!');
     });
+  };
+
+  const handleShareReceipt = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Electricity Token',
+        text: `I just bought electricity on BuyDigital! Token: ${generatedToken}`,
+      }).catch(() => {});
+    } else {
+      alert('Sharing not supported on this browser.');
+    }
   };
 
   return (
@@ -109,7 +136,7 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
                 </div>
                 <div>
                   <p className="text-xs text-orange-800 font-medium">Available Balance</p>
-                  <p className="text-sm font-bold text-orange-900">₦ 12,500.00</p>
+                  <p className="text-base font-bold text-orange-900">₦ {user?.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </div>
@@ -349,7 +376,10 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
                   Copy Token
                 </button>
               )}
-              <button className="flex-1 bg-orange-100 text-orange-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-orange-200 transition-colors">
+              <button 
+                onClick={handleShareReceipt}
+                className="flex-1 bg-orange-100 text-orange-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-orange-200 transition-colors"
+              >
                 <Share2 size={18} />
                 Share
               </button>

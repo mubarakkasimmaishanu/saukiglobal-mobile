@@ -262,7 +262,7 @@ export default function HelpSupport({ onBack }: HelpSupportProps) {
             <div className="space-y-4">
               
               {/* WhatsApp (Primary for VTU) */}
-              <a href="https://wa.me/2348000000000" target="_blank" rel="noopener noreferrer" className="bg-white border border-[#25D366]/30 p-5 rounded-2xl flex items-center gap-4 hover:shadow-md hover:border-[#25D366] transition-all group relative overflow-hidden">
+              <a href="https://wa.me/2349068500544" target="_blank" rel="noopener noreferrer" className="bg-white border border-[#25D366]/30 p-5 rounded-2xl flex items-center gap-4 hover:shadow-md hover:border-[#25D366] transition-all group relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-16 h-16 bg-[#25D366] opacity-5 rounded-full -mr-4 -mt-4"></div>
                 <div className="w-12 h-12 bg-[#25D366]/10 text-[#25D366] rounded-full flex items-center justify-center flex-shrink-0">
                   <MessageCircle size={24} />
@@ -275,7 +275,7 @@ export default function HelpSupport({ onBack }: HelpSupportProps) {
               </a>
 
               {/* Phone */}
-              <a href="tel:08000000000" className="bg-white border border-gray-200 p-5 rounded-2xl flex items-center gap-4 hover:shadow-md hover:border-blue-400 transition-all group">
+              <a href="tel:09068500544" className="bg-white border border-gray-200 p-5 rounded-2xl flex items-center gap-4 hover:shadow-md hover:border-blue-400 transition-all group">
                 <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                   <PhoneCall size={24} />
                 </div>

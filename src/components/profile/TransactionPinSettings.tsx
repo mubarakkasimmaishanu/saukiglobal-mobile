@@ -79,7 +79,12 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
                 disabled={isSaving}
               />
               <button 
-                onClick={() => setStep('new')}
+                onClick={() => {
+                  if (window.confirm('A 6-digit reset code will be sent to your registered email. Proceed?')) {
+                    alert('Reset code sent! For this demo, you can now set your new PIN.');
+                    setStep('new');
+                  }
+                }}
                 className="mt-6 text-xs font-bold text-emerald-600 hover:text-emerald-700 underline block mx-auto"
               >
                 Forgot PIN? Reset via Email

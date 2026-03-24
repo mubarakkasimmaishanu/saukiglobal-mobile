@@ -126,8 +126,25 @@ export const api = {
 
   // User
   getUser: async (): Promise<User | null> => {
-    if (USE_MOCK) return getState().user;
-    return request<User>('/user/profile');
+    if (USE_MOCK) {
+      return getState().user;
+    }
+    return request<User>('/auth/me');
+  },
+
+  updateUser: async (userData: Partial<User>): Promise<User> => {
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 1000));
+      const state = getState();
+      if (!state.user) throw new Error('User not found');
+      state.user = { ...state.user, ...userData };
+      saveState(state);
+      return state.user;
+    }
+    return request<User>('/auth/update', {
+      method: 'PATCH',
+      body: JSON.stringify(userData),
+    });
   },
 
   updateBalance: async (amount: number): Promise<number> => {

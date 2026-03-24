@@ -7,7 +7,9 @@ import {
   Lock,
   RefreshCcw,
   AlertCircle,
-  ChevronLeft
+  ChevronLeft,
+  Copy,
+  Share2
 } from 'lucide-react';
 import PinInput from './PinInput';
 import { api } from '../services/api';
@@ -90,6 +92,24 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
       alert('Transaction failed. Please try again.');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleCopyReceipt = () => {
+    const receiptText = `Airtime Purchase\nAmount: ₦${amount}\nNetwork: ${detectedNetwork.name}\nPhone: ${phone}\nRef: BD-AIR-${Math.random().toString(36).substring(7).toUpperCase()}`;
+    navigator.clipboard.writeText(receiptText).then(() => {
+      alert('Receipt copied to clipboard!');
+    });
+  };
+
+  const handleShareReceipt = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Airtime Receipt',
+        text: `I just bought ₦${amount} Airtime on BuyDigital!`,
+      }).catch(() => {});
+    } else {
+      alert('Sharing not supported on this browser.');
     }
   };
 
@@ -192,7 +212,11 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
                         className={`w-full pl-11 pr-12 py-4 bg-gray-50 border-2 rounded-xl text-lg text-gray-900 font-bold focus:outline-none transition-all tracking-wide ${detectedNetwork ? detectedNetwork.border : 'border-gray-200 focus:border-emerald-500'
                           }`}
                       />
-                      <button type="button" className="absolute inset-y-0 right-0 pr-4 flex items-center text-emerald-600 hover:text-emerald-700">
+                      <button
+                        type="button"
+                        onClick={() => alert('Contact Picker Coming Soon: This will allow you to select numbers from your phone directory.')}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-emerald-600 hover:text-emerald-700"
+                      >
                         <Contact size={20} />
                       </button>
                     </div>
@@ -343,6 +367,20 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
               </div>
             </div>
 
+            <div className="flex gap-3 w-full mb-3">
+              <button
+                onClick={handleCopyReceipt}
+                className="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2"
+              >
+                <Copy size={18} /> Copy
+              </button>
+              <button
+                onClick={handleShareReceipt}
+                className="flex-1 bg-emerald-50 text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2"
+              >
+                <Share2 size={18} /> Share
+              </button>
+            </div>
             <button
               onClick={() => { setStep('form'); setPhone(''); setAmount(''); setTransactionPin(['', '', '', '']); }}
               className="w-full bg-gray-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-md transition-all mb-3"

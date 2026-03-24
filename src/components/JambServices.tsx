@@ -13,12 +13,15 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import PinInput from './PinInput';
+import { api } from '../services/api';
+import { useUser } from '../context/UserContext';
 
 interface JambServicesProps {
   onBack: () => void;
 }
 
 export default function JambServices({ onBack }: JambServicesProps) {
+  const { user, refreshUser } = useUser();
   const [step, setStep] = useState('select'); // 'select', 'pin', 'form', 'success'
   
   // States
@@ -29,6 +32,7 @@ export default function JambServices({ onBack }: JambServicesProps) {
   const [transactionPin, setTransactionPin] = useState(['', '', '', '']);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isAwaitingDetails, setIsAwaitingDetails] = useState(false);
+  const [orderId, setOrderId] = useState('');
 
   // Available Manual Services
   const services = [
@@ -118,29 +122,47 @@ export default function JambServices({ onBack }: JambServicesProps) {
     }
   };
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = async () => {
     if (transactionPin.join('').length !== 4) return;
     setIsProcessing(true);
     
-    // Simulate Payment and Creation of ServiceRequest with 'Awaiting Details' status
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      await api.addTransaction({
+        type: 'Exam',
+        amount: selectedService.price,
+        status: 'Success',
+        details: `${selectedService.name} (Awaiting Details)`,
+        recipient: 'JAMB Services'
+      });
+      await refreshUser();
+      setOrderId(`JAMB-${Math.floor(Math.random() * 90000) + 10000}`);
       setIsAwaitingDetails(true);
       setStep('form');
-    }, 1500);
+    } catch (err) {
+      alert('Payment failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleDetailsSubmit = (e: React.FormEvent) => {
+  const handleDetailsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (profileCode.length < 5) return;
     if (selectedService.requiresUpload && !uploadedFile) return;
     
     setIsProcessing(true);
-    // Simulate status change to 'Pending'
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      await api.addRequest({
+        service: selectedService.name,
+        price: selectedService.price,
+        details: `Order: ${orderId} | Profile Code: ${profileCode} | Note: ${additionalNote} ${uploadedFile ? '| Attachment: ' + uploadedFile : ''}`
+      });
       setStep('success');
-    }, 1500);
+    } catch (err) {
+      alert('Failed to submit details. Please contact support.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -166,6 +188,20 @@ export default function JambServices({ onBack }: JambServicesProps) {
         {/* STEP 1: SELECT A SERVICE */}
         {step === 'select' && (
           <div className="p-5 animate-in fade-in slide-in-from-right-4 duration-300">
+            
+            {/* Wallet Balance Snippet */}
+            <div className="flex items-center justify-between bg-purple-50 p-4 rounded-2xl mb-6 border border-purple-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-full text-purple-600">
+                  <Wallet size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-purple-800 font-medium">Available Balance</p>
+                  <p className="text-base font-bold text-purple-900">₦ {user?.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                </div>
+              </div>
+            </div>
+
             <h2 className="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wider">Choose a Service</h2>
             
             <div className="space-y-4">
@@ -247,7 +283,7 @@ export default function JambServices({ onBack }: JambServicesProps) {
             </div>
 
             <h2 className="text-lg font-bold text-gray-900 mb-1">{selectedService.name}</h2>
-            <p className="text-sm text-gray-500 mb-6 tracking-tight">Order ID: <span className="font-mono text-purple-700">#JAMB-{Math.floor(Math.random() * 90000) + 10000}</span></p>
+            <p className="text-sm text-gray-500 mb-6 tracking-tight">Order ID: <span className="font-mono text-purple-700">#{orderId}</span></p>
 
             <form onSubmit={handleDetailsSubmit} className="space-y-5">
               
@@ -316,7 +352,7 @@ export default function JambServices({ onBack }: JambServicesProps) {
                 </div>
               )}
 
-              {/* Optional Message Field (Kept from original architecture) */}
+              {/* Optional Message Field */}
               {!selectedService.extraFields && (
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Additional Instructions (Optional)</label>

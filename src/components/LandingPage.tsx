@@ -461,7 +461,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
           <div className="flex gap-6 text-sm font-bold text-slate-600">
             <button onClick={onSignIn} className="hover:text-emerald-600">Login</button>
             <button onClick={onGetStarted} className="hover:text-emerald-600">Register</button>
-            <a href="https://wa.me/2348000000000" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600">WhatsApp Support</a>
+            <a href="https://wa.me/2349068500544" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600">WhatsApp Support</a>
           </div>
 
           <p className="text-sm font-medium text-slate-400">&copy; {new Date().getFullYear()} BuyDigital. All rights reserved.</p>

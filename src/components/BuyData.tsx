@@ -124,10 +124,22 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
   };
 
   const handleCopyReceipt = () => {
-    const receiptText = `Transaction Successful!\nNetwork: ${activeNetworkConfig?.name}\nPlan: ${selectedPlan?.size} ${selectedPlan?.type}\nPhone: ${phone}\nAmount: ₦${planPrice}\nRef: BD-DAT-839201A`;
+    const receiptId = `BD-DAT-${Math.random().toString(36).substring(7).toUpperCase()}`;
+    const receiptText = `Data Purchase Successful!\nNetwork: ${activeNetworkConfig?.name}\nPlan: ${selectedPlan?.size} ${selectedPlan?.type}\nPhone: ${phone}\nAmount: ₦${planPrice}\nRef: ${receiptId}`;
     navigator.clipboard.writeText(receiptText).then(() => {
-      // Success feedback
+      alert('Receipt copied to clipboard!');
     });
+  };
+
+  const handleShareReceipt = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Data Receipt',
+        text: `I just bought ${selectedPlan?.size} data on BuyDigital!`,
+      }).catch(() => {});
+    } else {
+      alert('Sharing not supported on this browser.');
+    }
   };
 
   return (
@@ -197,7 +209,11 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                     className={`w-full pl-11 pr-12 py-4 bg-gray-50 border-2 rounded-xl text-lg text-gray-900 font-bold focus:outline-none transition-all tracking-wide ${activeNetworkConfig ? activeNetworkConfig.border : 'border-gray-200 focus:border-emerald-500'
                       }`}
                   />
-                  <button type="button" className="absolute inset-y-0 right-0 pr-4 flex items-center text-emerald-600 hover:text-emerald-700">
+                  <button 
+                    type="button" 
+                    onClick={() => alert('Contact Picker Coming Soon: This will allow you to select numbers from your phone directory.')}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-emerald-600 hover:text-emerald-700"
+                  >
                     <Contact size={20} />
                   </button>
                 </div>
@@ -364,7 +380,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500 font-medium">Reference ID</span>
-                  <span className="font-mono text-xs font-bold text-gray-600">BD-DAT-839201A</span>
+                  <span className="font-mono text-xs font-bold text-gray-600">BD-DAT-{Math.random().toString(36).substring(7).toUpperCase()}</span>
                 </div>
               </div>
 
@@ -376,7 +392,10 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                 >
                   <Copy size={18} /> Copy
                 </button>
-                <button className="bg-emerald-50 text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors">
+                <button 
+                  onClick={handleShareReceipt}
+                  className="bg-emerald-50 text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors"
+                >
                   <Share2 size={18} /> Share
                 </button>
               </div>

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, User, Mail, Phone, MapPin, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
+import { api } from '../../services/api';
+import { useUser } from '../../context/UserContext';
 
 interface PersonalInfoProps {
   onBack: () => void;
@@ -7,26 +9,37 @@ interface PersonalInfoProps {
 }
 
 export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
+  const { refreshUser } = useUser();
   const [formData, setFormData] = useState({
-    name: user ? `${user.firstName} ${user.lastName}`.trim() : '',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    address: "No 12, Kaduna Road, Zaria",
-    dob: "1995-05-15"
+    address: user?.address || '',
+    dob: user?.dob || ''
   });
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     setMessage(null);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      await api.updateUser({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        address: formData.address,
+        dob: formData.dob
+      });
+      await refreshUser();
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
-    }, 1500);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Failed to update profile' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -49,20 +62,30 @@ export default function PersonalInfo({ onBack, user }: PersonalInfoProps) {
           )}
 
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-5">
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Full Name</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                  <User size={18} />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">First Name</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                    <User size={18} />
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                  />
                 </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Last Name</label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
                 />
               </div>
-              <p className="text-[10px] text-gray-400 mt-1.5 ml-1">Your official name as it appears on your ID.</p>
             </div>
 
             <div>

@@ -15,6 +15,8 @@ export interface User {
   totalEarnings?: number;
   totalReferrals?: number;
   upgradeDate?: string;
+  address?: string;
+  dob?: string;
 }
 
 export interface Transaction {

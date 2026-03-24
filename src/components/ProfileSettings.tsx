@@ -31,7 +31,7 @@ interface ProfileSettingsProps {
 type ProfileView = 'main' | 'personal' | 'password' | 'pin';
 
 export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport, onViewReferrals, onUpgrade }: ProfileSettingsProps) {
-  const { user, loading } = useUser();
+  const { user, loading, logout } = useUser();
   const [currentView, setCurrentView] = useState<ProfileView>('main');
   const [copied, setCopied] = useState(false);
 
@@ -263,7 +263,7 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
               title="WhatsApp Support"
               subtitle="Chat with us directly on WhatsApp"
               bg="bg-emerald-50" color="text-emerald-600"
-              onClick={() => window.open('https://wa.me/2348000000000', '_blank')}
+              onClick={() => window.open('https://wa.me/2349068500544', '_blank')}
             />
             <SettingsItem
               icon={HelpCircle}
@@ -277,7 +277,10 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
 
           {/* Logout Button */}
           <button
-            onClick={onLogout}
+            onClick={() => {
+              logout();
+              onLogout();
+            }}
             className="w-full bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors mb-6"
           >
             <LogOut size={20} />

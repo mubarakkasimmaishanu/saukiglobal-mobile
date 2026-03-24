@@ -9,12 +9,12 @@ import {
   ChevronRight,
   ChevronLeft,
   FileText,
-  Users,
   Info,
-  Check,
   Clock
 } from 'lucide-react';
 import PinInput from './PinInput';
+import { api } from '../services/api';
+import { useUser } from '../context/UserContext';
 
 interface JambPinsProps {
   onBack: () => void;
@@ -23,6 +23,7 @@ interface JambPinsProps {
 type ServiceType = 'utme-no-mock' | 'utme-mock' | 'de' | 'trial';
 
 export default function JambPins({ onBack }: JambPinsProps) {
+  const { user, refreshUser } = useUser();
   const [step, setStep] = useState<'select' | 'pin' | 'form' | 'success'>('select');
   const [selectedService, setSelectedService] = useState<ServiceType | null>(null);
   const [numCandidates, setNumCandidates] = useState(1);
@@ -61,47 +62,85 @@ export default function JambPins({ onBack }: JambPinsProps) {
     }
   };
 
+  const currentService = selectedService ? services[selectedService] : null;
+  const totalAmount = currentService ? currentService.price * numCandidates : 0;
+
   const handleServiceSelect = (type: ServiceType) => {
     setSelectedService(type);
     setStep('pin');
   };
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = async () => {
     if (transactionPin.join('').length !== 4) return;
     setIsProcessing(true);
     
-    // Simulate Payment and Creation of ServiceRequest with 'Awaiting Details' status
-    setTimeout(() => {
+    if (user && totalAmount > user.balance) {
+      alert('Insufficient wallet balance');
       setIsProcessing(false);
+      return;
+    }
+    
+    try {
+      await api.addTransaction({
+        type: 'Exam',
+        amount: totalAmount,
+        status: 'Success',
+        details: `${numCandidates}x ${currentService?.name} (Awaiting Details)`,
+        recipient: 'JAMB e-PIN'
+      });
+      await refreshUser();
       setIsAwaitingDetails(true);
       setStep('form');
-    }, 1500);
+    } catch (err) {
+      alert('Payment failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleDetailsSubmit = (e: React.FormEvent) => {
+  const handleDetailsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profileCode || profileCode.length < 10) return;
     
     setIsProcessing(true);
-    // Simulate status change to 'Pending' and generation of pins
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
       const mockPins = Array.from({ length: numCandidates }).map((_, i) => ({
         serial: `JAMB${Math.floor(10000000 + Math.random() * 90000000)}`,
         pin: Math.floor(100000000000 + Math.random() * 900000000000).toString()
       }));
+      
+      await api.addRequest({
+        service: currentService?.name || 'JAMB PIN',
+        price: totalAmount,
+        details: `Candidates: ${numCandidates} | Profile Code: ${profileCode} | Pins: ${mockPins.map(p => p.pin).join(', ')}`
+      });
+      
       setGeneratedPins(mockPins);
       setStep('success');
-    }, 2000);
+    } catch (err) {
+      alert('Failed to submit details. Please contact support.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCopyAll = () => {
     const textToCopy = generatedPins.map((p, i) => `JAMB Pin ${i+1}: ${p.pin} | S/N: ${p.serial}`).join('\n');
-    navigator.clipboard.writeText(textToCopy);
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      alert('All pins copied to clipboard!');
+    });
   };
 
-  const currentService = selectedService ? services[selectedService] : null;
-  const totalAmount = currentService ? currentService.price * numCandidates : 0;
+  const handleShareReceipt = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'JAMB e-PINs Receipt',
+        text: `I just bought my JAMB PINs on BuyDigital!`,
+      }).catch(() => {});
+    } else {
+      alert('Sharing not supported on this browser.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans md:py-8">
@@ -159,13 +198,13 @@ export default function JambPins({ onBack }: JambPinsProps) {
           </div>
         )}
 
-        {/* STEP 2: PIN VERIFICATION (BUY) */}
+        {/* STEP 2: PIN VERIFICATION */}
         {step === 'pin' && currentService && (
           <div className="p-6 flex flex-col items-center animate-in slide-in-from-bottom-8 duration-300">
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-6">
               <Lock size={32} />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Confirm Purchase</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Confirm Payment</h2>
             <p className="text-sm text-gray-500 text-center mb-8 px-4">
               You are paying <strong className="text-gray-800">₦{totalAmount.toLocaleString()}</strong> for <strong className="text-emerald-600">{numCandidates}x {currentService.name}</strong>.
             </p>
@@ -185,7 +224,7 @@ export default function JambPins({ onBack }: JambPinsProps) {
               {isProcessing ? (
                 <><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...</>
               ) : (
-                'Pay & Continue'
+                'Confirm & Pay'
               )}
             </button>
           </div>
@@ -228,7 +267,7 @@ export default function JambPins({ onBack }: JambPinsProps) {
                   </div>
                 </div>
 
-                {/* Profile Code (Added for functionality) */}
+                {/* Profile Code */}
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">JAMB Profile Code</label>
                   <input 
@@ -270,81 +309,7 @@ export default function JambPins({ onBack }: JambPinsProps) {
                   )}
                 </button>
               </form>
-
-              {/* How It Works Section (Matches Screenshot) */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">How It Works</h3>
-                
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                  <h4 className="font-bold text-gray-800 mb-3">JAMB e-PIN ({currentService.name}) Overview</h4>
-                  <p className="text-xs text-gray-600 leading-relaxed mb-4">
-                    JAMB e-PIN is a unique number that candidates must obtain to register for their Unified Tertiary Matriculation Examination (UTME).
-                  </p>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    It stands for Electronic Personal Identification Number and is a prepaid voucher for the JAMB registration. Acquiring an e-PIN has been streamlined to ensure ease and accessibility for all candidates.
-                  </p>
-                </div>
-
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                  <h4 className="font-bold text-gray-800 mb-3">How To Register for 2026/2027 JAMB UTME Examination</h4>
-                  <ul className="space-y-2">
-                    {[
-                      'Candidate should send his/her National Identification Number (NIN) by text (SMS) to 55019 or 66019.',
-                      'A Profile Code of 10 characters will be received on the same telephone number.',
-                      'Present the Profile Code at the point of procurement of form (Banks, Mobile Money Operators, etc).',
-                      'The e-PIN will then be sent as a text message to the candidate.'
-                    ].map((step, i) => (
-                      <li key={i} className="flex gap-3">
-                        <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i+1}</span>
-                        <p className="text-xs text-gray-600 leading-relaxed">{step}</p>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
             </div>
-          </div>
-        )}
-
-        {/* STEP 3: PIN VERIFICATION */}
-        {step === 'pin' && currentService && (
-          <div className="p-6 flex flex-col items-center animate-in slide-in-from-bottom-8 duration-300">
-            <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-6">
-              <Lock size={32} />
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Confirm Payment</h2>
-            <p className="text-sm text-gray-500 text-center mb-8 px-4">
-              You are paying <strong className="text-gray-800">₦{totalAmount.toLocaleString()}</strong> for <strong className="text-emerald-600">{numCandidates}x {currentService.name}</strong>.
-            </p>
-
-            <div className="flex gap-4 mb-10">
-              {[0, 1, 2, 3].map((index) => (
-                <input
-                  key={index}
-                  type="password"
-                  maxLength={1}
-                  value={transactionPin[index]}
-                  onChange={(e) => {
-                    const newPin = [...transactionPin];
-                    newPin[index] = e.target.value.replace(/\D/g, '');
-                    setTransactionPin(newPin);
-                  }}
-                  className="w-14 h-14 text-center text-2xl font-bold bg-gray-50 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-                />
-              ))}
-            </div>
-
-            <button 
-              onClick={handlePinSubmit}
-              disabled={isProcessing || transactionPin.join('').length !== 4}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
-            >
-              {isProcessing ? (
-                <><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...</>
-              ) : (
-                'Confirm & Pay'
-              )}
-            </button>
           </div>
         )}
 
@@ -357,7 +322,7 @@ export default function JambPins({ onBack }: JambPinsProps) {
               </div>
               <h2 className="text-2xl font-bold mb-1">Request Submitted!</h2>
               <p className="text-emerald-100 text-sm">
-                {numCandidates}x {currentService.name} (Pending)
+                {numCandidates}x {currentService.name} (Success)
               </p>
             </div>
 
@@ -387,7 +352,10 @@ export default function JambPins({ onBack }: JambPinsProps) {
                 >
                   <Copy size={18} /> Copy All
                 </button>
-                <button className="bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors">
+                <button 
+                  onClick={handleShareReceipt}
+                  className="bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
+                >
                   <Share2 size={18} /> Share
                 </button>
               </div>
