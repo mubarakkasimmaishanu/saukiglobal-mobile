@@ -35,8 +35,6 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   const { user } = useUser();
   const [showBalance, setShowBalance] = useState(true);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
@@ -49,24 +47,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
       }
     };
     fetchTransactions();
-
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
-
-  const handleInstallClick = () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
-        setDeferredPrompt(null);
-      });
-    }
-  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -188,36 +169,6 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             </div>
           </div>
 
-          {/* PWA Install Banner */}
-          {deferredPrompt && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-sm animate-in slide-in-from-top-4 duration-500 text-left">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
-                  <Download size={20} />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900">Get the BuyDigital App</h4>
-                  <p className="text-[11px] text-emerald-700 font-medium">Install for a faster & native experience</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={handleInstallClick}
-                  className="bg-emerald-600 text-white text-[11px] font-bold px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
-                >
-                  Install
-                </button>
-                <button 
-                  onClick={() => setDeferredPrompt(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Quick Services Grid */}
           <div className="mb-8 text-left">
             <h3 className="text-sm font-bold text-gray-900 mb-4 px-1">Quick Services</h3>
             <div className="grid grid-cols-4 gap-y-6 gap-x-2">
