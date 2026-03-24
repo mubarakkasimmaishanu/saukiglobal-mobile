@@ -34,6 +34,8 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -50,9 +52,9 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
   }, []);
 
   const filteredTransactions = transactions.filter(tx => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'in') return tx.type === 'Funding';
-    if (activeTab === 'out') return tx.type !== 'Funding';
+    if (activeTab === 'in' && tx.type !== 'Funding') return false;
+    if (activeTab === 'out' && tx.type === 'Funding') return false;
+    if (statusFilter !== 'all' && tx.status !== statusFilter) return false;
     return true;
   });
 
@@ -112,9 +114,29 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
             </button>
             <h1 className="text-lg font-bold text-gray-900 ml-2">History</h1>
           </div>
-          <button className="p-2 bg-gray-50 text-gray-600 rounded-full hover:bg-gray-100">
-            <Filter size={18} />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className={`p-2 rounded-full hover:bg-gray-100 transition-colors ${statusFilter !== 'all' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-50 text-gray-600'}`}
+            >
+              <Filter size={18} />
+            </button>
+            {showFilterDropdown && (
+              <div className="absolute right-0 top-12 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-30 overflow-hidden animate-in fade-in duration-200">
+                {['all', 'Success', 'Pending', 'Failed'].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => { setStatusFilter(status); setShowFilterDropdown(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors ${
+                      statusFilter === status ? 'text-emerald-600 bg-emerald-50 font-bold' : 'text-gray-700'
+                    }`}
+                  >
+                    {status === 'all' ? 'All Status' : status}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </header>
 
         {/* Filters/Tabs */}
@@ -237,11 +259,7 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
                     <span className="text-xs font-mono font-bold text-gray-600 text-right">{selectedTx.id}</span>
                   </div>
 
-                  {selectedTx.note && (
-                    <div className="pt-3 border-t border-gray-200">
-                      <p className="text-xs text-red-600 font-medium">{selectedTx.note}</p>
-                    </div>
-                  )}
+
                   {selectedTx.profit && selectedTx.profit > 0 && user?.isReseller && (
                     <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
                       <span className="text-xs text-emerald-600 font-bold">Reseller Profit</span>
@@ -252,11 +270,29 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
 
                 {/* Action Buttons */}
                 <div className="flex gap-3">
-                  <button className="flex-1 bg-emerald-50 text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors">
+                  <button
+                    onClick={() => {
+                      const receiptText = `BuyDigital Receipt\n---\nService: ${selectedTx.type}\nAmount: ₦${selectedTx.amount.toLocaleString()}\nDetails: ${selectedTx.details}\nDate: ${selectedTx.date}\nRef: ${selectedTx.id}\nStatus: ${selectedTx.status}`;
+                      navigator.clipboard.writeText(receiptText).then(() => alert('Receipt copied to clipboard!'));
+                    }}
+                    className="flex-1 bg-emerald-50 text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors"
+                  >
                     <Download size={18} />
                     Save
                   </button>
-                  <button className="flex-1 bg-emerald-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors shadow-md">
+                  <button
+                    onClick={async () => {
+                      const receiptText = `BuyDigital Receipt\nService: ${selectedTx.type}\nAmount: ₦${selectedTx.amount.toLocaleString()}\nDetails: ${selectedTx.details}\nDate: ${selectedTx.date}\nRef: ${selectedTx.id}\nStatus: ${selectedTx.status}`;
+                      if (navigator.share) {
+                        try {
+                          await navigator.share({ title: 'BuyDigital Receipt', text: receiptText });
+                        } catch { /* user cancelled */ }
+                      } else {
+                        navigator.clipboard.writeText(receiptText).then(() => alert('Receipt copied to clipboard for sharing!'));
+                      }
+                    }}
+                    className="flex-1 bg-emerald-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors shadow-md"
+                  >
                     <Share2 size={18} />
                     Share
                   </button>

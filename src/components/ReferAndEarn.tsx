@@ -108,7 +108,16 @@ export default function ReferAndEarn({ onBack, onUpgrade }: ReferAndEarnProps) {
                 <p className="text-emerald-200 text-[10px] uppercase tracking-wider mb-1">Available to Withdraw</p>
                 <p className="text-xl font-bold text-yellow-400">₦ {commissionBalance.toLocaleString()}</p>
               </div>
-              <button className="bg-yellow-500 hover:bg-yellow-600 text-emerald-900 text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-md">
+              <button
+                onClick={() => {
+                  if (commissionBalance <= 0) {
+                    alert('No commission balance to withdraw.');
+                    return;
+                  }
+                  alert(`₦${commissionBalance.toLocaleString()} has been moved to your main wallet. This is a demo action.`);
+                }}
+                className="bg-yellow-500 hover:bg-yellow-600 text-emerald-900 text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-md"
+              >
                 Move to Wallet
               </button>
             </div>
@@ -132,7 +141,13 @@ export default function ReferAndEarn({ onBack, onUpgrade }: ReferAndEarnProps) {
               </button>
             </div>
 
-            <button className="w-full bg-emerald-50 text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors">
+            <button
+              onClick={() => {
+                const message = encodeURIComponent(`Join BuyDigital and get the cheapest data, airtime & more! Use my referral link: ${referralLink}`);
+                window.open(`https://wa.me/?text=${message}`, '_blank');
+              }}
+              className="w-full bg-emerald-50 text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors"
+            >
               <Share2 size={18} />
               Share via WhatsApp
             </button>
@@ -161,7 +176,10 @@ export default function ReferAndEarn({ onBack, onUpgrade }: ReferAndEarnProps) {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-base font-bold text-gray-900">Your Referrals</h3>
-              <button className="text-xs font-bold text-emerald-600 flex items-center">
+              <button
+                onClick={() => alert('All your referrals are displayed below. More referral management features coming soon!')}
+                className="text-xs font-bold text-emerald-600 flex items-center"
+              >
                 View All <ChevronRight size={14} />
               </button>
             </div>

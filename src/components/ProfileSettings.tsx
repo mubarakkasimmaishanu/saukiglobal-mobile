@@ -156,7 +156,17 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
                   <p className="text-gray-400 text-xs font-medium mb-1">Commission Balance</p>
                   <p className="text-2xl font-bold">₦{(user?.commissionBalance || 0).toLocaleString()}</p>
                 </div>
-                <button className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+                <button
+                  onClick={() => {
+                    const commission = user?.commissionBalance || 0;
+                    if (commission <= 0) {
+                      alert('No commission balance to withdraw.');
+                      return;
+                    }
+                    alert(`₦${commission.toLocaleString()} has been moved to your main wallet. This is a demo action.`);
+                  }}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors"
+                >
                   Withdraw
                 </button>
               </div>

@@ -172,7 +172,10 @@ export default function HelpSupport({ onBack }: HelpSupportProps) {
                   ))}
                 </div>
                 
-                <button className="w-full mt-4 py-3 text-sm font-bold text-emerald-600 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors">
+                <button
+                  onClick={() => alert('Showing all transactions. For disputes on older transactions, please contact support via WhatsApp.')}
+                  className="w-full mt-4 py-3 text-sm font-bold text-emerald-600 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors"
+                >
                   View Older Transactions
                 </button>
               </>
@@ -259,7 +262,7 @@ export default function HelpSupport({ onBack }: HelpSupportProps) {
             <div className="space-y-4">
               
               {/* WhatsApp (Primary for VTU) */}
-              <a href="#" className="bg-white border border-[#25D366]/30 p-5 rounded-2xl flex items-center gap-4 hover:shadow-md hover:border-[#25D366] transition-all group relative overflow-hidden">
+              <a href="https://wa.me/2348000000000" target="_blank" rel="noopener noreferrer" className="bg-white border border-[#25D366]/30 p-5 rounded-2xl flex items-center gap-4 hover:shadow-md hover:border-[#25D366] transition-all group relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-16 h-16 bg-[#25D366] opacity-5 rounded-full -mr-4 -mt-4"></div>
                 <div className="w-12 h-12 bg-[#25D366]/10 text-[#25D366] rounded-full flex items-center justify-center flex-shrink-0">
                   <MessageCircle size={24} />

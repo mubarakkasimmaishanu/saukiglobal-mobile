@@ -42,6 +42,13 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
     fetchTransactions();
   }, []);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
   if (!user) return null;
 
   const getIconForType = (type: string) => {
@@ -96,7 +103,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               </div>
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">Good morning,</p>
+              <p className="text-xs text-gray-500 font-medium">{getGreeting()},</p>
               <h1 className="text-base font-black text-gray-900 leading-tight">{user?.firstName || 'User'} 👋</h1>
             </div>
           </div>
@@ -183,7 +190,9 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               <div onClick={() => onNavigate('requests')}>
                 <ServiceIcon icon={Clock} title="My Requests" bg="bg-emerald-50" color="text-emerald-600" />
               </div>
-              <ServiceIcon icon={TrendingUp} title="More" bg="bg-gray-100" color="text-gray-600" />
+              <div onClick={() => onNavigate('pricing')}>
+                <ServiceIcon icon={TrendingUp} title="More" bg="bg-gray-100" color="text-gray-600" />
+              </div>
             </div>
           </div>
 

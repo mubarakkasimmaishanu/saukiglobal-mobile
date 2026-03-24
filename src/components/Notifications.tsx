@@ -108,7 +108,10 @@ export default function Notifications({ onBack }: NotificationsProps) {
                 </span>
               )}
             </div>
-            <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full">
+            <button
+              onClick={() => alert('Notification preferences coming soon! You\'ll be able to customize which alerts you receive.')}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full"
+            >
               <Settings size={20} />
             </button>
           </div>

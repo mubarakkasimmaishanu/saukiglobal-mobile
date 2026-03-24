@@ -20,6 +20,9 @@ interface RequestedServicesProps {
 export default function RequestedServices({ onBack }: RequestedServicesProps) {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -78,12 +81,34 @@ export default function RequestedServices({ onBack }: RequestedServicesProps) {
               <input 
                 type="text" 
                 placeholder="Search requests..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-slate-500 transition-all"
               />
             </div>
-            <button className="p-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors">
-              <Filter size={20} />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowFilterMenu(!showFilterMenu)}
+                className={`p-2.5 rounded-xl hover:bg-gray-200 transition-colors ${statusFilter !== 'all' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-600'}`}
+              >
+                <Filter size={20} />
+              </button>
+              {showFilterMenu && (
+                <div className="absolute right-0 top-12 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-30 overflow-hidden animate-in fade-in duration-200">
+                  {['all', 'Pending', 'Processing', 'Completed', 'Error'].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => { setStatusFilter(status); setShowFilterMenu(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors ${
+                        statusFilter === status ? 'text-emerald-600 bg-emerald-50 font-bold' : 'text-gray-700'
+                      }`}
+                    >
+                      {status === 'all' ? 'All Status' : status}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Requests List */}
@@ -94,7 +119,15 @@ export default function RequestedServices({ onBack }: RequestedServicesProps) {
               </div>
             ) : (
               <>
-                {requests.map((req) => {
+                {requests
+                  .filter(req => {
+                    const matchesSearch = req.service.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      req.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      req.details.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
+                    return matchesSearch && matchesStatus;
+                  })
+                  .map((req) => {
                   const Icon = getServiceIcon(req.service);
                   return (
                     <div key={req.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
@@ -127,13 +160,31 @@ export default function RequestedServices({ onBack }: RequestedServicesProps) {
 
                       <div className="flex justify-between items-center pt-2 border-t border-gray-50">
                         <span className="text-xs font-bold text-slate-900">₦{req.price.toLocaleString()}</span>
-                        <button className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:text-slate-900 transition-colors">
+                        <button
+                          onClick={() => alert(`Receipt for ${req.service}\n\nRequest ID: ${req.id}\nDate: ${req.date}\nStatus: ${req.status}\nAmount: ₦${req.price.toLocaleString()}\nDetails: ${req.details}`)}
+                          className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:text-slate-900 transition-colors"
+                        >
                           View Receipt <ExternalLink size={12} />
                         </button>
                       </div>
                     </div>
                   );
                 })}
+                {requests.filter(req => {
+                  const matchesSearch = req.service.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    req.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    req.details.toLowerCase().includes(searchQuery.toLowerCase());
+                  const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
+                  return matchesSearch && matchesStatus;
+                }).length === 0 && requests.length > 0 && (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                      <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-300">
+                        <FileText size={40} />
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">{requests.length === 0 ? 'No Requests Yet' : 'No Matching Requests'}</h3>
+                      <p className="text-sm text-gray-500 max-w-[200px]">{requests.length === 0 ? 'Your manual service requests will appear here.' : 'Try adjusting your search or filter.'}</p>
+                    </div>
+                  )}
                 {requests.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-20 text-center">
                     <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-300">

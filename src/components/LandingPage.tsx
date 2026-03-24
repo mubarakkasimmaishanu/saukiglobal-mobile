@@ -112,9 +112,9 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
         {/* Mobile Menu Panel */}
         <div className={`md:hidden absolute w-full bg-white border-t border-slate-100 shadow-2xl transition-all duration-300 origin-top ${isMobileMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'}`}>
           <div className="px-4 pt-4 pb-8 space-y-2">
-            <a href="#pricing" className="block px-4 py-3 text-base font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl">Pricing</a>
-            <a href="#services" className="block px-4 py-3 text-base font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl">Services</a>
-            <a href="#reseller" className="block px-4 py-3 text-base font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl">Become an Agent</a>
+            <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 text-base font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl">Pricing</a>
+            <a href="#services" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 text-base font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl">Services</a>
+            <a href="#reseller" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 text-base font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl">Become an Agent</a>
             <div className="pt-6 mt-4 border-t border-slate-100 flex flex-col gap-3">
               <button onClick={onSignIn} className="w-full text-center text-base font-bold text-slate-700 bg-slate-100 px-4 py-4 rounded-xl hover:bg-slate-200">Log In</button>
               <button onClick={onGetStarted} className="w-full text-center text-base font-bold bg-emerald-600 text-white px-4 py-4 rounded-xl shadow-lg shadow-emerald-200">Create Free Account</button>
@@ -156,10 +156,13 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                 </button>
                 <div className="flex items-center gap-4">
                   {/* Fake App Store Buttons */}
-                  <div className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer hover:bg-slate-800 transition-colors">
+                  <div
+                    onClick={() => alert('BuyDigital app coming soon to Google Play! Create an account on our website for now.')}
+                    className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer hover:bg-slate-800 transition-colors relative"
+                  >
                     <DownloadCloud size={24} />
                     <div className="text-left">
-                      <p className="text-[10px] uppercase tracking-wider text-slate-300">Get it on</p>
+                      <p className="text-[10px] uppercase tracking-wider text-slate-300">Coming Soon</p>
                       <p className="font-bold text-sm leading-tight">Google Play</p>
                     </div>
                   </div>
@@ -205,7 +208,10 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
                   ))}
                 </div>
 
-                <button className="w-full mt-6 bg-slate-50 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-100 transition-colors text-sm flex items-center justify-center gap-2">
+                <button
+                  onClick={onGetStarted}
+                  className="w-full mt-6 bg-slate-50 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-100 transition-colors text-sm flex items-center justify-center gap-2"
+                >
                   View All Networks <ChevronRight size={16} />
                 </button>
               </div>
@@ -455,7 +461,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
           <div className="flex gap-6 text-sm font-bold text-slate-600">
             <button onClick={onSignIn} className="hover:text-emerald-600">Login</button>
             <button onClick={onGetStarted} className="hover:text-emerald-600">Register</button>
-            <a href="#" className="hover:text-emerald-600">WhatsApp Support</a>
+            <a href="https://wa.me/2348000000000" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600">WhatsApp Support</a>
           </div>
 
           <p className="text-sm font-medium text-slate-400">&copy; {new Date().getFullYear()} BuyDigital. All rights reserved.</p>
