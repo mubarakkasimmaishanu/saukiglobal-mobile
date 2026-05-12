@@ -8,20 +8,22 @@ import PricingList from './components/PricingList';
 import HelpSupport from './components/HelpSupport';
 import BuyAirtime from './components/BuyAirtime';
 import TransactionHistory from './components/TransactionHistory';
-import ResultChecker from './components/ResultChecker';
+import ExamPins from './components/ExamPins';
 import ReferAndEarn from './components/ReferAndEarn';
 import FundWallet from './components/FundWallet';
 import BuyData from './components/BuyData';
 import WalletTransfer from './components/WalletTransfer';
-import JambServices from './components/JambServices';
-import JambPins from './components/JambPins';
 import CableTV from './components/CableTV';
 import ElectricityBill from './components/ElectricityBill';
 import NINPrint from './components/NINPrint';
 import RequestedServices from './components/RequestedServices';
 import UpgradeToReseller from './components/UpgradeToReseller';
+import AlphaTopup from './components/AlphaTopup';
+import KiraniService from './components/KiraniService';
+import SmileServices from './components/SmileServices';
+import AirtimeToCash from './components/AirtimeToCash';
 
-type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'referral' | 'fund' | 'data' | 'transfer' | 'jamb' | 'jamb-pins' | 'cable' | 'electricity' | 'nin' | 'requests' | 'upgrade';
+type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'referral' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'upgrade' | 'alpha' | 'kirani' | 'smile' | 'a2c';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('landing');
@@ -116,7 +118,7 @@ export default function App() {
       )}
 
       {currentView === 'exams' && (
-        <ResultChecker
+        <ExamPins
           onBack={() => navigateTo('dashboard')}
         />
       )}
@@ -147,14 +149,26 @@ export default function App() {
         />
       )}
 
-      {currentView === 'jamb' && (
-        <JambServices
+      {currentView === 'alpha' && (
+        <AlphaTopup
           onBack={() => navigateTo('dashboard')}
         />
       )}
 
-      {currentView === 'jamb-pins' && (
-        <JambPins
+      {currentView === 'kirani' && (
+        <KiraniService
+          onBack={() => navigateTo('dashboard')}
+        />
+      )}
+
+      {currentView === 'smile' && (
+        <SmileServices
+          onBack={() => navigateTo('dashboard')}
+        />
+      )}
+
+      {currentView === 'a2c' && (
+        <AirtimeToCash
           onBack={() => navigateTo('dashboard')}
         />
       )}
@@ -192,4 +206,5 @@ export default function App() {
     </div>
   );
 }
+
 
