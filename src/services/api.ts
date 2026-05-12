@@ -131,6 +131,53 @@ export const api = {
     });
   },
 
+  // Exam PINs
+  buyExamPin: async (exam: string, quantity: number) => {
+    return api.performService({
+      action: 'exams',
+      exam,
+      quantity
+    });
+  },
+
+  // Alpha Topup
+  buyAlpha: async (phone: string, amount: number) => {
+    return api.performService({
+      action: 'alpha',
+      phone,
+      amount
+    });
+  },
+
+  // Kirani Service
+  buyKirani: async (kiraniId: string, amount: number) => {
+    return api.performService({
+      action: 'kirani',
+      kiraniId,
+      amount
+    });
+  },
+
+  // Smile Services
+  buySmile: async (smileId: string, plan: string, type: string) => {
+    return api.performService({
+      action: 'smile',
+      smileId,
+      plan,
+      type
+    });
+  },
+
+  // Airtime to Cash
+  submitA2C: async (network: string, phone: string, amount: number) => {
+    return api.performService({
+      action: 'a2c',
+      network,
+      phone,
+      amount
+    });
+  },
+
   // Transaction History
   getTransactions: async (): Promise<Transaction[]> => {
     const res = await request<Transaction[]>('services.php', {

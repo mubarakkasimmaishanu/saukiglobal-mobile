@@ -20,7 +20,9 @@ import {
   BookOpen,
   MessageSquare,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Zap,
+  RefreshCcw
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { api } from '../services/api';
@@ -146,16 +148,22 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
         {/* Services Grid */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#66df75]">Core Services</h3>
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#66df75]">Ecosystem Services</h3>
             <span className="w-12 h-[1px] bg-[#66df75]/30"></span>
           </div>
           
           <div className="grid grid-cols-4 gap-y-8 gap-x-4">
             <ServiceButton icon={Wifi} title="Data" onClick={() => onNavigate('data')} />
             <ServiceButton icon={Smartphone} title="Airtime" onClick={() => onNavigate('airtime')} />
-            <ServiceButton icon={Tv} title="Cable" onClick={() => onNavigate('cable')} />
+            <ServiceButton icon={Tv} title="Cable TV" onClick={() => onNavigate('cable')} />
             <ServiceButton icon={Lightbulb} title="Power" onClick={() => onNavigate('electricity')} />
+            
             <ServiceButton icon={GraduationCap} title="Exams" onClick={() => onNavigate('exams')} />
+            <ServiceButton icon={Zap} title="Alpha" onClick={() => onNavigate('alpha')} />
+            <ServiceButton icon={RefreshCcw} title="Kirani" onClick={() => onNavigate('kirani')} />
+            <ServiceButton icon={Wifi} title="Smile" onClick={() => onNavigate('smile')} />
+
+            <ServiceButton icon={ArrowUpRight} title="A2C" onClick={() => onNavigate('a2c')} />
             <ServiceButton icon={FileText} title="NIN" onClick={() => onNavigate('nin')} />
             <ServiceButton icon={History} title="History" onClick={() => onNavigate('history')} />
             <ServiceButton icon={PlusCircle} title="More" onClick={() => onNavigate('pricing')} />
