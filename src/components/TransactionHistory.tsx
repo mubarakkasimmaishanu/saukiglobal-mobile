@@ -18,7 +18,13 @@ import {
   FileText,
   BookOpen,
   Wallet,
-  Send
+  Send,
+  Search,
+  ArrowUpRight,
+  ArrowDownLeft,
+  ShieldCheck,
+  Zap,
+  MoreVertical
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Transaction } from '../types';
@@ -68,243 +74,158 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
       case 'Exam': return BookOpen;
       case 'NIN': return FileText;
       case 'Funding': return Wallet;
-      default: return History;
+      default: return Zap;
     }
   };
 
-  const getIconBgForType = (type: string) => {
-    switch (type) {
-      case 'Airtime': return 'bg-emerald-50 text-emerald-600';
-      case 'Data': return 'bg-yellow-50 text-yellow-600';
-      case 'Transfer': return 'bg-blue-50 text-blue-600';
-      case 'Electricity': return 'bg-orange-50 text-orange-600';
-      case 'Cable': return 'bg-rose-50 text-rose-600';
-      case 'Exam': return 'bg-purple-50 text-purple-600';
-      case 'NIN': return 'bg-teal-50 text-teal-600';
-      case 'Funding': return 'bg-emerald-50 text-emerald-600';
-      default: return 'bg-gray-50 text-gray-600';
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Success':
-        return <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full"><CheckCircle2 size={12} /> Successful</span>;
-      case 'Failed':
-        return <span className="flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full"><XCircle size={12} /> Failed</span>;
-      case 'Pending':
-        return <span className="flex items-center gap-1 text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-1 rounded-full"><Clock size={12} /> Pending</span>;
-      default:
-        return null;
+      case 'Success': return 'text-[#66df75]';
+      case 'Failed': return 'text-[#ef4444]';
+      case 'Pending': return 'text-[#f59e0b]';
+      default: return 'text-[#e1e3e4]/40';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans md:py-8 relative">
-      <div className="max-w-md mx-auto bg-white min-h-screen md:min-h-[auto] md:rounded-3xl md:shadow-xl overflow-hidden relative">
-
+    <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient">
+      <div className="max-w-md mx-auto relative px-6 pb-24">
+        
         {/* Header */}
-        <header className="px-5 pt-6 pb-4 bg-white sticky top-0 z-20 flex justify-between items-center border-b border-gray-100">
-          <div className="flex items-center">
+        <header className="py-8 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="p-2 -ml-2 hover:bg-gray-50 rounded-full transition-colors"
+              className="w-10 h-10 glass-panel flex items-center justify-center hover:bg-white/10 transition-colors"
             >
-              <ChevronLeft size={24} className="text-gray-700" />
+              <ChevronLeft size={20} />
             </button>
-            <h1 className="text-lg font-bold text-gray-900 ml-2">History</h1>
+            <h1 className="text-xl font-black tracking-tighter">Activity</h1>
           </div>
-          <div className="relative">
-            <button
-              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-              className={`p-2 rounded-full hover:bg-gray-100 transition-colors ${statusFilter !== 'all' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-50 text-gray-600'}`}
-            >
-              <Filter size={18} />
-            </button>
-            {showFilterDropdown && (
-              <div className="absolute right-0 top-12 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-30 overflow-hidden animate-in fade-in duration-200">
-                {['all', 'Success', 'Pending', 'Failed'].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => { setStatusFilter(status); setShowFilterDropdown(false); }}
-                    className={`w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors ${
-                      statusFilter === status ? 'text-emerald-600 bg-emerald-50 font-bold' : 'text-gray-700'
-                    }`}
-                  >
-                    {status === 'all' ? 'All Status' : status}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <button 
+            onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+            className={`w-10 h-10 glass-panel flex items-center justify-center transition-colors ${statusFilter !== 'all' ? 'text-[#66df75] border-[#66df75]/20' : ''}`}
+          >
+            <Filter size={18} />
+          </button>
         </header>
 
-        {/* Filters/Tabs */}
-        <div className="px-5 py-4 bg-white sticky top-[68px] z-10">
-          <div className="flex p-1 bg-gray-100 rounded-xl">
+        {/* Filters */}
+        <div className="flex gap-2 mb-8 bg-white/5 p-1 rounded-2xl border border-white/5">
+          {['all', 'in', 'out'].map((tab) => (
             <button
-              onClick={() => setActiveTab('all')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === tab ? 'bg-[#66df75] text-[#111415] shadow-lg' : 'text-[#e1e3e4]/40 hover:text-white'}`}
             >
-              All
+              {tab === 'all' ? 'All' : tab === 'in' ? 'Funding' : 'Payments'}
             </button>
-            <button
-              onClick={() => setActiveTab('in')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'in' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-            >
-              Money In
-            </button>
-            <button
-              onClick={() => setActiveTab('out')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'out' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-            >
-              Money Out
-            </button>
-          </div>
+          ))}
         </div>
 
         {/* Transaction List */}
-        <div className="px-5 pb-6">
+        <div className="space-y-4">
           {isLoading ? (
-            <div className="flex justify-center py-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+            <div className="py-20 flex flex-col items-center gap-4 opacity-20">
+              <div className="w-10 h-10 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-[10px] font-black uppercase tracking-widest">Syncing Ledger...</p>
+            </div>
+          ) : filteredTransactions.length === 0 ? (
+            <div className="py-20 text-center opacity-20">
+              <Zap size={48} className="mx-auto mb-4" />
+              <p className="text-xs font-bold uppercase tracking-widest">No activity found</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {filteredTransactions.map((tx) => {
-                const Icon = getIconForType(tx.type);
-                return (
-                  <button
-                    key={tx.id}
-                    onClick={() => setSelectedTx(tx)}
-                    className="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between hover:border-emerald-200 transition-colors shadow-sm active:bg-gray-50 text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-3 rounded-full ${getIconBgForType(tx.type)}`}>
-                        <Icon size={20} />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-gray-900 leading-tight">{tx.type}</h3>
-                        <p className="text-xs text-gray-500 mt-0.5">{tx.date}</p>
-                      </div>
+            filteredTransactions.map((tx) => {
+              const Icon = getIconForType(tx.type);
+              const isFunding = tx.type === 'Funding';
+              return (
+                <button
+                  key={tx.id}
+                  onClick={() => setSelectedTx(tx)}
+                  className="w-full glass-panel p-5 flex items-center justify-between hover:bg-white/5 transition-all text-left group border-white/5"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${isFunding ? 'bg-[#66df75]/10 text-[#66df75]' : 'bg-white/5 text-[#e1e3e4]/60'}`}>
+                      {isFunding ? <ArrowDownLeft size={24} /> : <Icon size={24} />}
                     </div>
-                    <div className="text-right flex flex-col items-end gap-1">
-                      <span className={`text-sm font-bold ${tx.type === 'Funding' ? 'text-emerald-600' : 'text-gray-900'}`}>
-                        {tx.type === 'Funding' ? '+' : '-'} ₦{tx.amount.toLocaleString()}
-                      </span>
-                      {tx.profit && tx.profit > 0 && user?.isReseller && (
-                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                          +₦{tx.profit} profit
-                        </span>
-                      )}
-                      {getStatusBadge(tx.status)}
+                    <div>
+                      <h3 className="text-sm font-black text-white leading-none mb-1.5">{tx.type}</h3>
+                      <p className="text-[10px] font-bold text-[#e1e3e4]/30 uppercase tracking-wider">{tx.date}</p>
                     </div>
-                  </button>
-                );
-              })}
-            </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-black mb-1 ${isFunding ? 'text-[#66df75]' : 'text-white'}`}>
+                      {isFunding ? '+' : '-'} ₦{tx.amount.toLocaleString()}
+                    </p>
+                    <div className={`text-[9px] font-black uppercase tracking-widest flex items-center justify-end gap-1 ${getStatusColor(tx.status)}`}>
+                      <div className={`w-1 h-1 rounded-full bg-current ${tx.status === 'Pending' ? 'animate-pulse' : ''}`}></div>
+                      {tx.status}
+                    </div>
+                  </div>
+                </button>
+              );
+            })
           )}
         </div>
 
-        {/* RECEIPT MODAL / BOTTOM SHEET */}
+        {/* Receipt Modal */}
         {selectedTx && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white w-full max-w-md rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl animate-in slide-in-from-bottom-full md:slide-in-from-bottom-0 md:zoom-in-95 duration-300">
-
-              {/* Receipt Header */}
-              <div className="bg-gray-50 p-5 flex justify-between items-center border-b border-gray-100">
-                <h2 className="font-bold text-gray-800">Transaction Receipt</h2>
-                <button
-                  onClick={() => setSelectedTx(null)}
-                  className="p-1.5 bg-gray-200 text-gray-600 rounded-full hover:bg-gray-300 transition-colors"
-                >
-                  <X size={18} />
+          <div className="fixed inset-0 z-[60] flex items-end justify-center px-6 pb-12 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-[#111415]/80 backdrop-blur-md" onClick={() => setSelectedTx(null)}></div>
+            
+            <div className="w-full max-w-sm glass-panel p-8 relative overflow-hidden animate-in slide-in-from-bottom-8 duration-500 border-emerald-500/20">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#66df75] to-transparent"></div>
+              
+              <div className="flex justify-between items-center mb-10">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-[#66df75] rounded-md flex items-center justify-center text-[#111415]">
+                    <ShieldCheck size={14} />
+                  </div>
+                  <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Transaction Receipt</span>
+                </div>
+                <button onClick={() => setSelectedTx(null)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#e1e3e4]/40 hover:text-white transition-colors">
+                  <X size={16} />
                 </button>
               </div>
 
-              {/* Receipt Content */}
-              <div className="p-6">
-                <div className="flex flex-col items-center mb-6 text-center">
-                  <div className={`p-4 rounded-full mb-3 ${getIconBgForType(selectedTx.type)}`}>
-                    {React.createElement(getIconForType(selectedTx.type), { size: 32 })}
-                  </div>
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">
-                    {selectedTx.type === 'Funding' ? 'Amount Received' : 'Amount Paid'}
-                  </h3>
-                  <p className="text-4xl font-bold text-gray-900 mb-2">
-                    ₦{selectedTx.amount.toLocaleString()}
-                  </p>
-                  {getStatusBadge(selectedTx.status)}
+              <div className="text-center mb-10">
+                <div className="w-20 h-20 bg-[#111415] rounded-full border border-white/5 flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                  {React.createElement(getIconForType(selectedTx.type), { size: 32, className: "text-[#66df75]" })}
                 </div>
-
-                <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 space-y-4 mb-6">
-                  <div className="flex justify-between items-start">
-                    <span className="text-xs text-gray-500 font-medium">Service</span>
-                    <span className="text-sm font-bold text-gray-900 text-right">{selectedTx.type}</span>
-                  </div>
-                  <div className="flex justify-between items-start">
-                    <span className="text-xs text-gray-500 font-medium">Recipient/Details</span>
-                    <span className="text-sm font-bold text-gray-900 text-right max-w-[60%]">{selectedTx.details}</span>
-                  </div>
-
-                  <div className="flex justify-between items-start">
-                    <span className="text-xs text-gray-500 font-medium">Date & Time</span>
-                    <span className="text-sm font-bold text-gray-900 text-right">{selectedTx.date}</span>
-                  </div>
-                  <div className="flex justify-between items-start">
-                    <span className="text-xs text-gray-500 font-medium">Reference ID</span>
-                    <span className="text-xs font-mono font-bold text-gray-600 text-right">{selectedTx.id}</span>
-                  </div>
-
-
-                  {selectedTx.profit && selectedTx.profit > 0 && user?.isReseller && (
-                    <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
-                      <span className="text-xs text-emerald-600 font-bold">Reseller Profit</span>
-                      <span className="text-sm font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg">+₦{selectedTx.profit}</span>
-                    </div>
-                  )}
+                <p className="text-[10px] font-black text-[#e1e3e4]/30 uppercase tracking-[0.3em] mb-2">Total Amount</p>
+                <h2 className="text-4xl font-black text-white tracking-tighter">₦{selectedTx.amount.toLocaleString()}</h2>
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 mt-4 text-[10px] font-black uppercase tracking-widest ${getStatusColor(selectedTx.status)}`}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-current"></div>
+                  {selectedTx.status}
                 </div>
+              </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      const receiptText = `BuyDigital Receipt\n---\nService: ${selectedTx.type}\nAmount: ₦${selectedTx.amount.toLocaleString()}\nDetails: ${selectedTx.details}\nDate: ${selectedTx.date}\nRef: ${selectedTx.id}\nStatus: ${selectedTx.status}`;
-                      navigator.clipboard.writeText(receiptText).then(() => alert('Receipt copied to clipboard!'));
-                    }}
-                    className="flex-1 bg-emerald-50 text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors"
-                  >
-                    <Download size={18} />
-                    Save
-                  </button>
-                  <button
-                    onClick={async () => {
-                      const receiptText = `BuyDigital Receipt\nService: ${selectedTx.type}\nAmount: ₦${selectedTx.amount.toLocaleString()}\nDetails: ${selectedTx.details}\nDate: ${selectedTx.date}\nRef: ${selectedTx.id}\nStatus: ${selectedTx.status}`;
-                      if (navigator.share) {
-                        try {
-                          await navigator.share({ title: 'BuyDigital Receipt', text: receiptText });
-                        } catch { /* user cancelled */ }
-                      } else {
-                        navigator.clipboard.writeText(receiptText).then(() => alert('Receipt copied to clipboard for sharing!'));
-                      }
-                    }}
-                    className="flex-1 bg-emerald-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors shadow-md"
-                  >
-                    <Share2 size={18} />
-                    Share
-                  </button>
+              <div className="space-y-5 mb-10">
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Recipient</span>
+                  <span className="text-xs font-bold text-white text-right">{selectedTx.details}</span>
                 </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Date</span>
+                  <span className="text-xs font-bold text-white">{selectedTx.date}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Reference</span>
+                  <span className="text-[10px] font-mono font-bold text-white/60">{selectedTx.id}</span>
+                </div>
+              </div>
 
-                <button
-                  onClick={() => setSelectedTx(null)}
-                  className="w-full mt-3 py-3 text-sm font-bold text-gray-500 hover:text-gray-800"
-                >
-                  Close
+              <div className="grid grid-cols-2 gap-4">
+                <button className="btn-primary py-4 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest font-black">
+                  <Download size={16} /> Save
+                </button>
+                <button className="glass-panel py-4 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest font-black hover:bg-white/10 transition-all border-white/10">
+                  <Share2 size={16} /> Share
                 </button>
               </div>
+
+              <p className="text-center mt-8 text-[8px] font-black text-[#e1e3e4]/10 uppercase tracking-[0.4em]">SaukiGlobal Automation</p>
             </div>
           </div>
         )}
@@ -313,3 +234,4 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
     </div>
   );
 }
+

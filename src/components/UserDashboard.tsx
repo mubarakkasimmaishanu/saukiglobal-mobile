@@ -20,8 +20,7 @@ import {
   BookOpen,
   MessageSquare,
   Clock,
-  Download,
-  X
+  ArrowRight
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { api } from '../services/api';
@@ -35,12 +34,19 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   const { user } = useUser();
   const [showBalance, setShowBalance] = useState(true);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [greeting, setGreeting] = useState('');
+
   useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good morning');
+    else if (hour < 17) setGreeting('Good afternoon');
+    else setGreeting('Good evening');
+
     const fetchTransactions = async () => {
       try {
         const txs = await api.getTransactions();
         if (Array.isArray(txs)) {
-          setRecentTransactions(txs.slice(0, 3));
+          setRecentTransactions(txs.slice(0, 5));
         }
       } catch (err) {
         console.error("Failed to fetch transactions:", err);
@@ -49,285 +55,191 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
     fetchTransactions();
   }, []);
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
-
   if (!user) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
+    <div className="min-h-screen bg-[#111415] flex items-center justify-center">
+      <div className="animate-pulse flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-[#66df75] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-[#66df75] font-bold tracking-widest text-xs uppercase">Loading SaukiGlobal...</p>
+      </div>
     </div>
   );
 
-  const getIconForType = (type: string) => {
-    switch (type) {
-      case 'Airtime': return Smartphone;
-      case 'Data': return Wifi;
-      case 'Transfer': return Send;
-      case 'Electricity': return Lightbulb;
-      case 'Cable': return Tv;
-      case 'Exam': return BookOpen;
-      case 'NIN': return FileText;
-      case 'Funding': return Wallet;
-      default: return History;
-    }
-  };
-
-  const getIconBgForType = (type: string) => {
-    switch (type) {
-      case 'Airtime': return 'bg-emerald-100 text-emerald-600';
-      case 'Data': return 'bg-yellow-100 text-yellow-600';
-      case 'Transfer': return 'bg-blue-100 text-blue-600';
-      case 'Electricity': return 'bg-orange-100 text-orange-600';
-      case 'Cable': return 'bg-rose-100 text-rose-600';
-      case 'Exam': return 'bg-purple-100 text-purple-600';
-      case 'NIN': return 'bg-teal-100 text-teal-600';
-      case 'Funding': return 'bg-emerald-100 text-emerald-600';
-      default: return 'bg-gray-100 text-gray-600';
-    }
-  };
-
-  const ServiceIcon = ({ icon: Icon, title, bg, color }: { icon: any, title: string, bg: string, color: string }) => (
-    <button className="flex flex-col items-center gap-2 group transition-all">
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 group-active:scale-95 shadow-sm border border-gray-100 ${bg} ${color}`}>
-        <Icon size={24} strokeWidth={2} />
+  const ServiceButton = ({ icon: Icon, title, onClick }: { icon: any, title: string, onClick: () => void }) => (
+    <button 
+      onClick={onClick}
+      className="flex flex-col items-center gap-3 group transition-all"
+    >
+      <div className="w-16 h-16 glass-card flex items-center justify-center group-hover:bg-[#66df75]/10 group-active:scale-95 group-hover:border-[#66df75]/30 transition-all duration-300 shadow-lg">
+        <Icon size={28} className="text-[#e1e3e4] group-hover:text-[#66df75] transition-colors" />
       </div>
-      <span className="text-[11px] font-bold text-gray-700 text-center leading-tight max-w-[70px]">
+      <span className="text-[10px] font-bold text-[#e1e3e4]/70 uppercase tracking-wider group-hover:text-[#66df75]">
         {title}
       </span>
     </button>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans md:py-8">
-      <div className="max-w-md mx-auto bg-gray-50 min-h-screen md:min-h-[auto] md:rounded-3xl md:shadow-xl overflow-hidden relative pb-20 md:pb-0">
-
-        {/* Top Header */}
-        <header className="px-5 pt-6 pb-2 sticky top-0 bg-gray-50/90 backdrop-blur-md z-30 flex justify-between items-center text-left">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-11 h-11 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm border-2 border-white">
-                {user?.firstName?.charAt(0) || 'U'}
-              </div>
+    <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient pb-24">
+      <div className="max-w-md mx-auto relative px-6">
+        
+        {/* Header */}
+        <header className="py-8 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#66df75] to-[#4ade80] flex items-center justify-center text-[#111415] font-black text-xl shadow-[0_0_20px_rgba(102,223,117,0.3)]">
+              {user?.firstName?.charAt(0) || 'S'}
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">{getGreeting()},</p>
-              <h1 className="text-base font-black text-gray-900 leading-tight">{user?.firstName || 'User'} 👋</h1>
+              <p className="text-[10px] text-[#66df75] font-black uppercase tracking-[0.2em]">{greeting}</p>
+              <h1 className="text-lg font-bold tracking-tight">@{user?.firstName?.toLowerCase() || 'user'}</h1>
             </div>
           </div>
           <button
             onClick={() => onNavigate('notifications')}
-            className="relative p-2.5 bg-white rounded-full shadow-sm border border-gray-100 hover:bg-gray-100 transition-colors"
+            className="w-12 h-12 glass-panel flex items-center justify-center relative hover:bg-white/10 transition-colors"
           >
-            <Bell size={20} className="text-gray-700" />
-            <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+            <Bell size={20} className="text-[#e1e3e4]" />
+            <span className="absolute top-3 right-3 w-2 h-2 bg-[#66df75] rounded-full shadow-[0_0_10px_#66df75]"></span>
           </button>
         </header>
 
-        <main className="px-5 pt-4">
-
-          {/* Main Wallet Card */}
-          <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-[1.5rem] p-6 text-white shadow-xl shadow-emerald-200 mb-6 relative overflow-hidden text-left">
-            {/* Decorative background shapes */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10 blur-xl"></div>
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-black opacity-10 rounded-full -ml-8 -mb-8 blur-lg"></div>
-
-            <div className="relative z-10">
-              <div className="flex justify-between items-center mb-1">
-                <p className="text-emerald-100 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  Available Balance
-                  <button onClick={() => setShowBalance(!showBalance)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
-                    {showBalance ? <Eye size={14} /> : <EyeOff size={14} />}
-                  </button>
-                </p>
-                <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-1 rounded-lg backdrop-blur-sm border border-white/20">
-                  {user.isReseller ? 'Reseller Pro' : 'Basic'}
-                </span>
-              </div>
-
-              <h2 className="text-3xl md:text-4xl font-black mb-6 tracking-tight">
-                {showBalance ? `₦${(user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '****'}
-              </h2>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => onNavigate('fund')}
-                  className="flex-1 bg-white text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-colors active:scale-95"
-                >
-                  <PlusCircle size={18} /> Fund Wallet
-                </button>
-                <button
-                  onClick={() => onNavigate('transfer')}
-                  className="flex-1 bg-emerald-700/50 backdrop-blur-md border border-emerald-500/50 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700/70 transition-colors active:scale-95"
-                >
-                  <Send size={18} /> Transfer
-                </button>
-              </div>
-            </div>
+        {/* Balance Card */}
+        <div className="card-mesh rounded-[2rem] p-8 mb-10 relative overflow-hidden shadow-2xl border border-white/5">
+          <div className="absolute top-0 right-0 p-4">
+            <span className="text-[10px] font-black bg-[#66df75]/20 text-[#66df75] px-3 py-1.5 rounded-full border border-[#66df75]/30 uppercase tracking-widest">
+              {user.isReseller ? 'Reseller Pro' : 'Premium'}
+            </span>
           </div>
 
-          <div className="mb-8 text-left">
-            <h3 className="text-sm font-bold text-gray-900 mb-4 px-1">Quick Services</h3>
-            <div className="grid grid-cols-4 gap-y-6 gap-x-2">
-              <div onClick={() => onNavigate('data')}>
-                <ServiceIcon icon={Wifi} title="Buy Data" bg="bg-emerald-50" color="text-emerald-600" />
-              </div>
-              <div onClick={() => onNavigate('airtime')}>
-                <ServiceIcon icon={Smartphone} title="Airtime" bg="bg-emerald-50" color="text-emerald-600" />
-              </div>
-              <div onClick={() => onNavigate('jamb-pins')}>
-                <ServiceIcon icon={GraduationCap} title="JAMB Pins" bg="bg-emerald-50" color="text-emerald-600" />
-              </div>
-              <div onClick={() => onNavigate('jamb')}>
-                <ServiceIcon icon={FileText} title="JAMB Services" bg="bg-emerald-50" color="text-emerald-600" />
-              </div>
-              <div onClick={() => onNavigate('exams')}>
-                <ServiceIcon icon={BookOpen} title="Result Checkers" bg="bg-emerald-50" color="text-emerald-600" />
-              </div>
-
-              <div onClick={() => onNavigate('electricity')}>
-                <ServiceIcon icon={Lightbulb} title="Electricity" bg="bg-emerald-50" color="text-emerald-600" />
-              </div>
-              <div onClick={() => onNavigate('cable')}>
-                <ServiceIcon icon={Tv} title="Cable TV" bg="bg-emerald-50" color="text-emerald-600" />
-              </div>
-              <div onClick={() => onNavigate('nin')}>
-                <ServiceIcon icon={FileText} title="Print NIN" bg="bg-emerald-100" color="text-emerald-700" />
-              </div>
-              <div onClick={() => onNavigate('requests')}>
-                <ServiceIcon icon={Clock} title="My Requests" bg="bg-emerald-50" color="text-emerald-600" />
-              </div>
-              <div onClick={() => onNavigate('pricing')}>
-                <ServiceIcon icon={TrendingUp} title="More" bg="bg-gray-100" color="text-gray-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* Tier-Aware Banner */}
-          {!user.isReseller ? (
-            /* BASIC USER: Upgrade CTA */
-            <div
-              onClick={() => onNavigate('upgrade')}
-              className="bg-slate-900 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-lg relative overflow-hidden group cursor-pointer text-left"
-            >
-              <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-500/20 rounded-full blur-xl group-hover:bg-emerald-500/30 transition-all"></div>
-              <div className="relative z-10 flex items-center gap-4">
-                <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                  <TrendingUp size={20} className="text-emerald-400" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mb-0.5">Save More Money</p>
-                  <p className="text-sm font-bold text-white">Upgrade to Reseller Pro — ₦2,000</p>
-                </div>
-              </div>
-              <ArrowUpRight size={20} className="text-slate-400 group-hover:text-white transition-colors relative z-10" />
-            </div>
-          ) : (
-            /* RESELLER USER: Earnings Summary */
-            <div
-              onClick={() => onNavigate('referral')}
-              className="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-lg relative overflow-hidden group cursor-pointer text-left"
-            >
-              <div className="absolute right-0 top-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-              <div className="relative z-10 flex items-center gap-4">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                  <TrendingUp size={20} className="text-white" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-emerald-100 font-bold tracking-widest uppercase mb-0.5">Today's Commission</p>
-                  <p className="text-lg font-black text-white">₦{(user.commissionBalance || 0).toLocaleString()}</p>
-                </div>
-              </div>
-              <div className="relative z-10 text-right">
-                <p className="text-[10px] text-emerald-100 font-bold uppercase tracking-wider">Referrals</p>
-                <p className="text-lg font-black text-white">{user.totalReferrals || 0}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Recent Transactions List */}
-          <div className="mb-4 text-left">
-            <div className="flex justify-between items-center mb-4 px-1">
-              <h3 className="text-sm font-bold text-gray-900">Recent Transactions</h3>
-              <button
-                onClick={() => onNavigate('history')}
-                className="text-xs font-bold text-emerald-600 hover:text-emerald-700"
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-[11px] font-bold text-[#e1e3e4]/60 uppercase tracking-widest">Available Balance</p>
+              <button 
+                onClick={() => setShowBalance(!showBalance)}
+                className="text-[#66df75] p-1 rounded-lg hover:bg-white/5 transition-colors"
               >
-                View All
+                {showBalance ? <Eye size={16} /> : <EyeOff size={16} />}
               </button>
             </div>
-
-            <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
-              {recentTransactions.length > 0 ? (
-                recentTransactions.map((tx, index) => {
-                  const Icon = getIconForType(tx.type);
-                  return (
-                    <div key={tx.id} className={`flex items-center justify-between p-3 ${index !== recentTransactions.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getIconBgForType(tx.type)}`}>
-                          <Icon size={18} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-gray-900">{tx.type}</p>
-                          <p className="text-xs text-gray-500 truncate max-w-[150px]">{tx.details}</p>
-                        </div>
-                      </div>
-                      <p className={`text-sm font-black ${tx.type === 'Funding' ? 'text-emerald-600' : 'text-gray-900'}`}>
-                        {tx.type === 'Funding' ? '+' : '-'}₦{(tx.amount || 0).toLocaleString()}
-                      </p>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="py-4 text-center text-gray-400 text-xs">No recent transactions</div>
-              )}
-            </div>
+            <h2 className="text-4xl font-black tracking-tighter text-white">
+              {showBalance ? `₦${(user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••••••'}
+            </h2>
           </div>
-        </main>
 
-        {/* Bottom Navigation Bar */}
-        <nav className="fixed md:absolute bottom-0 w-full bg-white border-t border-gray-200 px-6 py-3 flex justify-between items-center z-40 pb-safe">
-          <button
-            onClick={() => onNavigate('dashboard')}
-            className="flex flex-col items-center gap-1 group"
+          <div className="flex gap-4">
+            <button
+              onClick={() => onNavigate('fund')}
+              className="flex-1 btn-primary flex items-center justify-center gap-2"
+            >
+              <PlusCircle size={18} />
+              <span>Fund Wallet</span>
+            </button>
+            <button
+              onClick={() => onNavigate('transfer')}
+              className="flex-1 glass-panel flex items-center justify-center gap-2 py-3.5 font-bold hover:bg-white/10"
+            >
+              <Send size={18} />
+              <span>Transfer</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Services Grid */}
+        <section className="mb-12">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#66df75]">Core Services</h3>
+            <span className="w-12 h-[1px] bg-[#66df75]/30"></span>
+          </div>
+          
+          <div className="grid grid-cols-4 gap-y-8 gap-x-4">
+            <ServiceButton icon={Wifi} title="Data" onClick={() => onNavigate('data')} />
+            <ServiceButton icon={Smartphone} title="Airtime" onClick={() => onNavigate('airtime')} />
+            <ServiceButton icon={Tv} title="Cable" onClick={() => onNavigate('cable')} />
+            <ServiceButton icon={Lightbulb} title="Power" onClick={() => onNavigate('electricity')} />
+            <ServiceButton icon={GraduationCap} title="Exams" onClick={() => onNavigate('exams')} />
+            <ServiceButton icon={FileText} title="NIN" onClick={() => onNavigate('nin')} />
+            <ServiceButton icon={History} title="History" onClick={() => onNavigate('history')} />
+            <ServiceButton icon={PlusCircle} title="More" onClick={() => onNavigate('pricing')} />
+          </div>
+        </section>
+
+        {/* Upgrade Banner */}
+        {!user.isReseller && (
+          <div 
+            onClick={() => onNavigate('upgrade')}
+            className="glass-panel p-6 mb-12 flex items-center justify-between group cursor-pointer hover:border-[#66df75]/50 transition-all"
           >
-            <div className={`p-1 rounded-xl bg-emerald-50 text-emerald-600`}>
-              <Home size={22} className="stroke-[2.5px]" />
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#66df75]/10 flex items-center justify-center">
+                <TrendingUp size={24} className="text-[#66df75]" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white mb-0.5">Upgrade to Reseller Pro</p>
+                <p className="text-[10px] text-[#e1e3e4]/50">Get lower rates & start earning commissions</p>
+              </div>
             </div>
-            <span className={`text-[10px] font-bold text-emerald-600`}>Home</span>
+            <ArrowRight size={20} className="text-[#66df75] group-hover:translate-x-1 transition-transform" />
+          </div>
+        )}
+
+        {/* Recent Transactions */}
+        <section>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#66df75]">Recent Activity</h3>
+            <button 
+              onClick={() => onNavigate('history')}
+              className="text-[10px] font-bold uppercase tracking-widest text-[#e1e3e4]/40 hover:text-[#66df75] transition-colors"
+            >
+              See All
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {recentTransactions.length > 0 ? (
+              recentTransactions.map((tx) => (
+                <div key={tx.id} className="glass-panel p-4 flex items-center justify-between group hover:bg-white/5 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl glass-card flex items-center justify-center">
+                      {tx.type === 'Funding' ? <Wallet size={18} className="text-[#66df75]" /> : <ArrowUpRight size={18} className="text-[#e1e3e4]/60" />}
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white">{tx.type}</p>
+                      <p className="text-[9px] text-[#e1e3e4]/40 uppercase tracking-wider">{tx.date}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-black ${tx.type === 'Funding' ? 'text-[#66df75]' : 'text-white'}`}>
+                      {tx.type === 'Funding' ? '+' : '-'}₦{tx.amount.toLocaleString()}
+                    </p>
+                    <p className="text-[9px] text-[#e1e3e4]/30 font-bold uppercase tracking-widest">{tx.status}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="glass-panel p-8 text-center">
+                <Clock size={32} className="mx-auto text-[#e1e3e4]/10 mb-3" />
+                <p className="text-[10px] font-bold text-[#e1e3e4]/30 uppercase tracking-[0.2em]">No transactions yet</p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Navbar */}
+        <nav className="fixed bottom-6 left-6 right-6 h-18 glass-panel flex justify-around items-center px-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50">
+          <button onClick={() => onNavigate('dashboard')} className="flex flex-col items-center gap-1.5 group">
+            <Home size={22} className="text-[#66df75]" />
+            <span className="text-[8px] font-black text-[#66df75] uppercase tracking-widest">Home</span>
           </button>
-
-          <button
-            onClick={() => onNavigate('history')}
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-900 transition-colors"
-          >
-            <div className="p-1 rounded-xl group-hover:bg-gray-50">
-              <History size={22} className="stroke-[2px]" />
-            </div>
-            <span className="text-[10px] font-bold">History</span>
+          <button onClick={() => onNavigate('history')} className="flex flex-col items-center gap-1.5 group text-[#e1e3e4]/40 hover:text-[#66df75] transition-all">
+            <History size={22} />
+            <span className="text-[8px] font-black uppercase tracking-widest">History</span>
           </button>
-
-          <button
-            onClick={() => onNavigate('support')}
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-900 transition-colors"
-          >
-            <div className="p-1 rounded-xl group-hover:bg-gray-50">
-              <MessageSquare size={22} className="stroke-[2px]" />
-            </div>
-            <span className="text-[10px] font-bold">Support</span>
+          <button onClick={() => onNavigate('support')} className="flex flex-col items-center gap-1.5 group text-[#e1e3e4]/40 hover:text-[#66df75] transition-all">
+            <MessageSquare size={22} />
+            <span className="text-[8px] font-black uppercase tracking-widest">Support</span>
           </button>
-
-          <button
-            onClick={() => onNavigate('profile')}
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-900 transition-colors"
-          >
-            <div className="p-1 rounded-xl group-hover:bg-gray-50">
-              <UserIcon size={22} className="stroke-[2px]" />
-            </div>
-            <span className="text-[10px] font-bold">Profile</span>
+          <button onClick={() => onNavigate('profile')} className="flex flex-col items-center gap-1.5 group text-[#e1e3e4]/40 hover:text-[#66df75] transition-all">
+            <UserIcon size={22} />
+            <span className="text-[8px] font-black uppercase tracking-widest">Profile</span>
           </button>
         </nav>
 
@@ -335,3 +247,4 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
     </div>
   );
 }
+
