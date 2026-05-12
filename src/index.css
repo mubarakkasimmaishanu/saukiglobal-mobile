@@ -1,38 +1,65 @@
 @import "tailwindcss";
 
 /* ============================================
-   BUYDIGITAL BRAND COLOR SYSTEM
-   Primary: Emerald (#059669)
-   Like OPay = Green, PalmPay = Purple
-   BuyDigital = Emerald Green
+   SAUKIGLOBAL BRAND DESIGN SYSTEM
+   Dark-Centric Fintech (Glassmorphism & Mesh)
    ============================================ */
 
-/* Global Font */
+:root {
+  /* Brand Palette */
+  --primary: #66df75;
+  --bg-deep: #111415;
+  --surface: #1a1d1e;
+  --zinc: #e1e3e4;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  
+  /* Glassmorphism */
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(12px);
+}
+
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Manrope', 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-deep);
+  color: var(--zinc);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
+/* Mesh Gradient Backgrounds */
+.mesh-gradient {
+  background: radial-gradient(at 0% 0%, rgba(102, 223, 117, 0.15) 0, transparent 50%),
+              radial-gradient(at 100% 100%, rgba(102, 223, 117, 0.1) 0, transparent 50%);
+  background-color: var(--bg-deep);
 }
 
-/* Brand Color CSS Variables - Single Source of Truth */
-:root {
-  --brand: #059669;
-  /* emerald-600 */
-  --brand-light: #d1fae5;
-  /* emerald-100 */
-  --brand-lighter: #ecfdf5;
-  /* emerald-50 */
-  --brand-dark: #047857;
-  /* emerald-700 */
-  --brand-darker: #065f46;
-  /* emerald-800 */
-  --brand-darkest: #064e3b;
-  /* emerald-900 */
+.card-mesh {
+  background: linear-gradient(135deg, rgba(102, 223, 117, 0.1) 0%, rgba(17, 20, 21, 1) 100%);
+  border: 1px solid var(--glass-border);
+}
+
+/* Glassmorphism Components */
+.glass-panel {
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 1.5rem;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+}
+
+/* Smooth Transitions */
+* {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Custom scrollbar */
@@ -41,14 +68,35 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--bg-deep);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #333;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--primary);
 }
+
+/* Button & Interactive styles */
+.btn-primary {
+  background: var(--primary);
+  color: var(--bg-deep);
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 12px 24px;
+  box-shadow: 0 4px 14px 0 rgba(102, 223, 117, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 223, 117, 0.4);
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #66df75, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

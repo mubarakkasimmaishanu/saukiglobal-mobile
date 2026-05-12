@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  User as UserIcon,
-  Phone,
   ShieldCheck,
-  Gift,
   ArrowRight,
   ChevronLeft,
   KeyRound,
-  CheckCircle
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  Smartphone,
+  Fingerprint
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useUser } from '../context/UserContext';
@@ -22,558 +20,142 @@ interface AuthPageProps {
   onSuccess: () => void;
 }
 
-export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: AuthPageProps) {
+export default function AuthPage({ onBack, onSuccess }: AuthPageProps) {
   const { refreshUser } = useUser();
-  const [isLogin, setIsLogin] = useState(initialMode === 'login');
-  const [showPassword, setShowPassword] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [showKey, setShowKey] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Forgot Password states
-  const [forgotStep, setForgotStep] = useState<'none' | 'email' | 'otp' | 'newpass' | 'done'>('none');
-  const [resetEmail, setResetEmail] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
-  // Form States
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    password: '',
-    referralCode: ''
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!apiKey) return;
+    
     setIsLoading(true);
     setError(null);
 
     try {
-      if (isLogin) {
-        await api.login(formData.email, formData.password);
-      } else {
-        await api.signup(formData);
-      }
+      await api.login(apiKey);
       await refreshUser();
       onSuccess();
     } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please try again.');
+      setError(err.message || 'Invalid Access Key. Please check and try again.');
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Forgot Password handlers
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!resetEmail) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      await new Promise(r => setTimeout(r, 1500)); // Mock API
-      setForgotStep('otp');
-    } catch {
-      setError('Failed to send OTP. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const code = otp.join('');
-    if (code.length !== 6) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      await new Promise(r => setTimeout(r, 1000)); // Mock API
-      // Mock: accept any 6-digit code
-      setForgotStep('newpass');
-    } catch {
-      setError('Invalid OTP. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-    try {
-      await new Promise(r => setTimeout(r, 1500)); // Mock API
-      setForgotStep('done');
-    } catch {
-      setError('Failed to reset password. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleOtpChange = (index: number, value: string) => {
-    if (value.length > 1) value = value.slice(-1);
-    if (!/^\d*$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-    if (value && index < 5) {
-      const next = document.getElementById(`otp-${index + 1}`);
-      next?.focus();
-    }
-  };
-
-  // ---------- FORGOT PASSWORD UI ----------
-  if (forgotStep !== 'none') {
-    return (
-      <div className="min-h-screen bg-gray-50 font-sans flex flex-col justify-center py-10 px-5 md:py-12 sm:px-6 lg:px-8 relative">
-        <button
-          onClick={() => {
-            if (forgotStep === 'email') { setForgotStep('none'); setError(null); }
-            else if (forgotStep === 'otp') { setForgotStep('email'); setError(null); }
-            else if (forgotStep === 'newpass') { setForgotStep('otp'); setError(null); }
-            else { setForgotStep('none'); setError(null); }
-          }}
-          className="absolute top-6 left-6 flex items-center gap-2 text-gray-500 hover:text-emerald-600 font-bold transition-colors"
-        >
-          <ChevronLeft size={20} />
-          {forgotStep === 'done' ? 'Back to Login' : 'Go Back'}
-        </button>
-
-        <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform rotate-3 ${forgotStep === 'done' ? 'bg-emerald-500 shadow-emerald-200' : 'bg-amber-500 shadow-amber-200'
-            }`}>
-            {forgotStep === 'done'
-              ? <CheckCircle size={36} className="text-white transform -rotate-3" />
-              : <KeyRound size={36} className="text-white transform -rotate-3" />
-            }
-          </div>
-          <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-            {forgotStep === 'email' && 'Reset Password'}
-            {forgotStep === 'otp' && 'Verify OTP'}
-            {forgotStep === 'newpass' && 'New Password'}
-            {forgotStep === 'done' && 'Password Reset!'}
-          </h2>
-          <p className="text-sm text-gray-500 mt-2 font-medium">
-            {forgotStep === 'email' && 'Enter your email to receive a verification code.'}
-            {forgotStep === 'otp' && `We sent a 6-digit code to ${resetEmail}`}
-            {forgotStep === 'newpass' && 'Create a new secure password.'}
-            {forgotStep === 'done' && 'Your password has been updated successfully.'}
-          </p>
-        </div>
-
-        <div className="sm:mx-auto sm:w-full sm:max-w-md animate-in zoom-in-95 duration-300">
-          <div className="bg-white py-8 px-5 shadow-xl shadow-gray-200/50 rounded-3xl sm:px-10 border border-gray-100">
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-xl">
-                {error}
-              </div>
-            )}
-
-            {/* Step 1: Email */}
-            {forgotStep === 'email' && (
-              <form onSubmit={handleSendOtp} className="space-y-5">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Email Address</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <Mail size={18} className="text-gray-400" />
-                    </div>
-                    <input
-                      type="email"
-                      required
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                      placeholder="Enter your registered email"
-                    />
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all disabled:opacity-70 flex justify-center items-center gap-2"
-                >
-                  {isLoading ? 'Sending...' : <><>Send OTP</> <ArrowRight size={18} /></>}
-                </button>
-              </form>
-            )}
-
-            {/* Step 2: OTP */}
-            {forgotStep === 'otp' && (
-              <form onSubmit={handleVerifyOtp} className="space-y-5">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-3 text-center">Enter 6-digit code</label>
-                  <div className="flex justify-center gap-2">
-                    {otp.map((digit, i) => (
-                      <input
-                        key={i}
-                        id={`otp-${i}`}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(i, e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Backspace' && !digit && i > 0) {
-                            document.getElementById(`otp-${i - 1}`)?.focus();
-                          }
-                        }}
-                        className="w-12 h-14 text-center text-xl font-black bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                      />
-                    ))}
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={isLoading || otp.join('').length !== 6}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all disabled:opacity-70 flex justify-center items-center gap-2"
-                >
-                  {isLoading ? 'Verifying...' : <><>Verify Code</> <ArrowRight size={18} /></>}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setOtp(['', '', '', '', '', '']); handleSendOtp(new Event('submit') as any); }}
-                  className="w-full text-sm font-bold text-gray-500 hover:text-emerald-600 py-2"
-                >
-                  Didn't receive code? Resend
-                </button>
-              </form>
-            )}
-
-            {/* Step 3: New Password */}
-            {forgotStep === 'newpass' && (
-              <form onSubmit={handleResetPassword} className="space-y-5">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">New Password</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <Lock size={18} className="text-gray-400" />
-                    </div>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                      placeholder="Create new password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Confirm Password</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <Lock size={18} className="text-gray-400" />
-                    </div>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                      placeholder="Re-enter new password"
-                    />
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all disabled:opacity-70 flex justify-center items-center gap-2"
-                >
-                  {isLoading ? 'Resetting...' : <><>Reset Password</> <ArrowRight size={18} /></>}
-                </button>
-              </form>
-            )}
-
-            {/* Step 4: Done */}
-            {forgotStep === 'done' && (
-              <div className="text-center space-y-5">
-                <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle size={40} className="text-emerald-600" />
-                </div>
-                <p className="text-sm text-gray-600 font-medium">Your password has been successfully reset. You can now sign in with your new password.</p>
-                <button
-                  onClick={() => { setForgotStep('none'); setError(null); }}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
-                >
-                  Back to Sign In <ArrowRight size={18} />
-                </button>
-              </div>
-            )}
-
-            <div className="mt-6 border-t border-gray-100 pt-4">
-              <div className="flex justify-center items-center gap-2 opacity-60">
-                <ShieldCheck size={16} className="text-gray-500" />
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Secured 256-Bit Encryption</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans flex flex-col justify-center py-10 px-5 md:py-12 sm:px-6 lg:px-8 relative">
+    <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient flex flex-col justify-center py-12 px-6 relative overflow-hidden">
+      
+      {/* Decorative Orbs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#66df75]/10 rounded-full blur-[120px]"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#66df75]/5 rounded-full blur-[120px]"></div>
 
       {/* Back Button */}
       <button
         onClick={onBack}
-        className="absolute top-6 left-6 flex items-center gap-2 text-gray-500 hover:text-emerald-600 font-bold transition-colors"
+        className="absolute top-8 left-8 flex items-center gap-2 text-[#e1e3e4]/50 hover:text-[#66df75] font-bold transition-all group"
       >
-        <ChevronLeft size={20} />
-        Back to Home
+        <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+        <span className="text-xs uppercase tracking-widest">Back</span>
       </button>
 
       {/* Brand Header */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-200 transform rotate-3">
-          <ShieldCheck size={36} className="text-white transform -rotate-3" />
+      <div className="text-center mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="w-20 h-20 bg-gradient-to-tr from-[#66df75] to-[#4ade80] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(102,223,117,0.4)] transform rotate-6 hover:rotate-0 transition-transform duration-500">
+          <ShieldCheck size={40} className="text-[#111415]" />
         </div>
-        <h2 className="text-3xl font-black text-gray-900 tracking-tight">BuyDigital.ng</h2>
-        <p className="text-sm text-gray-500 mt-2 font-medium">Your automated digital utility hub.</p>
+        <h2 className="text-3xl font-black text-white tracking-tighter mb-2">SaukiGlobal</h2>
+        <p className="text-xs font-bold text-[#66df75] uppercase tracking-[0.3em]">Secure Access Portal</p>
       </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md animate-in zoom-in-95 duration-300">
-        <div className="bg-white py-8 px-5 shadow-xl shadow-gray-200/50 rounded-3xl sm:px-10 border border-gray-100">
-
-          {/* Toggle Switches */}
-          <div className="flex p-1 bg-gray-100 rounded-xl mb-8">
-            <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${isLogin ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${!isLogin ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-            >
-              Create Account
-            </button>
+      <div className="max-w-md mx-auto w-full animate-in zoom-in-95 duration-500">
+        <div className="glass-panel p-8 shadow-2xl border border-white/5 relative">
+          
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-[#66df75]/10 flex items-center justify-center">
+              <Fingerprint size={20} className="text-[#66df75]" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-white">Identity Verification</h3>
+              <p className="text-[10px] text-[#e1e3e4]/40 uppercase tracking-wider font-bold">Encrypted Session</p>
+            </div>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-xl animate-in shake duration-300">
+            <div className="mb-6 p-4 bg-[#ef4444]/10 border border-[#ef4444]/20 text-[#ef4444] text-[10px] font-black uppercase tracking-widest rounded-xl animate-in shake duration-300">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-
-            {/* Registration Only Fields */}
-            {!isLogin && (
-              <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-300">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">First Name</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <UserIcon size={16} className="text-gray-400" />
-                    </div>
-                    <input
-                      type="text"
-                      name="firstName"
-                      required={!isLogin}
-                      onChange={handleChange}
-                      className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                      placeholder="Musa"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Last Name</label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    required={!isLogin}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                    placeholder="Ibrahim"
-                  />
-                </div>
-              </div>
-            )}
-
-            {!isLogin && (
-              <div className="animate-in fade-in duration-300">
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Phone Number</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Phone size={18} className="text-gray-400" />
-                  </div>
-                  <input
-                    type="tel"
-                    name="phone"
-                    required={!isLogin}
-                    onChange={handleChange}
-                    className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                    placeholder="0801 234 5678"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Email Field (Used in both) */}
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">Email Address</label>
+              <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-3">Your API Access Key</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Mail size={18} className="text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <KeyRound size={18} className="text-[#e1e3e4]/30" />
                 </div>
                 <input
-                  type="email"
-                  name="email"
+                  type={showKey ? "text" : "password"}
                   required
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                  placeholder="you@example.com"
-                />
-              </div>
-            </div>
-
-            {/* Password Field (Used in both) */}
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-xs font-bold text-gray-700">Password</label>
-                {isLogin && (
-                  <button
-                    type="button"
-                    onClick={() => { setForgotStep('email'); setError(null); }}
-                    className="text-xs font-bold text-emerald-600 hover:text-emerald-500"
-                  >
-                    Forgot password?
-                  </button>
-                )}
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Lock size={18} className="text-gray-400" />
-                </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  required
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                  placeholder={isLogin ? "Enter your password" : "Create a strong password"}
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 font-mono tracking-widest"
+                  placeholder="sk_live_••••••••••••"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowKey(!showKey)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#e1e3e4]/30 hover:text-[#66df75] transition-colors"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showKey ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              <p className="mt-3 text-[9px] text-[#e1e3e4]/30 font-medium italic">
+                * Enter the secure API key provided in your dashboard or via welcome email.
+              </p>
             </div>
 
-            {/* Referral Code (Optional - Registration Only) */}
-            {!isLogin && (
-              <div className="animate-in fade-in duration-300">
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Referral Code (Optional)</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Gift size={18} className="text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    name="referralCode"
-                    onChange={handleChange}
-                    className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all uppercase placeholder:normal-case"
-                    placeholder="Enter code if invited"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Terms Checkbox (Registration Only) */}
-            {!isLogin && (
-              <div className="flex items-start mt-2 animate-in fade-in duration-300">
-                <div className="flex h-5 items-center">
-                  <input
-                    id="terms"
-                    name="terms"
-                    type="checkbox"
-                    required
-                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                </div>
-                <div className="ml-2 text-xs">
-                  <label htmlFor="terms" className="text-gray-500 font-medium">
-                    I agree to the{' '}
-                    <button
-                      type="button"
-                      onClick={() => alert('Terms of Service\n\nBy using BuyDigital, you agree to:\n\n1. Use the platform for lawful purposes only.\n2. Provide accurate personal information.\n3. Not engage in fraudulent transactions.\n4. Accept that service prices may change without notice.\n5. Accept that completed transactions are non-reversible.\n\nFor full terms, contact support@buydigital.ng')}
-                      className="text-emerald-600 font-bold hover:underline"
-                    >
-                      Terms of Service
-                    </button>{' '}and{' '}
-                    <button
-                      type="button"
-                      onClick={() => alert('Privacy Policy\n\nBuyDigital respects your privacy:\n\n1. We collect only necessary personal data (name, email, phone).\n2. Your data is encrypted and stored securely.\n3. We never sell your information to third parties.\n4. Transaction data is kept for regulatory compliance.\n5. You can request data deletion by contacting support.\n\nFor full policy, contact support@buydigital.ng')}
-                      className="text-emerald-600 font-bold hover:underline"
-                    >
-                      Privacy Policy
-                    </button>.
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all disabled:opacity-70"
-              >
-                {isLoading ? (
-                  <><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...</>
-                ) : (
-                  <>
-                    {isLogin ? 'Secure Sign In' : 'Create Free Account'}
-                    <ArrowRight size={18} />
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={isLoading || !apiKey}
+              className="w-full btn-primary py-4 flex justify-center items-center gap-3 disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <span className="uppercase tracking-[0.1em] font-black">Authorize Access</span>
+                  <ArrowRight size={18} />
+                </>
+              )}
+            </button>
           </form>
 
-          {/* Social Proof / Security Footer */}
-          <div className="mt-8 border-t border-gray-100 pt-6">
-            <div className="flex justify-center items-center gap-2 opacity-60">
-              <ShieldCheck size={16} className="text-gray-500" />
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Secured 256-Bit Encryption</span>
+          <div className="mt-10 pt-8 border-t border-white/5 flex flex-col items-center gap-4">
+            <div className="flex items-center gap-6 opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all">
+              <ShieldCheck size={20} />
+              <Lock size={20} />
+              <KeyRound size={20} />
             </div>
+            <p className="text-[9px] font-bold text-[#e1e3e4]/20 uppercase tracking-[0.2em]">
+              Military-Grade 256-bit AES Encryption
+            </p>
           </div>
+        </div>
 
+        {/* Footer Links */}
+        <div className="mt-8 flex justify-center gap-8">
+          <button className="text-[10px] font-black text-[#e1e3e4]/30 hover:text-[#66df75] uppercase tracking-widest transition-colors">
+            Forgot Key?
+          </button>
+          <button className="text-[10px] font-black text-[#e1e3e4]/30 hover:text-[#66df75] uppercase tracking-widest transition-colors">
+            Contact Support
+          </button>
         </div>
       </div>
     </div>
   );
 }
+

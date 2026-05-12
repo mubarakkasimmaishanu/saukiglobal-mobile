@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
 import ProfileSettings from './components/ProfileSettings';
@@ -25,14 +25,32 @@ type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifica
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('landing');
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    // Check if API key exists to auto-login
+    const apiKey = localStorage.getItem('saukiglobal_api_key');
+    if (apiKey) {
+      setCurrentView('dashboard');
+    }
+    setIsInitializing(false);
+  }, []);
 
   const navigateTo = (view: View) => {
     setCurrentView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-[#111415] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#66df75] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#111415] selection:bg-[#66df75] selection:text-[#111415]">
       {currentView === 'landing' && (
         <LandingPage
           onGetStarted={() => navigateTo('signup')}
@@ -55,7 +73,10 @@ export default function App() {
       {currentView === 'profile' && (
         <ProfileSettings
           onBack={() => navigateTo('dashboard')}
-          onLogout={() => navigateTo('landing')}
+          onLogout={() => {
+            localStorage.removeItem('saukiglobal_api_key');
+            navigateTo('landing');
+          }}
           onViewPricing={() => navigateTo('pricing')}
           onViewSupport={() => navigateTo('support')}
           onViewReferrals={() => navigateTo('referral')}
@@ -171,3 +192,4 @@ export default function App() {
     </div>
   );
 }
+
