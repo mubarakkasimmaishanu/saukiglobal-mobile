@@ -66,9 +66,10 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
 
   if (!user) return (
     <div className="min-h-screen bg-[#111415] flex items-center justify-center">
-      <div className="animate-pulse flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-[#66df75] border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-[#66df75] font-bold tracking-widest text-xs uppercase">Loading SaukiGlobal...</p>
+      <div className="animate-pulse flex flex-col items-center gap-6">
+        <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-20 h-20 object-contain drop-shadow-[0_0_20px_rgba(102,223,117,0.3)]" />
+        <div className="w-8 h-8 border-4 border-[#66df75] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-[#66df75] font-black tracking-widest text-xs uppercase">Loading SaukiGlobal...</p>
       </div>
     </div>
   );
@@ -93,22 +94,25 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
         
         {/* Header */}
         <header className="py-8 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#66df75] to-[#4ade80] flex items-center justify-center text-[#111415] font-black text-xl shadow-[0_0_20px_rgba(102,223,117,0.3)]">
-              {user?.firstName?.charAt(0) || 'S'}
-            </div>
+          <div className="flex items-center gap-3">
+            <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-12 h-12 object-contain drop-shadow-[0_0_15px_rgba(102,223,117,0.3)]" />
             <div>
               <p className="text-[10px] text-[#66df75] font-black uppercase tracking-[0.2em]">{greeting}</p>
               <h1 className="text-lg font-bold tracking-tight">@{user?.firstName?.toLowerCase() || 'user'}</h1>
             </div>
           </div>
-          <button
-            onClick={() => onNavigate('notifications')}
-            className="w-12 h-12 glass-panel flex items-center justify-center relative hover:bg-white/10 transition-colors"
-          >
-            <Bell size={20} className="text-[#e1e3e4]" />
-            <span className="absolute top-3 right-3 w-2 h-2 bg-[#66df75] rounded-full shadow-[0_0_10px_#66df75]"></span>
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#66df75] to-[#4ade80] flex items-center justify-center text-[#111415] font-black text-lg shadow-[0_0_15px_rgba(102,223,117,0.3)]">
+              {user?.firstName?.charAt(0) || 'S'}
+            </div>
+            <button
+              onClick={() => onNavigate('notifications')}
+              className="w-10 h-10 glass-panel flex items-center justify-center relative hover:bg-white/10 transition-colors"
+            >
+              <Bell size={18} className="text-[#e1e3e4]" />
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-[#66df75] rounded-full shadow-[0_0_10px_#66df75]"></span>
+            </button>
+          </div>
         </header>
 
         {/* Balance Card */}
