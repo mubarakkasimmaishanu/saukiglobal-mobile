@@ -22,11 +22,15 @@ import {
   Clock,
   ArrowRight,
   Zap,
-  RefreshCcw
+  RefreshCcw,
+  Cpu,
+  Globe2,
+  Briefcase
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { api } from '../services/api';
 import { Transaction } from '../types';
+import TransactionTable from './TransactionTable';
 
 interface UserDashboardProps {
   onNavigate: (view: any) => void;
@@ -36,6 +40,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   const { user } = useUser();
   const [showBalance, setShowBalance] = useState(true);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [greeting, setGreeting] = useState('');
 
   useEffect(() => {
@@ -52,6 +57,8 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
         }
       } catch (err) {
         console.error("Failed to fetch transactions:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchTransactions();
@@ -166,6 +173,9 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             <ServiceButton icon={ArrowUpRight} title="A2C" onClick={() => onNavigate('a2c')} />
             <ServiceButton icon={FileText} title="NIN" onClick={() => onNavigate('nin')} />
             <ServiceButton icon={History} title="History" onClick={() => onNavigate('history')} />
+            <ServiceButton icon={Cpu} title="eSIM" onClick={() => onNavigate('esim')} />
+            <ServiceButton icon={Briefcase} title="CAC" onClick={() => onNavigate('cac')} />
+            <ServiceButton icon={Globe2} title="Intl Topup" onClick={() => onNavigate('intl')} />
             <ServiceButton icon={PlusCircle} title="More" onClick={() => onNavigate('pricing')} />
           </div>
         </section>
@@ -202,32 +212,10 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
           </div>
 
           <div className="space-y-4">
-            {recentTransactions.length > 0 ? (
-              recentTransactions.map((tx) => (
-                <div key={tx.id} className="glass-panel p-4 flex items-center justify-between group hover:bg-white/5 transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl glass-card flex items-center justify-center">
-                      {tx.type === 'Funding' ? <Wallet size={18} className="text-[#66df75]" /> : <ArrowUpRight size={18} className="text-[#e1e3e4]/60" />}
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-white">{tx.type}</p>
-                      <p className="text-[9px] text-[#e1e3e4]/40 uppercase tracking-wider">{tx.date}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-black ${tx.type === 'Funding' ? 'text-[#66df75]' : 'text-white'}`}>
-                      {tx.type === 'Funding' ? '+' : '-'}₦{tx.amount.toLocaleString()}
-                    </p>
-                    <p className="text-[9px] text-[#e1e3e4]/30 font-bold uppercase tracking-widest">{tx.status}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="glass-panel p-8 text-center">
-                <Clock size={32} className="mx-auto text-[#e1e3e4]/10 mb-3" />
-                <p className="text-[10px] font-bold text-[#e1e3e4]/30 uppercase tracking-[0.2em]">No transactions yet</p>
-              </div>
-            )}
+            <TransactionTable 
+              transactions={recentTransactions} 
+              isLoading={isLoading} 
+            />
           </div>
         </section>
 

@@ -1,6 +1,6 @@
-# BuyDigital.ng - Automated Utility Hub
+# Saukiglobal - Automated Utility Hub
 
-BuyDigital is a premium VTU and utility billing platform designed for speed, reliability, and affordability. We provide the cheapest data, airtime, and educational pins in Nigeria.
+Saukiglobal is a premium VTU and utility billing platform designed for speed, reliability, and affordability. We provide the cheapest data, airtime, and educational pins in Nigeria.
 
 ## Features
 - **Cheapest Data**: MTN 1GB for as low as ₦255.
@@ -35,4 +35,4 @@ npm run build
 ```
 
 ---
-© 2026 BuyDigital.ng
+© 2026 Saukiglobal

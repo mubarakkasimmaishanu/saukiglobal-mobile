@@ -34,7 +34,7 @@ export default function UpgradeToReseller({ onBack, onSuccess }: UpgradeToResell
     const features = [
         { name: 'Buy Data & Airtime', basic: true, reseller: true },
         { name: 'Pay Bills (Electricity/Cable)', basic: true, reseller: true },
-        { name: 'JAMB & Exam Services', basic: true, reseller: true },
+        { name: 'Exam Services', basic: true, reseller: true },
         { name: 'Fund Wallet & Transfer', basic: true, reseller: true },
         { name: 'Data at Wholesale Price', basic: false, reseller: true },
         { name: 'Airtime 4% Discount', basic: false, reseller: true },

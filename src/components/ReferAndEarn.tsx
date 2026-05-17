@@ -25,7 +25,7 @@ export default function ReferAndEarn({ onBack, onUpgrade }: ReferAndEarnProps) {
 
   const isReseller = user?.isReseller ?? false;
   const referralCode = user?.referralCode || 'NEWUSER000';
-  const referralLink = `https://buydigital.ng/ref/${referralCode}`;
+  const referralLink = `https://saukiglobal.com/ref/${referralCode}`;
   const totalEarnings = user?.totalEarnings ?? 0;
   const commissionBalance = user?.commissionBalance ?? 0;
   const totalReferrals = user?.totalReferrals ?? 0;
@@ -143,7 +143,7 @@ export default function ReferAndEarn({ onBack, onUpgrade }: ReferAndEarnProps) {
 
             <button
               onClick={() => {
-                const message = encodeURIComponent(`Join BuyDigital and get the cheapest data, airtime & more! Use my referral link: ${referralLink}`);
+                const message = encodeURIComponent(`Join Saukiglobal and get the cheapest data, airtime & more! Use my referral link: ${referralLink}`);
                 window.open(`https://wa.me/?text=${message}`, '_blank');
               }}
               className="w-full bg-emerald-50 text-emerald-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors"

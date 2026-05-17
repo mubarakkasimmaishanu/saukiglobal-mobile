@@ -22,8 +22,11 @@ import AlphaTopup from './components/AlphaTopup';
 import KiraniService from './components/KiraniService';
 import SmileServices from './components/SmileServices';
 import AirtimeToCash from './components/AirtimeToCash';
+import ESimServices from './components/ESimServices';
+import CACRegistration from './components/CACRegistration';
+import IntlTopup from './components/IntlTopup';
 
-type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'referral' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'upgrade' | 'alpha' | 'kirani' | 'smile' | 'a2c';
+type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'referral' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'upgrade' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('landing');
@@ -193,6 +196,24 @@ export default function App() {
 
       {currentView === 'requests' && (
         <RequestedServices
+          onBack={() => navigateTo('dashboard')}
+        />
+      )}
+
+      {currentView === 'esim' && (
+        <ESimServices
+          onBack={() => navigateTo('dashboard')}
+        />
+      )}
+
+      {currentView === 'cac' && (
+        <CACRegistration
+          onBack={() => navigateTo('dashboard')}
+        />
+      )}
+
+      {currentView === 'intl' && (
+        <IntlTopup
           onBack={() => navigateTo('dashboard')}
         />
       )}

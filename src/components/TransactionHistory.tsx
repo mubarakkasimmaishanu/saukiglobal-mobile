@@ -29,6 +29,7 @@ import {
 import { api } from '../services/api';
 import { Transaction } from '../types';
 import { useUser } from '../context/UserContext';
+import TransactionTable from './TransactionTable';
 
 interface TransactionHistoryProps {
   onBack: () => void;
@@ -124,50 +125,11 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
         </div>
 
         {/* Transaction List */}
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="py-20 flex flex-col items-center gap-4 opacity-20">
-              <div className="w-10 h-10 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-[10px] font-black uppercase tracking-widest">Syncing Ledger...</p>
-            </div>
-          ) : filteredTransactions.length === 0 ? (
-            <div className="py-20 text-center opacity-20">
-              <Zap size={48} className="mx-auto mb-4" />
-              <p className="text-xs font-bold uppercase tracking-widest">No activity found</p>
-            </div>
-          ) : (
-            filteredTransactions.map((tx) => {
-              const Icon = getIconForType(tx.type);
-              const isFunding = tx.type === 'Funding';
-              return (
-                <button
-                  key={tx.id}
-                  onClick={() => setSelectedTx(tx)}
-                  className="w-full glass-panel p-5 flex items-center justify-between hover:bg-white/5 transition-all text-left group border-white/5"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${isFunding ? 'bg-[#66df75]/10 text-[#66df75]' : 'bg-white/5 text-[#e1e3e4]/60'}`}>
-                      {isFunding ? <ArrowDownLeft size={24} /> : <Icon size={24} />}
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-white leading-none mb-1.5">{tx.type}</h3>
-                      <p className="text-[10px] font-bold text-[#e1e3e4]/30 uppercase tracking-wider">{tx.date}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-black mb-1 ${isFunding ? 'text-[#66df75]' : 'text-white'}`}>
-                      {isFunding ? '+' : '-'} ₦{tx.amount.toLocaleString()}
-                    </p>
-                    <div className={`text-[9px] font-black uppercase tracking-widest flex items-center justify-end gap-1 ${getStatusColor(tx.status)}`}>
-                      <div className={`w-1 h-1 rounded-full bg-current ${tx.status === 'Pending' ? 'animate-pulse' : ''}`}></div>
-                      {tx.status}
-                    </div>
-                  </div>
-                </button>
-              );
-            })
-          )}
-        </div>
+        <TransactionTable 
+          transactions={filteredTransactions} 
+          isLoading={isLoading} 
+          onRowClick={setSelectedTx} 
+        />
 
         {/* Receipt Modal */}
         {selectedTx && (

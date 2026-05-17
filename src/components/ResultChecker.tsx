@@ -90,7 +90,7 @@ export default function ResultChecker({ onBack }: ResultCheckerProps) {
     if (navigator.share) {
       navigator.share({
         title: `${exams[examType].name} Receipt`,
-        text: `I just bought my ${exams[examType].name} PINs on BuyDigital! ${text}`,
+        text: `I just bought my ${exams[examType].name} PINs on Saukiglobal! ${text}`,
       }).catch(() => {});
     } else {
       alert('Sharing not supported on this browser.');

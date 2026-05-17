@@ -23,7 +23,7 @@ export interface Transaction {
   id: string;
   type: 'Airtime' | 'Data' | 'Transfer' | 'Electricity' | 'Cable' | 'Exam' | 'NIN' | 'Funding';
   amount: number;
-  status: 'Success' | 'Pending' | 'Failed';
+  status: 'Success' | 'Pending' | 'Processing' | 'Failed';
   date: string;
   details: string;
   recipient?: string;

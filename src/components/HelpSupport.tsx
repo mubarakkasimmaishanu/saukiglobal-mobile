@@ -30,7 +30,7 @@ export default function HelpSupport({ onBack }: HelpSupportProps) {
     { id: 1, q: "I funded my wallet but it's not reflecting. What should I do?", a: "Auto-funding usually takes 1-3 minutes. If it delays beyond 10 minutes, it's a network issue from your bank. Your money is safe and will reflect automatically once the bank releases it." },
     { id: 2, q: "My data purchase was successful but I haven't received it.", a: "Sometimes network providers (MTN, Airtel) experience slight delays in delivering data. Please wait 5-10 minutes. If you still haven't received it, log a dispute and we will refund you." },
     { id: 3, q: "How do I upgrade to a Reseller account?", a: "Go to Profile > Upgrade Package. You will pay a one-time upgrade fee, and your account will automatically be switched to enjoy the cheapest wholesale rates." },
-    { id: 4, q: "Can I retrieve a JAMB E-Pin I already bought?", a: "Yes! Go to your Transaction History, click on the specific JAMB payment, and your E-Pin will be displayed on the receipt." },
+    { id: 4, q: "Can I retrieve a WAEC E-Pin I already bought?", a: "Yes! Go to your Transaction History, click on the specific WAEC payment, and your E-Pin will be displayed on the receipt." },
   ];
 
   // Mock Recent Transactions for Dispute
@@ -287,13 +287,13 @@ export default function HelpSupport({ onBack }: HelpSupportProps) {
               </a>
 
               {/* Email */}
-              <a href="mailto:support@buydigital.ng" className="bg-white border border-gray-200 p-5 rounded-2xl flex items-center gap-4 hover:shadow-md hover:border-purple-400 transition-all group">
+              <a href="mailto:support@saukiglobal.com" className="bg-white border border-gray-200 p-5 rounded-2xl flex items-center gap-4 hover:shadow-md hover:border-purple-400 transition-all group">
                 <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
                   <Mail size={24} />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-gray-900">Email Support</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">support@buydigital.ng</p>
+                  <p className="text-xs text-gray-500 mt-0.5">support@saukiglobal.com</p>
                 </div>
                 <ChevronRight size={20} className="text-gray-300 group-hover:text-purple-500" />
               </a>

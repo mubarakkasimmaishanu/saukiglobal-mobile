@@ -49,12 +49,12 @@ export default function RequestedServices({ onBack }: RequestedServicesProps) {
   };
 
   const getServiceIcon = (service: string) => {
-    if (service.toLowerCase().includes('jamb')) return GraduationCap;
+    if (service.toLowerCase().includes('exam') || service.toLowerCase().includes('cac')) return GraduationCap;
     return FileText;
   };
 
   const getServiceColor = (service: string) => {
-    if (service.toLowerCase().includes('jamb')) return 'text-purple-600 bg-purple-50';
+    if (service.toLowerCase().includes('exam') || service.toLowerCase().includes('cac')) return 'text-purple-600 bg-purple-50';
     return 'text-blue-600 bg-blue-50';
   };
 

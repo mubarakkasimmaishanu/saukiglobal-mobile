@@ -43,7 +43,6 @@ export default function PricingList({ onBack, onUpgrade }: PricingListProps) {
       { id: 10, network: '9Mobile', name: '9Mobile Airtime VTU', retail: 'Face Value', reseller: '4% Discount' },
     ],
     exams: [
-      { id: 11, network: 'JAMB', name: 'JAMB UTME E-Pin', retail: 7500, reseller: 7200 },
       { id: 12, network: 'WAEC', name: 'WAEC Result Checker', retail: 3800, reseller: 3500 },
       { id: 13, network: 'NECO', name: 'NECO Token', retail: 1400, reseller: 1200 },
       { id: 14, network: 'NIMC', name: 'Print NIN Slip (Standard)', retail: 700, reseller: 500 },
@@ -60,7 +59,6 @@ export default function PricingList({ onBack, onUpgrade }: PricingListProps) {
       case 'Airtel': return 'bg-red-100 text-red-800 border-red-200';
       case 'GLO': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       case '9Mobile': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'JAMB': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'WAEC': case 'NECO': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }

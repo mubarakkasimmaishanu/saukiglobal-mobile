@@ -1,4 +1,4 @@
-const CACHE_NAME = 'buydigital-v1';
+const CACHE_NAME = 'saukiglobal-v1';
 const ASSETS = [
     '/',
     '/index.html',
