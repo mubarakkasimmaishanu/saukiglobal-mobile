@@ -129,7 +129,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
 
                     <div className="mb-5">
                       <p className="text-xs text-gray-500 font-medium mb-1">Account Name</p>
-                      <p className="text-base font-bold text-gray-900">BuyDigital - Mubarak Kasim</p>
+                      <p className="text-base font-bold text-gray-900">Saukiglobal - Mubarak Kasim</p>
                     </div>
 
                     <div className="mb-5 flex justify-between items-end">

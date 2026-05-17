@@ -97,7 +97,7 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
     if (navigator.share) {
       navigator.share({
         title: 'Electricity Token',
-        text: `I just bought electricity on BuyDigital! Token: ${generatedToken}`,
+        text: `I just bought electricity on Saukiglobal! Token: ${generatedToken}`,
       }).catch(() => {});
     } else {
       alert('Sharing not supported on this browser.');

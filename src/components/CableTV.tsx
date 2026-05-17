@@ -113,7 +113,7 @@ export default function CableTV({ onBack }: CableTVProps) {
     if (navigator.share) {
       navigator.share({
         title: 'TV Subscription Receipt',
-        text: `I just renewed my ${provider.toUpperCase()} subscription on BuyDigital!`,
+        text: `I just renewed my ${provider.toUpperCase()} subscription on Saukiglobal!`,
       }).catch(() => {});
     } else {
       alert('Sharing not supported on this browser.');

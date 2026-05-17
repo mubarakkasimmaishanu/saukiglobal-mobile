@@ -1,7 +1,7 @@
-# BuyDigital Account Tier System — Architecture Reference
+# Saukiglobal Account Tier System — Architecture Reference
 
 ## Overview
-BuyDigital has two distinct account tiers: **Basic** and **Reseller**. Each tier has its own pricing, dashboard experience, features, and functionality. This document serves as the single source of truth for how the tier system works.
+Saukiglobal has two distinct account tiers: **Basic** and **Reseller**. Each tier has its own pricing, dashboard experience, features, and functionality. This document serves as the single source of truth for how the tier system works.
 
 ---
 
@@ -141,4 +141,4 @@ Returns the pricing list for the given tier (`basic` or `reseller`).
 
 ---
 
-© 2026 BuyDigital.ng — Internal Architecture Reference
+© 2026 Saukiglobal — Internal Architecture Reference

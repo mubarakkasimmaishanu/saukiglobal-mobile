@@ -268,7 +268,7 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
             <SettingsItem
               icon={HelpCircle}
               title="FAQs & Guides"
-              subtitle="Learn how to use BuyDigital"
+              subtitle="Learn how to use Saukiglobal"
               bg="bg-emerald-50" color="text-emerald-600"
               isLast={true}
               onClick={onViewSupport}
@@ -288,7 +288,7 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
           </button>
 
           <p className="text-center text-xs text-gray-400 font-medium mb-4">
-            BuyDigital v2.0.1 • Made in Nigeria
+            Saukiglobal v2.0.1 • Made in Nigeria
           </p>
 
         </div>

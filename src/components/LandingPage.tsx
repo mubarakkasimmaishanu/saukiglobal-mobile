@@ -92,17 +92,16 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl glass-panel border-white/5 text-[#66df75] font-black text-[10px] uppercase tracking-[0.3em] mb-8 animate-in fade-in slide-in-from-bottom-4">
               <Zap size={14} className="animate-pulse" />
-              Unified VTU Platform
+              Global Connectivity Platform
             </div>
 
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[0.95] mb-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
-              Bank-Grade <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#66df75] to-[#4ade80]">Digital Utility</span> <br />
-              Automation.
+              One Platform. <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#66df75] to-[#4ade80]">Infinite Possibilities.</span>
             </h1>
 
             <p className="text-lg md:text-xl text-[#e1e3e4]/60 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-              Experience the future of VTU. Instant delivery, wholesale pricing, and military-grade security for airtime, data, and utility payments.
+              Access local utilities and international connectivity tools from a single, unified dashboard. Global top-up, eSIM, and international data powered by Alpha, Kirani, and Smile.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 animate-in fade-in slide-in-from-bottom-10 duration-1000">
@@ -213,12 +212,12 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: Smartphone, title: 'VTU Services', desc: 'Airtime & Data for all networks with up to 4% reseller discount.' },
-              { icon: GraduationCap, title: 'Exam Portals', desc: 'Instant generation of JAMB, WAEC, NECO and NABTEB pins.' },
-              { icon: Lightbulb, title: 'Utility Hub', desc: 'Secure settlement for Electricity and Cable TV bills nationwide.' },
-              { icon: Fingerprint, title: 'Identity Services', desc: 'Premium NIN slip printing and verification services.' },
-              { icon: Lock, title: 'Bank-Grade Security', desc: 'Military-grade encryption and atomic transaction processing.' },
-              { icon: RefreshCcw, title: 'Instant Funding', desc: 'Dynamic wallet funding via bank transfer or card payments.' },
+              { icon: Smartphone, title: 'Airtime & Data', desc: 'Instant top-up and internet bundles for all local networks.' },
+              { icon: Server, title: 'Global Connectivity', desc: 'International data powered by Alpha, Kirani, and Smile.' },
+              { icon: Fingerprint, title: 'Identity & CAC', desc: 'Manage identity services (NIN, BVN, CAC) seamlessly.' },
+              { icon: Lightbulb, title: 'Utility Bills', desc: 'Pay Nigerian electricity bills and renew cable TV subscriptions remotely.' },
+              { icon: Smartphone, title: 'eSIM Technology', desc: 'Go borderless. Instant eSIM purchase & activation in 150+ countries.' },
+              { icon: RefreshCcw, title: 'Airtime to Cash', desc: 'Convert your excess airtime back to wallet funds easily.' },
             ].map((s, i) => (
               <div key={i} className="glass-panel p-10 hover:bg-white/5 transition-all group border-white/5">
                 <div className="w-16 h-16 rounded-2xl bg-[#66df75]/10 flex items-center justify-center text-[#66df75] mb-8 group-hover:scale-110 transition-transform">
