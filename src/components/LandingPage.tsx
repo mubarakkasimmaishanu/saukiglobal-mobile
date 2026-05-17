@@ -60,9 +60,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
       <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'bg-[#111415]/80 backdrop-blur-2xl border-b border-white/5 py-4' : 'bg-transparent py-8'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-tr from-[#66df75] to-[#4ade80] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(102,223,117,0.3)]">
-              <ShieldCheck size={24} className="text-[#111415]" />
-            </div>
+            <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-10 h-10 object-contain drop-shadow-[0_0_15px_rgba(102,223,117,0.3)]" />
             <span className="text-2xl font-black text-white tracking-tighter">SaukiGlobal</span>
           </div>
 
@@ -236,9 +234,7 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="flex flex-col items-center md:items-start gap-4 text-center md:text-left">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-[#66df75] rounded-lg flex items-center justify-center text-[#111415]">
-                <ShieldCheck size={20} />
-              </div>
+              <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-8 h-8 object-contain drop-shadow-[0_0_10px_rgba(102,223,117,0.3)]" />
               <span className="text-xl font-black text-white tracking-tighter">SaukiGlobal</span>
             </div>
             <p className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-[0.3em]">© {new Date().getFullYear()} Sauki Automation Systems</p>

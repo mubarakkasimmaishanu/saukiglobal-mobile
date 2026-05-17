@@ -75,9 +75,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
 
       {/* Brand Header */}
       <div className="text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">
-        <div className="w-20 h-20 bg-gradient-to-tr from-[#66df75] to-[#4ade80] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(102,223,117,0.4)] transform rotate-6 hover:rotate-0 transition-transform duration-500">
-          <ShieldCheck size={40} className="text-[#111415]" />
-        </div>
+        <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-24 h-24 object-contain mx-auto mb-6 drop-shadow-[0_0_25px_rgba(102,223,117,0.3)] transform hover:scale-105 transition-transform duration-500" />
         <h2 className="text-3xl font-black text-white tracking-tighter mb-2">SaukiGlobal</h2>
         <p className="text-xs font-bold text-[#66df75] uppercase tracking-[0.3em]">
           {mode === 'login' ? 'Secure Login Portal' : 'Create Account'}

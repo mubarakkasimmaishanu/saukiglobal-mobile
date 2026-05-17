@@ -114,14 +114,17 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
       <div className="max-w-md mx-auto bg-gray-50 min-h-screen md:min-h-[auto] md:rounded-3xl overflow-hidden relative">
 
         {/* Header */}
-        <header className="px-5 pt-8 pb-4 sticky top-0 z-20 flex items-center gap-4 bg-gray-50">
-          <button
-            onClick={onBack}
-            className="p-2 -ml-2 text-gray-600 hover:text-emerald-600 transition-colors"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          <h1 className="text-2xl font-black text-gray-900">Profile</h1>
+        <header className="px-5 pt-8 pb-4 sticky top-0 z-20 flex justify-between items-center bg-gray-50">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onBack}
+              className="p-2 -ml-2 text-gray-600 hover:text-emerald-600 transition-colors"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <h1 className="text-2xl font-black text-gray-900">Profile</h1>
+          </div>
+          <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-8 h-8 object-contain" />
         </header>
 
         <div className="px-5">
