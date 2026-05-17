@@ -3,12 +3,12 @@ import {
   ShieldCheck,
   ArrowRight,
   ChevronLeft,
-  KeyRound,
   Eye,
   EyeOff,
   Lock,
   Mail,
-  Smartphone,
+  User,
+  Phone,
   Fingerprint
 } from 'lucide-react';
 import { api } from '../services/api';
@@ -20,26 +20,38 @@ interface AuthPageProps {
   onSuccess: () => void;
 }
 
-export default function AuthPage({ onBack, onSuccess }: AuthPageProps) {
+export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: AuthPageProps) {
   const { refreshUser } = useUser();
-  const [apiKey, setApiKey] = useState('');
-  const [showKey, setShowKey] = useState(false);
+  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
+  
+  // Form State
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!apiKey) return;
+    if (!email || !password) return;
+    if (mode === 'signup' && (!name || !phone)) return;
     
     setIsLoading(true);
     setError(null);
 
     try {
-      await api.login(apiKey);
+      if (mode === 'login') {
+        await api.login(email, password);
+      } else {
+        await api.register(name, email, phone, password);
+      }
       await refreshUser();
       onSuccess();
     } catch (err: any) {
-      setError(err.message || 'Invalid Access Key. Please check and try again.');
+      setError(err.message || 'Authentication failed. Please check your details.');
     } finally {
       setIsLoading(false);
     }
@@ -55,22 +67,24 @@ export default function AuthPage({ onBack, onSuccess }: AuthPageProps) {
       {/* Back Button */}
       <button
         onClick={onBack}
-        className="absolute top-8 left-8 flex items-center gap-2 text-[#e1e3e4]/50 hover:text-[#66df75] font-bold transition-all group"
+        className="absolute top-8 left-8 flex items-center gap-2 text-[#e1e3e4]/50 hover:text-[#66df75] font-bold transition-all group z-10"
       >
         <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
         <span className="text-xs uppercase tracking-widest">Back</span>
       </button>
 
       {/* Brand Header */}
-      <div className="text-center mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">
         <div className="w-20 h-20 bg-gradient-to-tr from-[#66df75] to-[#4ade80] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(102,223,117,0.4)] transform rotate-6 hover:rotate-0 transition-transform duration-500">
           <ShieldCheck size={40} className="text-[#111415]" />
         </div>
         <h2 className="text-3xl font-black text-white tracking-tighter mb-2">SaukiGlobal</h2>
-        <p className="text-xs font-bold text-[#66df75] uppercase tracking-[0.3em]">Secure Access Portal</p>
+        <p className="text-xs font-bold text-[#66df75] uppercase tracking-[0.3em]">
+          {mode === 'login' ? 'Secure Login Portal' : 'Create Account'}
+        </p>
       </div>
 
-      <div className="max-w-md mx-auto w-full animate-in zoom-in-95 duration-500">
+      <div className="max-w-md mx-auto w-full animate-in zoom-in-95 duration-500 relative z-10">
         <div className="glass-panel p-8 shadow-2xl border border-white/5 relative">
           
           <div className="flex items-center gap-3 mb-8">
@@ -89,73 +103,129 @@ export default function AuthPage({ onBack, onSuccess }: AuthPageProps) {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {mode === 'signup' && (
+              <>
+                <div>
+                  <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Full Name</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <User size={18} className="text-[#e1e3e4]/30" />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wide"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Phone Number</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Phone size={18} className="text-[#e1e3e4]/30" />
+                    </div>
+                    <input
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wide"
+                      placeholder="08012345678"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
             <div>
-              <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-3">Your API Access Key</label>
+              <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Email Address</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <KeyRound size={18} className="text-[#e1e3e4]/30" />
+                  <Mail size={18} className="text-[#e1e3e4]/30" />
                 </div>
                 <input
-                  type={showKey ? "text" : "password"}
+                  type="email"
                   required
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 font-mono tracking-widest"
-                  placeholder="sk_live_••••••••••••"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wide"
+                  placeholder="you@example.com"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock size={18} className="text-[#e1e3e4]/30" />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-widest"
+                  placeholder="••••••••"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowKey(!showKey)}
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#e1e3e4]/30 hover:text-[#66df75] transition-colors"
                 >
-                  {showKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <p className="mt-3 text-[9px] text-[#e1e3e4]/30 font-medium italic">
-                * Enter the secure API key provided in your dashboard or via welcome email.
-              </p>
             </div>
 
             <button
               type="submit"
-              disabled={isLoading || !apiKey}
-              className="w-full btn-primary py-4 flex justify-center items-center gap-3 disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
+              disabled={isLoading || !email || !password || (mode === 'signup' && (!name || !phone))}
+              className="w-full btn-primary py-4 flex justify-center items-center gap-3 disabled:opacity-50 disabled:grayscale transition-all active:scale-95 mt-4"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 <>
-                  <span className="uppercase tracking-[0.1em] font-black">Authorize Access</span>
+                  <span className="uppercase tracking-[0.1em] font-black">
+                    {mode === 'login' ? 'Authorize Access' : 'Create Account'}
+                  </span>
                   <ArrowRight size={18} />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-10 pt-8 border-t border-white/5 flex flex-col items-center gap-4">
-            <div className="flex items-center gap-6 opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all">
-              <ShieldCheck size={20} />
-              <Lock size={20} />
-              <KeyRound size={20} />
-            </div>
-            <p className="text-[9px] font-bold text-[#e1e3e4]/20 uppercase tracking-[0.2em]">
-              Military-Grade 256-bit AES Encryption
+          <div className="mt-8 pt-8 border-t border-white/5 flex flex-col items-center gap-4">
+            <p className="text-xs text-[#e1e3e4]/50">
+              {mode === 'login' ? "Don't have an account?" : "Already have an account?"}
+              <button
+                type="button"
+                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                className="ml-2 text-[#66df75] font-bold hover:underline"
+              >
+                {mode === 'login' ? 'Register Now' : 'Login Here'}
+              </button>
             </p>
           </div>
         </div>
 
         {/* Footer Links */}
-        <div className="mt-8 flex justify-center gap-8">
-          <button className="text-[10px] font-black text-[#e1e3e4]/30 hover:text-[#66df75] uppercase tracking-widest transition-colors">
-            Forgot Key?
-          </button>
-          <button className="text-[10px] font-black text-[#e1e3e4]/30 hover:text-[#66df75] uppercase tracking-widest transition-colors">
-            Contact Support
-          </button>
-        </div>
+        {mode === 'login' && (
+          <div className="mt-6 flex justify-center gap-8">
+            <button className="text-[10px] font-black text-[#e1e3e4]/30 hover:text-[#66df75] uppercase tracking-widest transition-colors">
+              Forgot Password?
+            </button>
+            <button className="text-[10px] font-black text-[#e1e3e4]/30 hover:text-[#66df75] uppercase tracking-widest transition-colors">
+              Contact Support
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-

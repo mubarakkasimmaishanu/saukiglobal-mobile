@@ -43,8 +43,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
+    api.logout();
     localStorage.removeItem('saukiglobal_data');
-    localStorage.removeItem('saukiglobal_token');
   };
 
   return (

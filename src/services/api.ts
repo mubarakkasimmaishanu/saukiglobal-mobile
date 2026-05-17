@@ -37,6 +37,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   // Handle global auth failure (if applicable)
   if (response.status === 401) {
     // Potential logout logic
+    localStorage.removeItem(API_KEY_KEY);
   }
 
   return data as ApiResponse<T>;
@@ -60,20 +61,37 @@ async function pollTransaction(ref: string, maxAttempts = 10): Promise<ApiRespon
 
 export const api = {
   // Auth
-  login: async (apiKey: string): Promise<User> => {
-    // For SaukiGlobal, login is essentially providing the API Key
-    localStorage.setItem(API_KEY_KEY, apiKey);
-    
-    const res = await request<User>('services.php', {
+  login: async (email: string, password: string): Promise<User> => {
+    const res = await request<{ token: string, user: User }>('auth.php?action=login', {
       method: 'POST',
-      body: JSON.stringify({ action: 'getUser' })
+      body: JSON.stringify({ email, password })
     });
 
     if (!res.success) {
-      localStorage.removeItem(API_KEY_KEY);
       throw new Error(res.message);
     }
-    return res.data;
+    
+    // Store API Key for future authenticated requests
+    localStorage.setItem(API_KEY_KEY, res.data.token);
+    return res.data.user;
+  },
+
+  register: async (name: string, email: string, phone: string, password: string): Promise<User> => {
+    const res = await request<{ token: string, user: User }>('auth.php?action=register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, phone, password })
+    });
+
+    if (!res.success) {
+      throw new Error(res.message);
+    }
+
+    localStorage.setItem(API_KEY_KEY, res.data.token);
+    return res.data.user;
+  },
+  
+  logout: () => {
+    localStorage.removeItem(API_KEY_KEY);
   },
 
   // Services Integration (Unified Endpoint)
@@ -83,8 +101,8 @@ export const api = {
       body: JSON.stringify(serviceData)
     });
 
-    if (res.status === 'processing' && res.data?.reference) {
-      return await pollTransaction(res.data.reference);
+    if (res.status === 'processing' && (res.data as any)?.reference) {
+      return await pollTransaction((res.data as any).reference);
     }
 
     return res;
@@ -197,6 +215,44 @@ export const api = {
       body: JSON.stringify({ action: 'getUser' })
     });
     return res.success ? res.data : null;
+  },
+
+  // Upgrade to Reseller
+  upgradeToReseller: async () => {
+    return api.performService({
+      action: 'upgrade_tier'
+    });
+  },
+
+  // Add mock transaction (for UI updates, though ideally the backend returns them)
+  addTransaction: async (tx: any) => {
+    // In a real app this might be hitting an endpoint to log transfer
+    return api.performService({
+      action: 'transfer',
+      ...tx
+    });
+  },
+
+  addRequest: async (req: any) => {
+    return api.performService({
+      action: 'add_request',
+      ...req
+    });
+  },
+
+  getRequests: async (): Promise<any[]> => {
+    const res = await request<any[]>('services.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'get_requests' })
+    });
+    return res.data || [];
+  },
+
+  updateUser: async (data: any) => {
+    return api.performService({
+      action: 'update_profile',
+      ...data
+    });
   }
 };
 
