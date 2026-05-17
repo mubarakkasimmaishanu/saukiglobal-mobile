@@ -37,8 +37,18 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
   // Handle global auth failure (if applicable)
   if (response.status === 401) {
-    // Potential logout logic
     localStorage.removeItem(API_KEY_KEY);
+  }
+
+  // Normalize backend 'status' boolean/string to 'success' boolean
+  if (typeof data.status === 'boolean') {
+    data.success = data.status;
+  } else if (data.status === 'success') {
+    data.success = true;
+  } else if (data.status === 'failed') {
+    data.success = false;
+  } else if (data.status === 'processing') {
+    data.success = true;
   }
 
   return data as ApiResponse<T>;
