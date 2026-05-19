@@ -1,7 +1,7 @@
 import { User, Transaction, ServiceRequest } from '../types';
 
 // SaukiGlobal Unified API Configuration
-const envBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://saukiglobal.com/api/v1';
+const envBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://saukiglobal.com/api/v1/';
 const BASE_URL = envBaseUrl.replace(/\/+$/, '') + '/';
 const STORAGE_KEY = 'saukiglobal_data';
 const API_KEY_KEY = 'saukiglobal_api_key';
@@ -25,6 +25,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'sApiKey': apiKey,
+    'Authorization': `Bearer ${apiKey}`,
     ...options.headers,
   };
 
