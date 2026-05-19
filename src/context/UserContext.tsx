@@ -7,13 +7,26 @@ interface UserContextType {
   loading: boolean;
   refreshUser: () => Promise<void>;
   logout: () => void;
+  setUserContext: (user: User | null) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const cached = localStorage.getItem('saukiglobal_data');
+    return cached ? JSON.parse(cached) : null;
+  });
   const [loading, setLoading] = useState(true);
+
+  const setUserContext = (newUser: User | null) => {
+    if (newUser) {
+      localStorage.setItem('saukiglobal_data', JSON.stringify(newUser));
+    } else {
+      localStorage.removeItem('saukiglobal_data');
+    }
+    setUser(newUser);
+  };
 
   const refreshUser = async () => {
     try {
@@ -28,8 +41,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Ensure properties exist to prevent crashes
         userData.firstName = userData.firstName || 'User';
         userData.lastName = userData.lastName || '';
+        
+        setUserContext(userData);
+      } else {
+        // If we get null back but we had a user, maybe the token expired or backend failed.
+        // Don't auto-logout immediately unless we are sure it's an auth error.
+        // For now, if we already have a user in state, we keep it.
       }
-      setUser(userData);
     } catch (error) {
       console.error('Failed to fetch user', error);
     } finally {
@@ -42,13 +60,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const logout = () => {
-    setUser(null);
+    setUserContext(null);
     api.logout();
-    localStorage.removeItem('saukiglobal_data');
   };
 
   return (
-    <UserContext.Provider value={{ user, loading, refreshUser, logout }}>
+    <UserContext.Provider value={{ user, loading, refreshUser, logout, setUserContext }}>
       {children}
     </UserContext.Provider>
   );

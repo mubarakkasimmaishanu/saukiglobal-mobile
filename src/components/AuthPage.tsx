@@ -21,7 +21,7 @@ interface AuthPageProps {
 }
 
 export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: AuthPageProps) {
-  const { refreshUser } = useUser();
+  const { refreshUser, setUserContext } = useUser();
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   
   // Form State
@@ -43,11 +43,29 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
     setError(null);
 
     try {
+      let loggedInUser;
       if (mode === 'login') {
-        await api.login(email, password);
+        loggedInUser = await api.login(email, password);
       } else {
-        await api.register(name, email, phone, password);
+        loggedInUser = await api.register(name, email, phone, password);
       }
+      
+      // Immediately set the user in context to prevent loading screen freeze
+      if (loggedInUser) {
+        // Robust mapping for legacy data structures
+        if (!loggedInUser.firstName && (loggedInUser as any).name) {
+          const parts = (loggedInUser as any).name.split(' ');
+          loggedInUser.firstName = parts[0] || 'User';
+          loggedInUser.lastName = parts.slice(1).join(' ') || '';
+        }
+        loggedInUser.firstName = loggedInUser.firstName || 'User';
+        loggedInUser.lastName = loggedInUser.lastName || '';
+        
+        if (setUserContext) {
+          setUserContext(loggedInUser);
+        }
+      }
+      
       await refreshUser();
       onSuccess();
     } catch (err: any) {
