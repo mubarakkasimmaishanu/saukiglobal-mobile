@@ -157,7 +157,7 @@ export default function ExamPins({ onBack }: ExamPinsProps) {
               <div className="space-y-4 text-left my-8 bg-white/5 p-6 rounded-2xl">
                 <div className="flex justify-between items-center py-2 border-b border-white/5">
                   <span className="text-[10px] font-bold text-[#e1e3e4]/40 uppercase">PIN(s)</span>
-                  <span className="text-sm font-mono font-bold text-[#66df75]">{receiptData?.pin || '9823-1123-0092'}</span>
+                  <span className="text-sm font-mono font-bold text-[#66df75]">{receiptData?.pin || (receiptData?.pins ? receiptData.pins.join(', ') : '9823-1123-0092')}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <span className="text-[10px] font-bold text-[#e1e3e4]/40 uppercase">Exam</span>
