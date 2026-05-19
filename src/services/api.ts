@@ -25,7 +25,6 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'sApiKey': apiKey,
-    'Authorization': `Bearer ${apiKey}`,
     ...options.headers,
   };
 
