@@ -29,8 +29,7 @@ export default function HelpSupport({ onBack }: HelpSupportProps) {
   const faqs = [
     { id: 1, q: "I funded my wallet but it's not reflecting. What should I do?", a: "Auto-funding usually takes 1-3 minutes. If it delays beyond 10 minutes, it's a network issue from your bank. Your money is safe and will reflect automatically once the bank releases it." },
     { id: 2, q: "My data purchase was successful but I haven't received it.", a: "Sometimes network providers (MTN, Airtel) experience slight delays in delivering data. Please wait 5-10 minutes. If you still haven't received it, log a dispute and we will refund you." },
-    { id: 3, q: "How do I upgrade to a Reseller account?", a: "Go to Profile > Upgrade Package. You will pay a one-time upgrade fee, and your account will automatically be switched to enjoy the cheapest wholesale rates." },
-    { id: 4, q: "Can I retrieve a WAEC E-Pin I already bought?", a: "Yes! Go to your Transaction History, click on the specific WAEC payment, and your E-Pin will be displayed on the receipt." },
+    { id: 3, q: "Can I retrieve a WAEC E-Pin I already bought?", a: "Yes! Go to your Transaction History, click on the specific WAEC payment, and your E-Pin will be displayed on the receipt." },
   ];
 
   // Mock Recent Transactions for Dispute

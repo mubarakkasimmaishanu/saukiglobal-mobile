@@ -42,7 +42,7 @@ export default function SmileServices({ onBack }: SmileServicesProps) {
   const handleConfirmPurchase = async () => {
     setIsProcessing(true);
     try {
-      const res = await api.buySmile(smileId, selectedPlan.id, activeTab);
+      const res = await api.buySmile(smileId, selectedPlan.id, activeTab, transactionPin.join(''));
       if (res.success) {
         await refreshUser();
         setStep('success');

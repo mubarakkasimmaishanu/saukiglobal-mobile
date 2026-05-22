@@ -98,7 +98,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
     setIsProcessing(true);
     setError(null);
     try {
-      const res = await api.buyData(activeNetworkConfig?.name || 'Unknown', selectedPlanId, phone);
+      const res = await api.buyData(activeNetworkConfig?.name || 'Unknown', selectedPlanId, phone, transactionPin.join(''));
       if (res.success) {
         setReceiptData(res.data);
         await refreshUser();

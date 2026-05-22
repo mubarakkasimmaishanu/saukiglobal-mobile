@@ -25,12 +25,11 @@ interface ProfileSettingsProps {
   onViewPricing: () => void;
   onViewSupport: () => void;
   onViewReferrals: () => void;
-  onUpgrade: () => void;
 }
 
 type ProfileView = 'main' | 'personal' | 'password' | 'pin';
 
-export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport, onViewReferrals, onUpgrade }: ProfileSettingsProps) {
+export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport, onViewReferrals }: ProfileSettingsProps) {
   const { user, loading, logout } = useUser();
   const [currentView, setCurrentView] = useState<ProfileView>('main');
   const [copied, setCopied] = useState(false);
@@ -149,72 +148,52 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
             </div>
           </div>
 
-          {/* Commission & Referral Card (Reseller) or Upgrade CTA (Basic) */}
-          {isReseller ? (
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-5 shadow-lg mb-8 text-white relative overflow-hidden">
-              <Gift size={100} className="absolute -right-6 -bottom-6 text-white opacity-5" />
+          {/* Commission & Referral Card */}
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-5 shadow-lg mb-8 text-white relative overflow-hidden">
+            <Gift size={100} className="absolute -right-6 -bottom-6 text-white opacity-5" />
 
-              <div className="flex justify-between items-end mb-4">
-                <div>
-                  <p className="text-gray-400 text-xs font-medium mb-1">Commission Balance</p>
-                  <p className="text-2xl font-bold">₦{(user?.commissionBalance || 0).toLocaleString()}</p>
-                </div>
+            <div className="flex justify-between items-end mb-4">
+              <div>
+                <p className="text-gray-400 text-xs font-medium mb-1">Commission Balance</p>
+                <p className="text-2xl font-bold">₦{(user?.commissionBalance || 0).toLocaleString()}</p>
+              </div>
+              <button
+                onClick={() => {
+                  const commission = user?.commissionBalance || 0;
+                  if (commission <= 0) {
+                    alert('No commission balance to withdraw.');
+                    return;
+                  }
+                  alert(`₦${commission.toLocaleString()} has been moved to your main wallet. This is a demo action.`);
+                }}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors"
+              >
+                Withdraw
+              </button>
+            </div>
+
+            <div className="pt-4 border-t border-gray-700 flex justify-between items-center">
+              <div>
+                <p className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Referral Code</p>
+                <p className="text-sm font-bold tracking-widest text-emerald-400">{referralCode}</p>
+              </div>
+              <div className="flex gap-2">
                 <button
-                  onClick={() => {
-                    const commission = user?.commissionBalance || 0;
-                    if (commission <= 0) {
-                      alert('No commission balance to withdraw.');
-                      return;
-                    }
-                    alert(`₦${commission.toLocaleString()} has been moved to your main wallet. This is a demo action.`);
-                  }}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors"
+                  onClick={onViewReferrals}
+                  className="p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 text-xs font-bold transition-colors"
                 >
-                  Withdraw
+                  View Details
+                </button>
+                <button
+                  onClick={handleCopyReferral}
+                  className={`p-2 rounded-lg flex items-center gap-1 text-xs font-bold transition-colors ${copied ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                >
+                  {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
+                  {copied ? 'Copied' : 'Copy'}
                 </button>
               </div>
-
-              <div className="pt-4 border-t border-gray-700 flex justify-between items-center">
-                <div>
-                  <p className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Referral Code</p>
-                  <p className="text-sm font-bold tracking-widest text-emerald-400">{referralCode}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={onViewReferrals}
-                    className="p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 text-xs font-bold transition-colors"
-                  >
-                    View Details
-                  </button>
-                  <button
-                    onClick={handleCopyReferral}
-                    className={`p-2 rounded-lg flex items-center gap-1 text-xs font-bold transition-colors ${copied ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-                  >
-                    {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-                    {copied ? 'Copied' : 'Copy'}
-                  </button>
-                </div>
-              </div>
             </div>
-          ) : (
-            <div
-              onClick={onUpgrade}
-              className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-5 shadow-lg mb-8 text-white relative overflow-hidden cursor-pointer group"
-            >
-              <div className="absolute right-0 top-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl group-hover:bg-emerald-500/30 transition-all"></div>
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-3">
-                  <Award size={20} className="text-emerald-400" />
-                  <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">Upgrade Available</p>
-                </div>
-                <h3 className="text-xl font-black text-white mb-1">Become a Reseller Pro</h3>
-                <p className="text-sm text-slate-400 mb-4">Unlock wholesale prices, earn commissions, and save on every transaction.</p>
-                <div className="inline-flex items-center gap-2 bg-emerald-500 text-white text-sm font-bold px-5 py-2.5 rounded-xl">
-                  Upgrade for ₦2,000 <ChevronRight size={16} />
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
 
           {/* Settings Groups */}
           <SettingsGroup title="Account Settings">
@@ -243,13 +222,14 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
           </SettingsGroup>
 
           <SettingsGroup title="Business & Pricing">
-            <SettingsItem
-              icon={Award}
-              title={isReseller ? 'My Reseller Status' : 'Upgrade to Reseller'}
-              subtitle={isReseller ? 'Active — Lifetime Access' : 'Get wholesale prices for ₦2,000'}
-              bg="bg-yellow-50" color="text-yellow-600"
-              onClick={isReseller ? undefined : onUpgrade}
-            />
+            {isReseller && (
+              <SettingsItem
+                icon={Award}
+                title="My Reseller Status"
+                subtitle="Active — Lifetime Access"
+                bg="bg-yellow-50" color="text-yellow-600"
+              />
+            )}
             <SettingsItem
               icon={FileText}
               title="My Pricing List"

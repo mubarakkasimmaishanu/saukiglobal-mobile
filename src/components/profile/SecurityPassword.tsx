@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, Lock, ShieldCheck, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react';
+import { api } from '../../services/api';
 
 interface SecurityPasswordProps {
   onBack: () => void;
@@ -33,12 +34,20 @@ export default function SecurityPassword({ onBack }: SecurityPasswordProps) {
     setIsSaving(true);
     setMessage(null);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
-      setMessage({ type: 'success', text: 'Password updated successfully!' });
-      setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    }, 1500);
+    api.changePassword(formData.currentPassword, formData.newPassword)
+      .then((res) => {
+        setIsSaving(false);
+        if (res.success) {
+          setMessage({ type: 'success', text: res.message || 'Password updated successfully!' });
+          setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        } else {
+          setMessage({ type: 'error', text: res.message || 'Failed to update password.' });
+        }
+      })
+      .catch((err) => {
+        setIsSaving(false);
+        setMessage({ type: 'error', text: err.message || 'An error occurred. Please try again.' });
+      });
   };
 
   const toggleVisibility = (field: 'current' | 'new' | 'confirm') => {

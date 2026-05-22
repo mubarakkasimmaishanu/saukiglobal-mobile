@@ -17,7 +17,6 @@ import CableTV from './components/CableTV';
 import ElectricityBill from './components/ElectricityBill';
 import NINPrint from './components/NINPrint';
 import RequestedServices from './components/RequestedServices';
-import UpgradeToReseller from './components/UpgradeToReseller';
 import AlphaTopup from './components/AlphaTopup';
 import KiraniService from './components/KiraniService';
 import SmileServices from './components/SmileServices';
@@ -26,7 +25,7 @@ import ESimServices from './components/ESimServices';
 import CACRegistration from './components/CACRegistration';
 import IntlTopup from './components/IntlTopup';
 
-type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'referral' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'upgrade' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl';
+type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'referral' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('landing');
@@ -88,7 +87,6 @@ export default function App() {
           onViewPricing={() => navigateTo('pricing')}
           onViewSupport={() => navigateTo('support')}
           onViewReferrals={() => navigateTo('referral')}
-          onUpgrade={() => navigateTo('upgrade')}
         />
       )}
 
@@ -101,7 +99,6 @@ export default function App() {
       {currentView === 'pricing' && (
         <PricingList
           onBack={() => navigateTo('profile')}
-          onUpgrade={() => navigateTo('upgrade')}
         />
       )}
 
@@ -132,7 +129,6 @@ export default function App() {
       {currentView === 'referral' && (
         <ReferAndEarn
           onBack={() => navigateTo('profile')}
-          onUpgrade={() => navigateTo('upgrade')}
         />
       )}
 
@@ -218,13 +214,6 @@ export default function App() {
       {currentView === 'intl' && (
         <IntlTopup
           onBack={() => navigateTo('dashboard')}
-        />
-      )}
-
-      {currentView === 'upgrade' && (
-        <UpgradeToReseller
-          onBack={() => navigateTo('dashboard')}
-          onSuccess={() => navigateTo('dashboard')}
         />
       )}
     </div>

@@ -85,18 +85,20 @@ export default function CableTV({ onBack }: CableTVProps) {
     setIsProcessing(true);
     
     try {
-      await api.addTransaction({
-        type: 'Cable',
-        amount: getSelectedPrice(),
-        status: 'Success',
-        details: `${provider.toUpperCase()} ${getSelectedPackageName()} for ${iucNumber}`,
-        recipient: iucNumber,
-        network: provider.toUpperCase()
-      });
-      await refreshUser();
-      setStep('success');
-    } catch (err) {
-      alert('Payment failed. Please try again.');
+      const res = await api.payCable(
+        provider,
+        iucNumber,
+        selectedPackage,
+        transactionPin.join('')
+      );
+      if (res.success) {
+        await refreshUser();
+        setStep('success');
+      } else {
+        alert(res.message || 'Payment failed. Please try again.');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Payment failed. Please try again.');
     } finally {
       setIsProcessing(false);
     }

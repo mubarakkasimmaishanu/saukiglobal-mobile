@@ -15,7 +15,6 @@ import {
   Home,
   Eye,
   EyeOff,
-  TrendingUp,
   ArrowUpRight,
   BookOpen,
   MessageSquare,
@@ -183,25 +182,6 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             <ServiceButton icon={PlusCircle} title="More" onClick={() => onNavigate('pricing')} />
           </div>
         </section>
-
-        {/* Upgrade Banner */}
-        {!user.isReseller && (
-          <div 
-            onClick={() => onNavigate('upgrade')}
-            className="glass-panel p-6 mb-12 flex items-center justify-between group cursor-pointer hover:border-[#66df75]/50 transition-all"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-[#66df75]/10 flex items-center justify-center">
-                <TrendingUp size={24} className="text-[#66df75]" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-white mb-0.5">Upgrade to Reseller Pro</p>
-                <p className="text-[10px] text-[#e1e3e4]/50">Get lower rates & start earning commissions</p>
-              </div>
-            </div>
-            <ArrowRight size={20} className="text-[#66df75] group-hover:translate-x-1 transition-transform" />
-          </div>
-        )}
 
         {/* Recent Transactions */}
         <section>
