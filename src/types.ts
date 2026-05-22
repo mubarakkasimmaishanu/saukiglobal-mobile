@@ -48,17 +48,3 @@ export interface ServiceRequest {
   price: number;
   details: string;
 }
-
-// Tier comparison types for landing/upgrade pages
-export interface TierFeature {
-  name: string;
-  basic: string | boolean;
-  reseller: string | boolean;
-}
-
-export interface TierPricing {
-  service: string;
-  basic: string;
-  reseller: string;
-  savings: string;
-}

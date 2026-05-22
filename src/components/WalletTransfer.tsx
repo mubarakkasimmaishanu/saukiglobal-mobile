@@ -71,7 +71,8 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
         amount: Number(amount),
         status: 'Success',
         details: `Wallet Transfer to ${recipientName}`,
-        recipient: recipientIdentifier
+        recipient: recipientIdentifier,
+        pin: transactionPin.join('')
       });
       await refreshUser();
       setStep('success');

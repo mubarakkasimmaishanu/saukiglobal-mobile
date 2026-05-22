@@ -16,10 +16,9 @@ import { useUser } from '../context/UserContext';
 
 interface ReferAndEarnProps {
   onBack: () => void;
-  onUpgrade?: () => void;
 }
 
-export default function ReferAndEarn({ onBack, onUpgrade }: ReferAndEarnProps) {
+export default function ReferAndEarn({ onBack }: ReferAndEarnProps) {
   const { user } = useUser();
   const [copied, setCopied] = useState(false);
 
@@ -68,30 +67,22 @@ export default function ReferAndEarn({ onBack, onUpgrade }: ReferAndEarnProps) {
           {/* Tier-Aware Bonus Banner */}
           <div className={`rounded-2xl p-4 mb-6 flex items-center gap-3 border ${isReseller
               ? 'bg-emerald-50 border-emerald-100'
-              : 'bg-amber-50 border-amber-100'
+              : 'bg-slate-50 border-slate-200'
             }`}>
-            <div className={`p-2 rounded-full ${isReseller ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
-              {isReseller ? <Crown size={20} /> : <Lock size={20} />}
+            <div className={`p-2 rounded-full ${isReseller ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-600'}`}>
+              {isReseller ? <Crown size={20} /> : <Users size={20} />}
             </div>
             <div className="flex-1">
-              <p className={`text-xs font-bold ${isReseller ? 'text-emerald-800' : 'text-amber-800'}`}>
-                {isReseller ? `Reseller Bonus: ₦${bonusPerReferral} per referral` : `Basic Bonus: ₦${bonusPerReferral} per referral`}
+              <p className={`text-xs font-bold ${isReseller ? 'text-emerald-800' : 'text-slate-800'}`}>
+                {isReseller ? `Reseller Bonus: ₦${bonusPerReferral} per referral` : `Referral Bonus: ₦${bonusPerReferral} per referral`}
               </p>
               <p className="text-[10px] text-gray-500 mt-0.5">
                 {isReseller
-                  ? 'You earn 5x more per referral as a Reseller!'
-                  : 'Upgrade to Reseller to earn ₦500 per referral instead of ₦100'
+                  ? 'You enjoy exclusive wholesale referral bonuses!'
+                  : 'Earn bonuses for every new user you introduce to SaukiGlobal.'
                 }
               </p>
             </div>
-            {!isReseller && (
-              <button
-                onClick={onUpgrade}
-                className="text-[10px] font-bold text-amber-700 bg-amber-200 px-3 py-1.5 rounded-lg"
-              >
-                Upgrade
-              </button>
-            )}
           </div>
 
           {/* Main Reward Card */}
@@ -218,7 +209,6 @@ export default function ReferAndEarn({ onBack, onUpgrade }: ReferAndEarnProps) {
               <Info size={20} className="text-gray-400 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-gray-500 leading-relaxed">
                 You earn <strong>₦{bonusPerReferral}</strong> every time your referral funds their wallet and makes their first transaction.
-                {!isReseller && <> <strong className="text-amber-600">Upgrade to Reseller</strong> to earn ₦500 per referral instead.</>}
               </p>
             </div>
 

@@ -47,7 +47,7 @@ export default function ExamPins({ onBack }: ExamPinsProps) {
     setError(null);
     try {
       // Use unified API for exam pins
-      const res = await api.buyExamPin(selectedExam.id, Number(quantity));
+      const res = await api.buyExamPin(selectedExam.id, Number(quantity), transactionPin.join(''));
       if (res.success) {
         setReceiptData(res.data);
         await refreshUser();

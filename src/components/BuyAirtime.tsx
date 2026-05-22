@@ -70,7 +70,7 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
     setIsProcessing(true);
     setError(null);
     try {
-      const res = await api.buyAirtime(detectedNetwork?.name || 'Unknown', Number(amount), phone);
+      const res = await api.buyAirtime(detectedNetwork?.name || 'Unknown', Number(amount), phone, transactionPin.join(''));
       if (res.success) {
         setReceiptData(res.data);
         await refreshUser();

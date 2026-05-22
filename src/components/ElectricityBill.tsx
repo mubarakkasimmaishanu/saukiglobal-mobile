@@ -65,23 +65,26 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
     setIsProcessing(true);
     
     try {
-      await api.addTransaction({
-        type: 'Electricity',
-        amount: Number(amount),
-        status: 'Success',
-        details: `${provider.toUpperCase()} ${meterType.toUpperCase()} for ${meterNumber}`,
-        recipient: meterNumber,
-        network: provider.toUpperCase()
-      });
-      
-      if (meterType === 'prepaid') {
-        setGeneratedToken('1234 5678 9012 3456 7890');
+      const res = await api.payElectricity(
+        provider,
+        meterNumber,
+        Number(amount),
+        meterType as 'prepaid' | 'postpaid',
+        transactionPin.join('')
+      );
+      if (res.success) {
+        if (res.data?.token) {
+          setGeneratedToken(res.data.token);
+        } else if (meterType === 'prepaid') {
+          setGeneratedToken('1234 5678 9012 3456 7890');
+        }
+        await refreshUser();
+        setStep('success');
+      } else {
+        alert(res.message || 'Payment failed. Please try again.');
       }
-      
-      await refreshUser();
-      setStep('success');
-    } catch (err) {
-      alert('Payment failed. Please try again.');
+    } catch (err: any) {
+      alert(err.message || 'Payment failed. Please try again.');
     } finally {
       setIsProcessing(false);
     }

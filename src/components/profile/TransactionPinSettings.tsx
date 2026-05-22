@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ShieldAlert, CheckCircle2, AlertCircle } from 'lucide-react';
 import PinInput from '../PinInput';
+import { api } from '../../services/api';
 
 interface TransactionPinSettingsProps {
   onBack: () => void;
@@ -34,12 +35,20 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
     setIsSaving(true);
     setMessage(null);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
-      setMessage({ type: 'success', text: 'Transaction PIN updated successfully!' });
-      setTimeout(() => onBack(), 2000);
-    }, 1500);
+    api.changePin(currentPin.join(''), newPin.join(''))
+      .then((res) => {
+        setIsSaving(false);
+        if (res.success) {
+          setMessage({ type: 'success', text: res.message || 'Transaction PIN updated successfully!' });
+          setTimeout(() => onBack(), 2000);
+        } else {
+          setMessage({ type: 'error', text: res.message || 'Failed to update transaction PIN.' });
+        }
+      })
+      .catch((err) => {
+        setIsSaving(false);
+        setMessage({ type: 'error', text: err.message || 'An error occurred. Please try again.' });
+      });
   };
 
   return (
@@ -81,11 +90,25 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
               <button 
                 onClick={() => {
                   if (window.confirm('A 6-digit reset code will be sent to your registered email. Proceed?')) {
-                    alert('Reset code sent! For this demo, you can now set your new PIN.');
-                    setStep('new');
+                    setIsSaving(true);
+                    api.forgotPin()
+                      .then((res) => {
+                        setIsSaving(false);
+                        if (res.success) {
+                          alert(res.message || 'Reset code sent! You can now set your new PIN.');
+                          setStep('new');
+                        } else {
+                          alert(res.message || 'Failed to request PIN reset. Please try again.');
+                        }
+                      })
+                      .catch((err) => {
+                        setIsSaving(false);
+                        alert(err.message || 'An error occurred. Please try again.');
+                      });
                   }
                 }}
-                className="mt-6 text-xs font-bold text-emerald-600 hover:text-emerald-700 underline block mx-auto"
+                disabled={isSaving}
+                className="mt-6 text-xs font-bold text-emerald-600 hover:text-emerald-700 disabled:text-gray-400 underline block mx-auto"
               >
                 Forgot PIN? Reset via Email
               </button>

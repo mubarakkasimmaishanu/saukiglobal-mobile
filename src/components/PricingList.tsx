@@ -15,10 +15,9 @@ import { useUser } from '../context/UserContext';
 
 interface PricingListProps {
   onBack: () => void;
-  onUpgrade?: () => void;
 }
 
-export default function PricingList({ onBack, onUpgrade }: PricingListProps) {
+export default function PricingList({ onBack }: PricingListProps) {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('data');
   const [searchQuery, setSearchQuery] = useState('');
@@ -119,22 +118,16 @@ export default function PricingList({ onBack, onUpgrade }: PricingListProps) {
             </span>
           </div>
         ) : (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-5 py-4 border-b border-amber-100 flex justify-between items-center">
+          <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-5 py-4 border-b border-slate-200 flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 text-amber-600 rounded-full">
+              <div className="p-2 bg-slate-200 text-slate-600 rounded-full">
                 <Award size={20} />
               </div>
               <div>
                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Your Account Tier</p>
-                <p className="text-sm font-black text-gray-900">{tierLabel}</p>
+                <p className="text-sm font-black text-slate-700">{tierLabel}</p>
               </div>
             </div>
-            <button
-              onClick={onUpgrade}
-              className="text-xs font-bold text-amber-700 bg-amber-200/50 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
-            >
-              Upgrade <TrendingUp size={12} />
-            </button>
           </div>
         )}
 
@@ -180,7 +173,7 @@ export default function PricingList({ onBack, onUpgrade }: PricingListProps) {
             <p className="text-xs text-blue-800 font-medium">
               {isReseller
                 ? <>Prices in <span className="font-bold text-emerald-700">green</span> are your exclusive Reseller wholesale rates.</>
-                : <>You're on <span className="font-bold">Basic</span> pricing. <span className="font-bold text-amber-700">Upgrade to Reseller</span> to unlock wholesale prices shown in green.</>
+                : <>Showing our standard retail pricing plan below.</>
               }
             </p>
           </div>
@@ -250,18 +243,7 @@ export default function PricingList({ onBack, onUpgrade }: PricingListProps) {
             )}
           </div>
 
-          {/* Upgrade CTA for Basic users */}
-          {!isReseller && (
-            <div className="mt-6">
-              <button
-                onClick={onUpgrade}
-                className="w-full bg-gradient-to-r from-slate-900 to-slate-800 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:from-black hover:to-slate-900 transition-all"
-              >
-                <Crown size={18} /> Unlock All Reseller Prices — ₦2,000
-              </button>
-              <p className="text-center text-[10px] text-gray-400 font-medium mt-2">One-time payment. No monthly fees.</p>
-            </div>
-          )}
+
         </div>
 
       </div>

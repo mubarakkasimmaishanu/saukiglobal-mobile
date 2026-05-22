@@ -45,7 +45,7 @@ export default function Notifications({ onBack }: NotificationsProps) {
       id: 3,
       type: 'promo',
       title: 'Weekend Data Slash! 📉',
-      message: 'Get MTN 1GB for just ₦240 this weekend only. Upgrade to Reseller to enjoy this rate.',
+      message: 'Get MTN 1GB for just ₦240 this weekend only. Check out the Pricing list for details.',
       time: 'Yesterday',
       isRead: true,
       icon: Gift,

@@ -30,7 +30,7 @@ export default function AlphaTopup({ onBack }: AlphaTopupProps) {
   const handleConfirmPurchase = async () => {
     setIsProcessing(true);
     try {
-      const res = await api.buyAlpha(phone, Number(amount));
+      const res = await api.buyAlpha(phone, Number(amount), transactionPin.join(''));
       if (res.success) {
         await refreshUser();
         setStep('success');

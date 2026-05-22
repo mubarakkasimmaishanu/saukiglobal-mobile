@@ -120,61 +120,67 @@ export const api = {
   },
 
   // Airtime
-  buyAirtime: async (network: string, amount: number, phone: string) => {
+  buyAirtime: async (network: string, amount: number, phone: string, pin: string) => {
     return api.performService({
       action: 'airtime',
       network,
       amount,
-      phone
+      phone,
+      pin
     });
   },
 
   // Data
-  buyData: async (network: string, plan: string, phone: string) => {
+  buyData: async (network: string, plan: string, phone: string, pin: string) => {
     return api.performService({
       action: 'data',
       network,
       plan,
-      phone
+      phone,
+      pin
     });
   },
 
   // Cable
-  payCable: async (provider: string, iuc: string, plan: string) => {
+  payCable: async (provider: string, iuc: string, plan: string, pin: string) => {
     return api.performService({
       action: 'cable',
       provider,
       iuc,
-      plan
+      plan,
+      pin
     });
   },
 
   // Electricity
-  payElectricity: async (disco: string, meter: string, amount: number, type: 'prepaid' | 'postpaid') => {
+  payElectricity: async (disco: string, meter: string, amount: number, type: 'prepaid' | 'postpaid', pin: string) => {
     return api.performService({
       action: 'electricity',
       disco,
       meter,
       amount,
-      type
+      type,
+      pin
     });
   },
 
   // Exam PINs
-  buyExamPin: async (exam: string, quantity: number) => {
+  buyExamPin: async (exam: string, quantity: number, pin: string) => {
     return api.performService({
       action: 'exams',
       exam,
-      quantity
+      quantity,
+      pin
     });
   },
 
   // Alpha Topup
-  buyAlpha: async (phone: string, amount: number) => {
+  buyAlpha: async (phone: string, amount: number, pin: string) => {
     return api.performService({
       action: 'alpha',
       phone,
-      amount
+      amount,
+      pin
     });
   },
 
@@ -188,12 +194,13 @@ export const api = {
   },
 
   // Smile Services
-  buySmile: async (smileId: string, plan: string, type: string) => {
+  buySmile: async (smileId: string, plan: string, type: string, pin: string) => {
     return api.performService({
       action: 'smile',
       smileId,
       plan,
-      type
+      type,
+      pin
     });
   },
 
@@ -228,10 +235,41 @@ export const api = {
     return res.success ? res.data : null;
   },
 
-  // Upgrade to Reseller
-  upgradeToReseller: async () => {
+  // Get Virtual Accounts
+  getVirtualAccounts: async () => {
     return api.performService({
-      action: 'upgrade_tier'
+      action: 'get_virtual_accounts'
+    });
+  },
+
+  // Initialize Flutterwave
+  initializeFlutterwave: async (amount: number) => {
+    return api.performService({
+      action: 'initialize_flutterwave',
+      amount
+    });
+  },
+
+  // Security & PIN
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    return api.performService({
+      action: 'change_password',
+      currentPassword,
+      newPassword
+    });
+  },
+
+  changePin: async (currentPin: string, newPin: string) => {
+    return api.performService({
+      action: 'change_pin',
+      currentPin,
+      newPin
+    });
+  },
+
+  forgotPin: async () => {
+    return api.performService({
+      action: 'forgot_pin'
     });
   },
 
