@@ -115,41 +115,41 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
         </header>
 
         {/* Balance Card */}
-        <div className="card-mesh rounded-[2rem] p-8 mb-10 relative overflow-hidden shadow-2xl border border-white/5">
+        <div className="card-mesh rounded-3xl p-6 mb-6 relative overflow-hidden shadow-2xl border border-white/5">
           <div className="absolute top-0 right-0 p-4">
-            <span className="text-[10px] font-black bg-[#66df75]/20 text-[#66df75] px-3 py-1.5 rounded-full border border-[#66df75]/30 uppercase tracking-widest">
+            <span className="text-[9px] font-black bg-[#66df75]/20 text-[#66df75] px-2.5 py-1 rounded-full border border-[#66df75]/30 uppercase tracking-widest">
               {user.isReseller ? 'Reseller Pro' : 'Premium'}
             </span>
           </div>
 
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-2">
-              <p className="text-[11px] font-bold text-[#e1e3e4]/60 uppercase tracking-widest">Available Balance</p>
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-1.5">
+              <p className="text-[10px] font-bold text-[#e1e3e4]/50 uppercase tracking-widest">Available Balance</p>
               <button 
                 onClick={() => setShowBalance(!showBalance)}
                 className="text-[#66df75] p-1 rounded-lg hover:bg-white/5 transition-colors"
               >
-                {showBalance ? <Eye size={16} /> : <EyeOff size={16} />}
+                {showBalance ? <Eye size={14} /> : <EyeOff size={14} />}
               </button>
             </div>
-            <h2 className="text-4xl font-black tracking-tighter text-white">
+            <h2 className="text-3xl font-black tracking-tight text-white">
               {showBalance ? `₦${(user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••••••'}
             </h2>
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               onClick={() => onNavigate('fund')}
-              className="flex-1 btn-primary flex items-center justify-center gap-2"
+              className="flex-1 bg-[#66df75] text-[#111415] hover:bg-[#52c860] active:scale-95 py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider transition-all shadow-[0_4px_12px_rgba(102,223,117,0.2)]"
             >
-              <PlusCircle size={18} />
-              <span>Fund Wallet</span>
+              <PlusCircle size={15} />
+              <span>Fund</span>
             </button>
             <button
               onClick={() => onNavigate('transfer')}
-              className="flex-1 glass-panel flex items-center justify-center gap-2 py-3.5 font-bold hover:bg-white/10"
+              className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 active:scale-95 py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider text-white transition-all"
             >
-              <Send size={18} />
+              <Send size={15} />
               <span>Transfer</span>
             </button>
           </div>
