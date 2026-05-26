@@ -36,15 +36,14 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      <div className="min-h-screen bg-[#111415] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#66df75] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  // Tier-aware data
   const isReseller = user?.isReseller ?? false;
-  const referralCode = user?.referralCode || 'NEWUSER000';
+  const referralCode = user?.referralCode || 'SAUKI' + (user?.id || 'GLOBAL');
 
   const handleCopyReferral = () => {
     navigator.clipboard.writeText(referralCode).then(() => {
@@ -54,9 +53,9 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
   };
 
   const SettingsGroup = ({ title, children }: { title: string, children: React.ReactNode }) => (
-    <div className="mb-6">
-      <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-1">{title}</h3>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="mb-8">
+      <h3 className="text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-4 px-1">{title}</h3>
+      <div className="glass-panel overflow-hidden border border-white/5 shadow-xl">
         {children}
       </div>
     </div>
@@ -66,8 +65,8 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
     icon: Icon,
     title,
     subtitle,
-    color = "text-gray-700",
-    bg = "bg-gray-50",
+    color = "text-[#e1e3e4]",
+    bg = "bg-white/5",
     isLast = false,
     onClick
   }: {
@@ -81,18 +80,18 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
   }) => (
     <button
       onClick={onClick}
-      className={`w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors text-left ${!isLast ? 'border-b border-gray-100' : ''}`}
+      className={`w-full flex items-center justify-between p-4 bg-transparent hover:bg-white/5 active:bg-white/10 transition-colors text-left ${!isLast ? 'border-b border-white/5' : ''}`}
     >
       <div className="flex items-center gap-4">
-        <div className={`p-2.5 rounded-xl ${bg} ${color}`}>
-          <Icon size={20} />
+        <div className={`p-2.5 rounded-xl ${bg} ${color} flex items-center justify-center`}>
+          <Icon size={18} />
         </div>
         <div>
-          <h4 className="text-sm font-bold text-gray-800">{title}</h4>
-          {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+          <h4 className="text-sm font-bold text-white">{title}</h4>
+          {subtitle && <p className="text-xs text-[#e1e3e4]/40 mt-0.5 font-medium">{subtitle}</p>}
         </div>
       </div>
-      <ChevronRight size={18} className="text-gray-400" />
+      <ChevronRight size={16} className="text-white/20" />
     </button>
   );
 
@@ -109,172 +108,175 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans pb-24 md:py-8">
-      <div className="max-w-md mx-auto bg-gray-50 min-h-screen md:min-h-[auto] md:rounded-3xl overflow-hidden relative">
+    <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans pb-24 mesh-gradient">
+      <div className="max-w-md mx-auto relative px-6">
 
         {/* Header */}
-        <header className="px-5 pt-8 pb-4 sticky top-0 z-20 flex justify-between items-center bg-gray-50">
+        <header className="py-8 flex justify-between items-center bg-transparent">
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="p-2 -ml-2 text-gray-600 hover:text-emerald-600 transition-colors"
+              className="w-10 h-10 glass-panel flex items-center justify-center hover:bg-white/10 transition-colors"
             >
-              <ChevronLeft size={24} />
+              <ChevronLeft size={20} />
             </button>
-            <h1 className="text-2xl font-black text-gray-900">Profile</h1>
+            <h1 className="text-lg font-bold tracking-tight">Profile Settings</h1>
           </div>
-          <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-8 h-8 object-contain" />
+          <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-8 h-8 object-contain drop-shadow-[0_0_10px_rgba(102,223,117,0.2)]" />
         </header>
 
-        <div className="px-5">
-
-          {/* Profile Card */}
-          <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 mb-6 flex items-center gap-4">
-            <div className="relative">
-              <div className="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md">
-                {user?.firstName?.charAt(0) || 'U'}
-              </div>
-              <div className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full flex items-center justify-center">
-                <CheckCircle2 size={12} className="text-white" />
-              </div>
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 leading-tight">{user?.firstName} {user?.lastName}</h2>
-              <p className="text-sm text-gray-500 mb-1">{user?.phone}</p>
-              <div className={`inline-flex items-center gap-1 ${isReseller ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'} px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide`}>
-                <Award size={12} />
-                {isReseller ? 'Reseller Pro' : 'Basic Account'}
-              </div>
+        {/* User Card */}
+        <div className="glass-panel p-5 border-white/5 mb-6 flex items-center gap-4 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4">
+            <div className={`inline-flex items-center gap-1 ${isReseller ? 'bg-[#66df75]/20 text-[#66df75] border-[#66df75]/30' : 'bg-white/5 text-[#e1e3e4]/60 border-white/10'} px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border`}>
+              <Award size={10} />
+              {isReseller ? 'Reseller Pro' : 'Basic Account'}
             </div>
           </div>
+          <div className="relative">
+            <div className="w-14 h-14 bg-gradient-to-tr from-[#66df75] to-[#4ade80] rounded-full flex items-center justify-center text-[#111415] font-black text-xl shadow-lg">
+              {user?.firstName?.charAt(0) || 'U'}
+            </div>
+            <div className="absolute bottom-0 right-0 w-4.5 h-4.5 bg-[#66df75] border-2 border-[#111415] rounded-full flex items-center justify-center">
+              <CheckCircle2 size={10} className="text-[#111415]" />
+            </div>
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-white leading-tight">{user?.firstName} {user?.lastName}</h2>
+            <p className="text-xs text-[#e1e3e4]/50 font-medium mt-1">{user?.phone}</p>
+          </div>
+        </div>
 
-          {/* Commission & Referral Card */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-5 shadow-lg mb-8 text-white relative overflow-hidden">
-            <Gift size={100} className="absolute -right-6 -bottom-6 text-white opacity-5" />
+        {/* Commission & Referral Card */}
+        <div className="card-mesh rounded-3xl p-6 shadow-2xl mb-8 border border-white/5 relative overflow-hidden">
+          <Gift size={80} className="absolute -right-4 -bottom-4 text-[#66df75] opacity-5 animate-pulse" />
 
-            <div className="flex justify-between items-end mb-4">
-              <div>
-                <p className="text-gray-400 text-xs font-medium mb-1">Commission Balance</p>
-                <p className="text-2xl font-bold">₦{(user?.commissionBalance || 0).toLocaleString()}</p>
-              </div>
+          <div className="flex justify-between items-end mb-5">
+            <div>
+              <p className="text-[#e1e3e4]/40 text-[10px] font-black uppercase tracking-widest mb-1.5">Commission Balance</p>
+              <p className="text-2xl font-black text-white">₦{(user?.commissionBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            </div>
+            <button
+              onClick={() => {
+                const commission = user?.commissionBalance || 0;
+                if (commission <= 0) {
+                  alert('No commission balance to withdraw.');
+                  return;
+                }
+                alert(`₦${commission.toLocaleString()} has been moved to your main wallet. This is a demo action.`);
+              }}
+              className="bg-[#66df75] hover:bg-[#66df75]/95 text-[#111415] text-xs font-black px-4 py-2.5 rounded-xl transition-colors uppercase tracking-wider shadow-md"
+            >
+              Withdraw
+            </button>
+          </div>
+
+          <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+            <div>
+              <p className="text-[#e1e3e4]/30 text-[9px] font-black uppercase tracking-wider mb-1">Referral Code</p>
+              <p className="text-sm font-bold tracking-widest text-[#66df75] font-mono">{referralCode}</p>
+            </div>
+            <div className="flex gap-2">
               <button
-                onClick={() => {
-                  const commission = user?.commissionBalance || 0;
-                  if (commission <= 0) {
-                    alert('No commission balance to withdraw.');
-                    return;
-                  }
-                  alert(`₦${commission.toLocaleString()} has been moved to your main wallet. This is a demo action.`);
-                }}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors"
+                onClick={onViewReferrals}
+                className="px-3 py-2 rounded-xl bg-white/5 text-[#e1e3e4]/70 hover:bg-white/10 text-[10px] font-black uppercase tracking-wider transition-colors border border-white/10"
               >
-                Withdraw
+                Details
+              </button>
+              <button
+                onClick={handleCopyReferral}
+                className={`px-3 py-2 rounded-xl flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${
+                  copied 
+                    ? 'bg-[#66df75] text-[#111415]' 
+                    : 'bg-white/5 text-[#e1e3e4]/70 hover:bg-white/10 border border-white/10'
+                }`}
+              >
+                {copied ? <CheckCircle2 size={12} /> : <Copy size={12} />}
+                {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
-
-            <div className="pt-4 border-t border-gray-700 flex justify-between items-center">
-              <div>
-                <p className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Referral Code</p>
-                <p className="text-sm font-bold tracking-widest text-emerald-400">{referralCode}</p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={onViewReferrals}
-                  className="p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 text-xs font-bold transition-colors"
-                >
-                  View Details
-                </button>
-                <button
-                  onClick={handleCopyReferral}
-                  className={`p-2 rounded-lg flex items-center gap-1 text-xs font-bold transition-colors ${copied ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-                >
-                  {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-                  {copied ? 'Copied' : 'Copy'}
-                </button>
-              </div>
-            </div>
           </div>
-
-          {/* Settings Groups */}
-          <SettingsGroup title="Account Settings">
-            <SettingsItem
-              icon={User}
-              title="Personal Information"
-              subtitle="Update email, phone, and name"
-              bg="bg-blue-50" color="text-blue-600"
-              onClick={() => setCurrentView('personal')}
-            />
-            <SettingsItem
-              icon={Lock}
-              title="Transaction PIN"
-              subtitle="Reset or change your 4-digit PIN"
-              bg="bg-orange-50" color="text-orange-600"
-              onClick={() => setCurrentView('pin')}
-            />
-            <SettingsItem
-              icon={Shield}
-              title="Security & Password"
-              subtitle="Change your login password"
-              bg="bg-purple-50" color="text-purple-600"
-              isLast={true}
-              onClick={() => setCurrentView('password')}
-            />
-          </SettingsGroup>
-
-          <SettingsGroup title="Business & Pricing">
-            {isReseller && (
-              <SettingsItem
-                icon={Award}
-                title="My Reseller Status"
-                subtitle="Active — Lifetime Access"
-                bg="bg-yellow-50" color="text-yellow-600"
-              />
-            )}
-            <SettingsItem
-              icon={FileText}
-              title="My Pricing List"
-              subtitle="View your current discount rates"
-              bg="bg-emerald-50" color="text-emerald-600"
-              isLast={true}
-              onClick={onViewPricing}
-            />
-          </SettingsGroup>
-
-          <SettingsGroup title="Help & Support">
-            <SettingsItem
-              icon={MessageCircle}
-              title="WhatsApp Support"
-              subtitle="Chat with us directly on WhatsApp"
-              bg="bg-emerald-50" color="text-emerald-600"
-              onClick={() => window.open('https://wa.me/2349068500544', '_blank')}
-            />
-            <SettingsItem
-              icon={HelpCircle}
-              title="FAQs & Guides"
-              subtitle="Learn how to use Saukiglobal"
-              bg="bg-emerald-50" color="text-emerald-600"
-              isLast={true}
-              onClick={onViewSupport}
-            />
-          </SettingsGroup>
-
-          {/* Logout Button */}
-          <button
-            onClick={() => {
-              logout();
-              onLogout();
-            }}
-            className="w-full bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors mb-6"
-          >
-            <LogOut size={20} />
-            Secure Logout
-          </button>
-
-          <p className="text-center text-xs text-gray-400 font-medium mb-4">
-            Saukiglobal v2.0.1 • Made in Nigeria
-          </p>
-
         </div>
+
+        {/* Settings Groups */}
+        <SettingsGroup title="Account settings">
+          <SettingsItem
+            icon={User}
+            title="Personal Information"
+            subtitle="Update name and basic info"
+            bg="bg-blue-500/10" color="text-blue-400"
+            onClick={() => setCurrentView('personal')}
+          />
+          <SettingsItem
+            icon={Lock}
+            title="Transaction PIN"
+            subtitle="Reset or change your 4-digit PIN"
+            bg="bg-orange-500/10" color="text-orange-400"
+            onClick={() => setCurrentView('pin')}
+          />
+          <SettingsItem
+            icon={Shield}
+            title="Security & Password"
+            subtitle="Change your login password"
+            bg="bg-purple-500/10" color="text-purple-400"
+            isLast={true}
+            onClick={() => setCurrentView('password')}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title="Business & Rates">
+          {isReseller && (
+            <SettingsItem
+              icon={Award}
+              title="Reseller Account Status"
+              subtitle="Active — Lifetime Access"
+              bg="bg-yellow-500/10" color="text-yellow-400"
+            />
+          )}
+          <SettingsItem
+            icon={FileText}
+            title="My Pricing Matrix"
+            subtitle="View your current discount rates"
+            bg="bg-[#66df75]/10" color="text-[#66df75]"
+            isLast={true}
+            onClick={onViewPricing}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title="Helpdesk & Support">
+          <SettingsItem
+            icon={MessageCircle}
+            title="WhatsApp Support Hub"
+            subtitle="Chat with us directly on WhatsApp"
+            bg="bg-emerald-500/10" color="text-emerald-400"
+            onClick={() => window.open('https://wa.me/2349068500544', '_blank')}
+          />
+          <SettingsItem
+            icon={HelpCircle}
+            title="Ecosystem FAQs"
+            subtitle="Learn how to use SaukiGlobal"
+            bg="bg-teal-500/10" color="text-teal-400"
+            isLast={true}
+            onClick={onViewSupport}
+          />
+        </SettingsGroup>
+
+        {/* Logout Button */}
+        <button
+          onClick={() => {
+            logout();
+            onLogout();
+          }}
+          className="w-full bg-red-950/10 hover:bg-red-950/20 text-red-400 hover:text-red-300 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 border border-red-500/10 transition-all active:scale-95 mb-8"
+        >
+          <LogOut size={18} />
+          <span className="uppercase font-black text-xs tracking-wider">Secure Logout</span>
+        </button>
+
+        <p className="text-center text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-[0.2em] mb-4">
+          SaukiGlobal v2.0.1 • Crafted in Nigeria
+        </p>
+
       </div>
     </div>
   );

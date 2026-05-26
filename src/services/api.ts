@@ -24,6 +24,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'Authorization': apiKey ? `Bearer ${apiKey}` : '',
+    'sApiKey': apiKey,
     ...options.headers,
   };
 
@@ -96,6 +97,7 @@ export const api = {
     transactionPin: string,
     referralCode?: string,
     kycType?: string,
+    bvn?: string,
     nin?: string
   ): Promise<User> => {
     const res = await request<{ token: string, user: User }>('auth.php?action=register', {
@@ -107,7 +109,8 @@ export const api = {
         password,
         transaction_pin: transactionPin,
         referral_code: referralCode || '',
-        kyc_type: kycType || 'nin',
+        kyc_type: kycType || 'none',
+        bvn: bvn || '',
         nin: nin || ''
       })
     });
