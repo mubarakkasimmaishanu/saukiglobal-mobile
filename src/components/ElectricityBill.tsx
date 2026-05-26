@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Wallet, 
   Lightbulb, 
@@ -9,7 +9,11 @@ import {
   Share2, 
   AlertTriangle,
   Zap,
-  ChevronLeft
+  ChevronLeft,
+  RefreshCcw,
+  ArrowRight,
+  ShieldCheck,
+  Download
 } from 'lucide-react';
 import PinInput from './PinInput';
 import { api } from '../services/api';
@@ -19,10 +23,19 @@ interface ElectricityBillProps {
   onBack: () => void;
 }
 
+interface DiscoProvider {
+  id: string;
+  name: string;
+}
+
 export default function ElectricityBill({ onBack }: ElectricityBillProps) {
   const { user, refreshUser } = useUser();
   const [step, setStep] = useState('form'); // 'form', 'verify', 'pin', 'success'
   
+  // Lists state
+  const [discosList, setDiscosList] = useState<DiscoProvider[]>([]);
+  const [isLoadingDiscos, setIsLoadingDiscos] = useState(true);
+
   // Form States
   const [provider, setProvider] = useState('');
   const [meterType, setMeterType] = useState('prepaid');
@@ -35,26 +48,39 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
   const [transactionPin, setTransactionPin] = useState(['', '', '', '']);
   const [isProcessing, setIsProcessing] = useState(false);
   const [generatedToken, setGeneratedToken] = useState('');
+  const [receiptData, setReceiptData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Nigerian DisCos (Focused on national spread including Northern KEDCO/AEDC)
-  const providers = [
-    { id: 'kedco', name: 'Kano (KEDCO)' },
-    { id: 'aedc', name: 'Abuja (AEDC)' },
-    { id: 'kaduna', name: 'Kaduna (KAEDCO)' },
-    { id: 'jos', name: 'Jos (JED)' },
-    { id: 'ikedc', name: 'Ikeja (IKEDC)' },
-    { id: 'ekedc', name: 'Eko (EKEDC)' },
-    { id: 'ibedc', name: 'Ibadan (IBEDC)' },
-  ];
+  useEffect(() => {
+    fetchDiscos();
+  }, []);
+
+  const fetchDiscos = async () => {
+    setIsLoadingDiscos(true);
+    setError(null);
+    try {
+      const res = await api.getElectricityProviders();
+      if (res.success && Array.isArray(res.data)) {
+        setDiscosList(res.data);
+      } else {
+        setError('Failed to fetch active DisCo providers.');
+      }
+    } catch (err) {
+      setError('Connection to utility server failed.');
+    } finally {
+      setIsLoadingDiscos(false);
+    }
+  };
 
   const handleVerifyMeter = (e: React.FormEvent) => {
     e.preventDefault();
     if (!provider || !meterNumber || !amount || Number(amount) < 500) return;
     
     setIsVerifying(true);
-    // Simulate API call to VTU Provider to resolve meter number
+    setError(null);
+    // Simulate API call to VTU Provider to resolve meter customer details
     setTimeout(() => {
-      setCustomerName('ALH. IBRAHIM MUBARAK');
+      setCustomerName('ALH. IBRAHIM MUBARAK KASIM');
       setIsVerifying(false);
       setStep('verify');
     }, 1500);
@@ -63,28 +89,36 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
   const handlePinSubmit = async () => {
     if (transactionPin.join('').length !== 4) return;
     setIsProcessing(true);
+    setError(null);
     
     try {
       const res = await api.payElectricity(
         provider,
         meterNumber,
         Number(amount),
-        meterType as 'prepaid' | 'postpaid',
         transactionPin.join('')
       );
       if (res.success) {
-        if (res.data?.token) {
-          setGeneratedToken(res.data.token);
+        setReceiptData(res.data || res);
+        
+        // Retrieve and format token if returned
+        const token = (res.data as any)?.token || (res as any)?.token || '';
+        if (token) {
+          setGeneratedToken(token);
         } else if (meterType === 'prepaid') {
-          setGeneratedToken('1234 5678 9012 3456 7890');
+          // Fallback demo token formatted
+          setGeneratedToken('4920 1827 3847 9028 1748');
         }
+        
         await refreshUser();
         setStep('success');
       } else {
-        alert(res.message || 'Payment failed. Please try again.');
+        setError(res.message);
+        setStep('form');
       }
     } catch (err: any) {
-      alert(err.message || 'Payment failed. Please try again.');
+      setError(err.message || 'Electricity bill payment failed.');
+      setStep('form');
     } finally {
       setIsProcessing(false);
     }
@@ -100,19 +134,21 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
     if (navigator.share) {
       navigator.share({
         title: 'Electricity Token',
-        text: `I just bought electricity on Saukiglobal! Token: ${generatedToken}`,
+        text: `Electricity Purchase: ${provider.toUpperCase()} Prepaid Token: ${generatedToken}`,
       }).catch(() => {});
     } else {
       alert('Sharing not supported on this browser.');
     }
   };
 
+  const activeDisco = discosList.find(d => d.id === provider);
+
   return (
-    <div className="min-h-screen bg-gray-50 font-sans md:py-8">
-      <div className="max-w-md mx-auto bg-white min-h-screen md:min-h-[auto] md:rounded-3xl md:shadow-xl overflow-hidden relative">
+    <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient pb-12">
+      <div className="max-w-md mx-auto relative px-6">
         
         {/* Header */}
-        <header className="px-5 pt-6 pb-4 bg-orange-500 text-white sticky top-0 z-20 flex items-center shadow-md">
+        <header className="py-8 flex items-center gap-4">
           <button 
             onClick={() => {
               if (step === 'success') { setStep('form'); setMeterNumber(''); setAmount(''); }
@@ -120,181 +156,196 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
               else if (step === 'verify') setStep('form');
               else onBack();
             }}
-            className="p-2 -ml-2 hover:bg-orange-600 rounded-full transition-colors"
+            className="w-10 h-10 glass-panel flex items-center justify-center hover:bg-white/10"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeft size={20} />
           </button>
-          <h1 className="text-lg font-bold ml-2">Pay Electricity</h1>
+          <h1 className="text-lg font-bold tracking-tight">Electricity</h1>
         </header>
 
         {/* STEP 1: ENTER DETAILS */}
         {step === 'form' && (
-          <div className="p-5 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             
-            {/* Wallet Balance Snippet */}
-            <div className="flex items-center justify-between bg-orange-50 p-4 rounded-2xl mb-6 border border-orange-100">
+            {/* Balance Snippet */}
+            <div className="glass-panel p-4 mb-8 flex items-center justify-between border-emerald-500/10">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-100 rounded-full text-orange-600">
+                <div className="w-10 h-10 rounded-xl bg-[#66df75]/10 flex items-center justify-center text-[#66df75]">
                   <Wallet size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-orange-800 font-medium">Available Balance</p>
-                  <p className="text-base font-bold text-orange-900">₦ {user?.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                  <p className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Balance</p>
+                  <p className="text-sm font-black text-white">₦{(user?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                 </div>
               </div>
+              <span className="text-[10px] font-bold text-[#66df75] bg-[#66df75]/10 px-2 py-1 rounded-lg">Instant Tokens</span>
             </div>
 
-            <form onSubmit={handleVerifyMeter} className="space-y-5">
-              
-              {/* Provider Selection */}
-              <div className="relative">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Select Provider</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lightbulb size={18} className="text-gray-400" />
-                  </div>
-                  <select 
-                    value={provider}
-                    onChange={(e) => setProvider(e.target.value)}
-                    required
-                    className="w-full pl-11 pr-10 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all"
-                  >
-                    <option value="" disabled>Choose Distribution Company</option>
-                    {providers.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    <ChevronDown size={18} className="text-gray-400" />
+            {error && (
+              <div className="mb-6 p-4 bg-[#ef4444]/10 border border-[#ef4444]/20 text-[#ef4444] text-xs font-bold rounded-xl animate-in shake">
+                {error}
+              </div>
+            )}
+
+            {isLoadingDiscos ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <RefreshCcw size={24} className="animate-spin text-[#66df75]" />
+                <p className="text-xs text-[#e1e3e4]/50 font-bold uppercase tracking-wider">Retrieving DisCos...</p>
+              </div>
+            ) : (
+              <form onSubmit={handleVerifyMeter} className="space-y-6">
+                
+                {/* Provider Selector (Dynamic Dropdown) */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Select DisCo Provider</label>
+                  <div className="relative">
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[#66df75]">
+                      <Lightbulb size={20} />
+                    </div>
+                    <select 
+                      value={provider}
+                      onChange={(e) => setProvider(e.target.value)}
+                      required
+                      className="w-full bg-[#111415] border border-white/10 rounded-2xl py-5 pl-14 pr-12 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none"
+                    >
+                      <option value="" disabled className="bg-[#111415]">Choose distribution company</option>
+                      {discosList.map(d => (
+                        <option key={d.id} value={d.id} className="bg-[#111415]">{d.name}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-[#e1e3e4]/30">
+                      <ChevronDown size={20} />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Meter Type (Prepaid/Postpaid) */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Meter Type</label>
-                <div className="flex p-1 bg-gray-100 rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => setMeterType('prepaid')}
-                    className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${
-                      meterType === 'prepaid' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    Prepaid
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMeterType('postpaid')}
-                    className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${
-                      meterType === 'postpaid' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    Postpaid
-                  </button>
-                </div>
-              </div>
-
-              {/* Meter Number */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Meter / Account Number</label>
-                <input 
-                  type="text" 
-                  placeholder="Enter meter number"
-                  value={meterNumber}
-                  onChange={(e) => setMeterNumber(e.target.value.replace(/\D/g, ''))}
-                  required
-                  className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-lg text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all tracking-wide"
-                />
-              </div>
-
-              {/* Amount */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Amount (₦)</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <span className="text-gray-500 font-bold text-lg">₦</span>
+                {/* Meter Type Selector */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Meter Type</label>
+                  <div className="flex p-1 bg-white/5 border border-white/10 rounded-2xl">
+                    <button
+                      type="button"
+                      onClick={() => setMeterType('prepaid')}
+                      className={`flex-1 py-3.5 text-xs font-bold rounded-xl transition-all ${
+                        meterType === 'prepaid' ? 'bg-[#66df75] text-[#111415] shadow-sm' : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      Prepaid
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMeterType('postpaid')}
+                      className={`flex-1 py-3.5 text-xs font-bold rounded-xl transition-all ${
+                        meterType === 'postpaid' ? 'bg-[#66df75] text-[#111415] shadow-sm' : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      Postpaid
+                    </button>
                   </div>
+                </div>
+
+                {/* Meter Number */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Meter Number / Account ID</label>
                   <input 
-                    type="number" 
-                    placeholder="0.00"
-                    min="500"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    type="text" 
+                    placeholder="Enter meter number"
+                    value={meterNumber}
+                    onChange={(e) => setMeterNumber(e.target.value.replace(/\D/g, ''))}
                     required
-                    className="w-full pl-10 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-lg text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all tracking-widest placeholder:text-white/10"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-2">Minimum amount is ₦500</p>
-              </div>
 
-              {/* Action Button */}
-              <div className="pt-4">
+                {/* Amount */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Purchase Amount (₦)</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-2xl font-black text-white/30">
+                      ₦
+                    </div>
+                    <input 
+                      type="number" 
+                      placeholder="0.00"
+                      min="500"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      required
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-12 pr-6 text-3xl font-black text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all"
+                    />
+                  </div>
+                  <p className="text-[9px] text-[#e1e3e4]/40 font-bold uppercase tracking-wider px-1">Minimum single payment is ₦500</p>
+                </div>
+
+                {/* Action Button */}
                 <button 
                   type="submit"
                   disabled={!provider || !meterNumber || !amount || isVerifying}
-                  className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 disabled:text-orange-100 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
+                  className="w-full btn-primary py-5 flex justify-center items-center gap-3 disabled:opacity-50 disabled:grayscale transition-all mt-8"
                 >
                   {isVerifying ? (
-                    <><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Verifying Meter...</>
+                    <RefreshCcw size={20} className="animate-spin text-[#111415]" />
                   ) : (
-                    'Verify Meter Number'
+                    <>
+                      <span className="uppercase tracking-[0.1em] font-black text-sm">Verify Meter details</span>
+                      <ArrowRight size={20} />
+                    </>
                   )}
                 </button>
-              </div>
-            </form>
+              </form>
+            )}
           </div>
         )}
 
         {/* STEP 2: VERIFY DETAILS */}
         {step === 'verify' && (
-          <div className="p-5 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex gap-3 mb-6">
-              <AlertTriangle size={24} className="text-amber-600 flex-shrink-0" />
-              <p className="text-xs text-amber-800 leading-relaxed font-medium">
-                Please confirm the meter name below. We will not be able to reverse payments sent to the wrong meter.
+          <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
+            <div className="bg-[#e1e3e4]/5 border border-white/10 p-4 rounded-xl flex gap-3">
+              <AlertTriangle size={20} className="text-[#66df75] flex-shrink-0 mt-0.5" />
+              <p className="text-[10px] text-[#e1e3e4]/70 leading-relaxed font-bold uppercase tracking-wider">
+                Please confirm the meter name matches below. We are unable to cancel or reverse payments sent to wrong accounts.
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-6">
+            <div className="glass-panel text-white rounded-2xl p-6 border-white/10 relative overflow-hidden">
               <div className="mb-4">
-                <p className="text-xs text-gray-500 font-medium mb-1">Customer Name</p>
-                <p className="text-lg font-black text-gray-900">{customerName}</p>
+                <p className="text-[9px] text-[#e1e3e4]/40 font-black uppercase tracking-wider mb-1">Customer / Meter Owner</p>
+                <p className="text-lg font-bold text-white">{customerName}</p>
               </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
                 <div>
-                  <p className="text-xs text-gray-500 font-medium mb-1">Meter Number</p>
-                  <p className="text-sm font-bold text-gray-900">{meterNumber}</p>
+                  <p className="text-[9px] text-[#e1e3e4]/40 font-black uppercase tracking-wider mb-1">Meter Number</p>
+                  <p className="text-sm font-bold text-white font-mono tracking-widest">{meterNumber}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 font-medium mb-1">Provider</p>
-                  <p className="text-sm font-bold text-gray-900 uppercase">{provider}</p>
+                  <p className="text-[9px] text-[#e1e3e4]/40 font-black uppercase tracking-wider mb-1">Utility Node</p>
+                  <p className="text-sm font-bold text-white uppercase">{activeDisco?.name || provider}</p>
                 </div>
               </div>
-              <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
-                <p className="text-sm text-gray-500 font-medium">Amount to Pay</p>
-                <p className="text-2xl font-black text-orange-600">₦{Number(amount).toLocaleString()}</p>
+              <div className="pt-5 mt-5 border-t border-white/5 flex justify-between items-center text-sm font-bold">
+                <span className="text-[#e1e3e4]/40 uppercase tracking-widest text-[9px] font-black">Total Charge</span>
+                <span className="text-2xl font-black text-[#66df75]">₦{Number(amount).toLocaleString()}</span>
               </div>
             </div>
 
             <button 
               onClick={() => setStep('pin')}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center"
+              className="w-full btn-primary py-5 flex justify-center items-center"
             >
-              Confirm & Continue
+              <span className="uppercase tracking-[0.1em] font-black text-sm">Proceed to Payment</span>
             </button>
           </div>
         )}
 
         {/* STEP 3: PIN VERIFICATION */}
         {step === 'pin' && (
-          <div className="p-6 flex flex-col items-center animate-in slide-in-from-bottom-8 duration-300">
-            <div className="w-16 h-16 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mb-6">
-              <Lock size={32} />
+          <div className="flex flex-col items-center animate-in slide-in-from-bottom-8 duration-300 pt-8">
+            <div className="w-20 h-20 bg-[#66df75]/10 rounded-3xl flex items-center justify-center mb-6 text-[#66df75]">
+              <Lock size={40} />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Enter Wallet PIN</h2>
-            <p className="text-sm text-gray-500 text-center mb-8">
-              You are paying <strong className="text-gray-800">₦{Number(amount).toLocaleString()}</strong> to {provider.toUpperCase()}.
+            <h2 className="text-2xl font-bold text-white mb-2">Authorize Utility PIN</h2>
+            <p className="text-xs text-[#e1e3e4]/40 font-medium text-center mb-10 px-8 leading-relaxed">
+              Confirm payment of <strong className="text-white font-bold">₦{Number(amount).toLocaleString()}</strong> to {activeDisco?.name || provider.toUpperCase()}.
             </p>
 
             <PinInput 
@@ -307,12 +358,12 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
             <button 
               onClick={handlePinSubmit}
               disabled={isProcessing || transactionPin.join('').length !== 4}
-              className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-bold py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
+              className="w-full btn-primary py-5 mt-12 flex justify-center items-center gap-3"
             >
               {isProcessing ? (
-                <><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...</>
+                <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                'Pay Now'
+                <span className="uppercase tracking-[0.1em] font-black text-sm">Verify & Pay ₦{Number(amount).toLocaleString()}</span>
               )}
             </button>
           </div>
@@ -320,80 +371,81 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
 
         {/* STEP 4: SUCCESS / TOKEN RECEIPT */}
         {step === 'success' && (
-          <div className="p-6 flex flex-col items-center animate-in zoom-in-95 duration-500">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle2 size={32} />
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1">Payment Successful!</h2>
-            <p className="text-xs text-gray-500 mb-6 text-center">
-              Meter: {customerName}
-            </p>
-
-            {/* If Prepaid, show the massive Token Card */}
-            {meterType === 'prepaid' ? (
-              <div className="w-full bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 text-center text-white shadow-lg mb-6 relative overflow-hidden">
-                <Zap size={120} className="absolute -right-4 -bottom-4 text-white opacity-5" />
-                
-                <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Your Electricity Token</p>
-                {/* Visual split of the 20 digit token to make reading easy */}
-                <h1 className="text-2xl md:text-3xl font-black tracking-widest mb-4 font-mono text-orange-400 drop-shadow-md">
-                  {generatedToken.split(' ').map((chunk, i) => (
-                    <span key={i} className="inline-block mr-2">{chunk}</span>
-                  ))}
-                </h1>
-                
-                <div className="bg-gray-950 bg-opacity-50 rounded-xl p-3 flex justify-between items-center border border-gray-700">
-                  <div className="text-left">
-                    <p className="text-[10px] text-gray-400 uppercase">Amount</p>
-                    <p className="text-sm font-bold">₦{Number(amount).toLocaleString()}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] text-gray-400 uppercase">Units</p>
-                    <p className="text-sm font-bold text-emerald-400">142.5 kWh</p>
-                  </div>
-                </div>
+          <div className="animate-in zoom-in-95 duration-500 pt-8">
+            <div className="glass-panel p-8 text-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-[#66df75]"></div>
+              
+              <div className="w-20 h-20 bg-[#66df75] text-[#111415] rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(102,223,117,0.4)]">
+                <CheckCircle2 size={40} />
               </div>
-            ) : (
-              // If Postpaid, just show a standard receipt block
-              <div className="w-full bg-gray-50 rounded-2xl p-4 mb-6 text-left border border-gray-200">
-                <p className="text-sm font-bold text-gray-800 text-center mb-4">Postpaid Bill Cleared</p>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-500">Amount Paid</span>
-                  <span className="font-bold text-gray-900">₦{Number(amount).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Reference</span>
-                  <span className="font-mono text-xs text-gray-800">BD-ELEC-99382</span>
-                </div>
-              </div>
-            )}
+              
+              <h2 className="text-2xl font-black text-white mb-1">Payment Successful</h2>
+              <p className="text-[10px] text-[#66df75] font-black uppercase tracking-[0.3em] mb-8">Token Generated</p>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 w-full mb-6">
-              {meterType === 'prepaid' && (
-                <button 
-                  onClick={handleCopyToken}
-                  className="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
-                >
-                  <Copy size={18} />
-                  Copy Token
-                </button>
+              {/* Prepaid Token Showcase */}
+              {meterType === 'prepaid' ? (
+                <div className="w-full card-mesh rounded-[2rem] p-6 text-center text-white shadow-2xl mb-8 border border-white/5 relative overflow-hidden">
+                  <Zap size={100} className="absolute -right-4 -bottom-4 text-[#66df75] opacity-5 animate-pulse" />
+                  
+                  <p className="text-[#e1e3e4]/40 text-[9px] font-black uppercase tracking-widest mb-3">Electricity Tokens PIN</p>
+                  
+                  <h1 className="text-2xl font-mono font-black tracking-widest mb-5 text-[#66df75] drop-shadow-md">
+                    {generatedToken}
+                  </h1>
+                  
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex justify-between items-center text-xs">
+                    <div className="text-left">
+                      <p className="text-[9px] text-[#e1e3e4]/40 font-bold uppercase">Paid</p>
+                      <p className="font-bold">₦{Number(amount).toLocaleString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] text-[#e1e3e4]/40 font-bold uppercase">Estimated Units</p>
+                      <p className="font-bold text-[#66df75]">142.5 kWh</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Postpaid Invoice Statement */
+                <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 mb-8 text-left space-y-3">
+                  <p className="text-xs font-bold text-center border-b border-white/5 pb-2 text-[#e1e3e4]/80">Postpaid Invoice Cleared</p>
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-[#e1e3e4]/40">Amount Dispatched</span>
+                    <span className="font-bold text-white">₦{Number(amount).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-[#e1e3e4]/40">Reference Node</span>
+                    <span className="font-mono text-white/70">{receiptData?.reference || 'SG-ELEC-77123'}</span>
+                  </div>
+                </div>
               )}
+
+              {/* Receipt Control Buttons */}
+              <div className="flex gap-3 w-full mb-6">
+                {meterType === 'prepaid' && (
+                  <button 
+                    onClick={handleCopyToken}
+                    className="flex-1 glass-panel py-3.5 flex items-center justify-center gap-2 text-xs font-bold hover:bg-white/10"
+                  >
+                    <Copy size={16} />
+                    Copy Token
+                  </button>
+                )}
+                <button 
+                  onClick={handleShareReceipt}
+                  className="flex-1 glass-panel py-3.5 flex items-center justify-center gap-2 text-xs font-bold hover:bg-white/10"
+                >
+                  <Share2 size={16} />
+                  Share Receipt
+                </button>
+              </div>
+
               <button 
-                onClick={handleShareReceipt}
-                className="flex-1 bg-orange-100 text-orange-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-orange-200 transition-colors"
+                onClick={() => { setStep('form'); setMeterNumber(''); setAmount(''); setTransactionPin(['','','','']); onBack(); }}
+                className="w-full btn-primary py-4"
               >
-                <Share2 size={18} />
-                Share
+                Back to Dashboard
               </button>
             </div>
-
-            <button 
-              onClick={() => { setStep('form'); setMeterNumber(''); setAmount(''); setTransactionPin(['','','','']); onBack(); }}
-              className="mt-2 text-sm font-bold text-gray-500 hover:text-gray-800"
-            >
-              Pay Another Bill
-            </button>
           </div>
         )}
 

@@ -13,7 +13,8 @@ import {
   ArrowRight,
   ShieldCheck,
   Download,
-  AlertCircle
+  AlertCircle,
+  RefreshCcw
 } from 'lucide-react';
 import PinInput from './PinInput';
 import { api } from '../services/api';
@@ -24,26 +25,46 @@ interface BuyDataProps {
   onFund: () => void;
 }
 
+interface NetworkProvider {
+  id: string | number;
+  network: string;
+  networkStatus: string;
+}
+
+interface DataPlan {
+  id: string | number;
+  name: string;
+  price: number;
+  type: string;
+  network_id: string | number;
+}
+
 export default function BuyData({ onBack, onFund }: BuyDataProps) {
   const { user, refreshUser } = useUser();
   const [step, setStep] = useState('form'); // 'form', 'pin', 'success'
-  const [network, setNetwork] = useState('');
   const [phone, setPhone] = useState('');
-  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [networksList, setNetworksList] = useState<NetworkProvider[]>([]);
+  const [dataPlans, setDataPlans] = useState<DataPlan[]>([]);
+  const [selectedNetworkId, setSelectedNetworkId] = useState<string | number>('');
+  const [selectedPlanId, setSelectedPlanId] = useState<string | number>('');
+  
+  // UI states
+  const [isLoadingNetworks, setIsLoadingNetworks] = useState(true);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(false);
   const [transactionPin, setTransactionPin] = useState(['', '', '', '']);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [receiptData, setReceiptData] = useState<any>(null);
 
-  const networks = [
-    { id: 'mtn', name: 'MTN', color: '#ffcb05' },
-    { id: 'airtel', name: 'Airtel', color: '#ff0000' },
-    { id: 'glo', name: 'GLO', color: '#39b54a' },
-    { id: '9mobile', name: '9mobile', color: '#00573d' },
-  ];
+  // Styling attributes matching brand logos
+  const networkStyles: Record<string, { color: string; label: string }> = {
+    mtn: { color: '#ffcb05', label: 'MTN' },
+    airtel: { color: '#ff0000', label: 'Airtel' },
+    glo: { color: '#39b54a', label: 'GLO' },
+    '9mobile': { color: '#00573d', label: '9mobile' }
+  };
 
-  // Logic to detect network based on prefix
-  const networkPrefixes: Record<string, string[]> = {
+  const phonePrefixes: Record<string, string[]> = {
     mtn: ['0803', '0806', '0814', '0810', '0813', '0816', '0703', '0706', '0903', '0906'],
     airtel: ['0802', '0808', '0812', '0701', '0708', '0902', '0907', '0901'],
     glo: ['0805', '0807', '0811', '0815', '0705', '0905'],
@@ -51,45 +72,91 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
   };
 
   useEffect(() => {
+    fetchNetworks();
+  }, []);
+
+  const fetchNetworks = async () => {
+    setIsLoadingNetworks(true);
+    setError(null);
+    try {
+      const res = await api.getAirtimeNetworks();
+      if (res.success && Array.isArray(res.data)) {
+        setNetworksList(res.data);
+      } else {
+        setError('Failed to fetch data billing nodes.');
+      }
+    } catch (err) {
+      setError('Connection to data provider server failed.');
+    } finally {
+      setIsLoadingNetworks(false);
+    }
+  };
+
+  // Automatically fetch plans when selected network changes
+  useEffect(() => {
+    if (selectedNetworkId) {
+      fetchPlans(selectedNetworkId);
+    } else {
+      setDataPlans([]);
+      setSelectedPlanId('');
+    }
+  }, [selectedNetworkId]);
+
+  const fetchPlans = async (netId: string | number) => {
+    setIsLoadingPlans(true);
+    setError(null);
+    try {
+      const res = await api.getDataPlans(netId);
+      if (res.success && Array.isArray(res.data)) {
+        setDataPlans(res.data);
+      } else {
+        setDataPlans([]);
+        setError(res.message || 'No packages found for this network.');
+      }
+    } catch (err) {
+      setDataPlans([]);
+      setError('Failed to download bundles. Retry.');
+    } finally {
+      setIsLoadingPlans(false);
+    }
+  };
+
+  // Automatic Prefix Detector
+  useEffect(() => {
     if (phone.length >= 4) {
       const prefix = phone.substring(0, 4);
-      for (const [net, prefixes] of Object.entries(networkPrefixes)) {
+      let detectedKey = '';
+      for (const [key, prefixes] of Object.entries(phonePrefixes)) {
         if (prefixes.includes(prefix)) {
-          setNetwork(net);
+          detectedKey = key;
           break;
         }
       }
+
+      if (detectedKey) {
+        const style = networkStyles[detectedKey];
+        const match = networksList.find(
+          (n) => n.network.toLowerCase() === style.label.toLowerCase()
+        );
+        if (match && selectedNetworkId !== match.id) {
+          setSelectedNetworkId(match.id);
+        }
+      }
     }
-  }, [phone]);
+  }, [phone, networksList]);
 
-  const dataPlans: Record<string, any[]> = {
-    mtn: [
-      { id: '1', size: '500MB', type: 'SME', validity: '30 Days', price: 135 },
-      { id: '2', size: '1.0GB', type: 'SME', validity: '30 Days', price: 265 },
-      { id: '3', size: '2.0GB', type: 'SME', validity: '30 Days', price: 530 },
-      { id: '4', size: '5.0GB', type: 'SME', validity: '30 Days', price: 1325 },
-      { id: '5', size: '10.0GB', type: 'SME', validity: '30 Days', price: 2650 },
-    ],
-    airtel: [
-      { id: '6', size: '1.0GB', type: 'CG', validity: '30 Days', price: 280 },
-      { id: '7', size: '2.0GB', type: 'CG', validity: '30 Days', price: 560 },
-      { id: '8', size: '5.0GB', type: 'CG', validity: '30 Days', price: 1400 },
-    ],
-    glo: [
-      { id: '9', size: '1.0GB', type: 'SME', validity: '30 Days', price: 250 },
-      { id: '10', size: '2.0GB', type: 'SME', validity: '30 Days', price: 500 },
-    ],
-    '9mobile': [
-      { id: '11', size: '1.0GB', type: 'CG', validity: '30 Days', price: 180 },
-    ]
-  };
-
-  const selectedPlan = network && selectedPlanId ? dataPlans[network].find(p => p.id === selectedPlanId) : null;
-  const activeNetworkConfig = networks.find(n => n.id === network);
+  const selectedPlan = dataPlans.find(p => p.id.toString() === selectedPlanId.toString());
+  const activeNetwork = networksList.find(n => n.id === selectedNetworkId);
+  const activeStyle = activeNetwork ? (networkStyles[activeNetwork.network.toLowerCase()] || { color: '#888888', label: activeNetwork.network }) : null;
 
   const handleProcessForm = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!network || !phone || !selectedPlanId || phone.length < 11) return;
+    if (!selectedNetworkId || !phone || !selectedPlanId || phone.length < 11) return;
+    
+    if (activeNetwork && activeNetwork.networkStatus.toLowerCase() !== 'on') {
+      setError(`${activeNetwork.network} services are currently offline.`);
+      return;
+    }
     setError(null);
     setStep('pin');
   };
@@ -98,9 +165,14 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
     setIsProcessing(true);
     setError(null);
     try {
-      const res = await api.buyData(activeNetworkConfig?.name || 'Unknown', selectedPlanId, phone, transactionPin.join(''));
+      const res = await api.buyData(
+        selectedNetworkId,
+        selectedPlanId,
+        phone,
+        transactionPin.join('')
+      );
       if (res.success) {
-        setReceiptData(res.data);
+        setReceiptData(res.data || res);
         await refreshUser();
         setStep('success');
       } else {
@@ -132,7 +204,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
 
         {step === 'form' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Wallet Info */}
+            {/* Balance banner */}
             <div className="glass-panel p-4 mb-8 flex items-center justify-between border-emerald-500/10">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#66df75]/10 flex items-center justify-center text-[#66df75]">
@@ -140,7 +212,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                 </div>
                 <div>
                   <p className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Available</p>
-                  <p className="text-sm font-black text-white">₦{(user?.balance || 0).toLocaleString()}</p>
+                  <p className="text-sm font-black text-white">₦{(user?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                 </div>
               </div>
               <button onClick={onFund} className="text-[10px] font-black text-[#66df75] hover:underline uppercase tracking-widest">Refill</button>
@@ -152,88 +224,126 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
               </div>
             )}
 
-            <form onSubmit={handleProcessForm} className="space-y-8">
-              {/* Phone Input */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center px-1">
-                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest">Recipient Number</label>
-                  {activeNetworkConfig && (
-                    <span className="text-[9px] font-black uppercase px-2 py-1 rounded-md bg-white/5 text-white flex items-center gap-1.5 border border-white/5">
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: activeNetworkConfig.color }}></div>
-                      {activeNetworkConfig.name}
-                    </span>
-                  )}
-                </div>
-                <div className="relative">
-                  <input
-                    type="tel"
-                    maxLength={11}
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all tracking-widest"
-                    placeholder="0800 000 0000"
-                  />
-                  <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-[#66df75] hover:bg-[#66df75]/10 rounded-xl transition-colors">
-                    <Contact size={20} />
-                  </button>
-                </div>
+            {isLoadingNetworks ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <RefreshCcw size={24} className="animate-spin text-[#66df75]" />
+                <p className="text-xs text-[#e1e3e4]/50 font-bold uppercase tracking-wider">Retrieving billing nodes...</p>
               </div>
-
-              {/* Network Selection */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Network Provider</label>
-                <div className="grid grid-cols-4 gap-3">
-                  {networks.map((net) => (
-                    <button
-                      key={net.id}
-                      type="button"
-                      onClick={() => { setNetwork(net.id); setSelectedPlanId(''); }}
-                      className={`py-3 rounded-xl border font-bold text-[10px] transition-all flex flex-col items-center gap-2 ${network === net.id ? 'bg-[#66df75] border-[#66df75] text-[#111415]' : 'bg-white/5 border-white/10 text-[#e1e3e4]/60'}`}
-                    >
-                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: net.color }}></div>
-                      {net.name}
+            ) : (
+              <form onSubmit={handleProcessForm} className="space-y-8">
+                {/* Phone Input */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center px-1">
+                    <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest">Recipient Number</label>
+                    {activeStyle && (
+                      <span className="text-[9px] font-black uppercase px-2 py-1 rounded-md bg-white/5 text-white flex items-center gap-1.5 border border-white/5">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: activeStyle.color }}></div>
+                        {activeStyle.label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      maxLength={11}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all tracking-widest"
+                      placeholder="0800 000 0000"
+                    />
+                    <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-[#66df75] hover:bg-[#66df75]/10 rounded-xl transition-colors">
+                      <Contact size={20} />
                     </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Plan Selection */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Select Data Plan</label>
-                <div className="relative">
-                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[#66df75]">
-                    <Wifi size={20} />
                   </div>
-                  <select
-                    value={selectedPlanId}
-                    onChange={(e) => setSelectedPlanId(e.target.value)}
-                    disabled={!network}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-14 pr-12 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none disabled:opacity-30"
-                  >
-                    <option value="" disabled className="bg-[#111415]">
-                      {network ? 'Select a package' : 'Select network first'}
-                    </option>
-                    {network && dataPlans[network]?.map(p => (
-                      <option key={p.id} value={p.id} className="bg-[#111415]">
-                        {p.size} ({p.type}) — ₦{p.price} — {p.validity}
+                </div>
+
+                {/* Network Selection Grid (Dynamic) */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Network Provider</label>
+                  <div className="grid grid-cols-4 gap-3">
+                    {networksList.map((net) => {
+                      const lowerName = net.network.toLowerCase();
+                      const style = networkStyles[lowerName] || { color: '#888888', label: net.network };
+                      const isSelected = selectedNetworkId === net.id;
+                      const isOffline = net.networkStatus.toLowerCase() !== 'on';
+
+                      return (
+                        <button
+                          key={net.id}
+                          type="button"
+                          disabled={isOffline}
+                          onClick={() => {
+                            setSelectedNetworkId(net.id);
+                            setSelectedPlanId('');
+                            setError(null);
+                          }}
+                          className={`py-3 rounded-xl border font-bold text-[10px] transition-all flex flex-col items-center gap-2 relative ${
+                            isSelected 
+                              ? 'bg-[#66df75] border-[#66df75] text-[#111415]' 
+                              : 'bg-white/5 border-white/10 text-[#e1e3e4]/60'
+                          } ${isOffline ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}
+                        >
+                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: style.color }}></div>
+                          <span>{style.label}</span>
+                          {isOffline && (
+                            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full scale-75">
+                              OFF
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Bundle / Package Selector (Dynamic) */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Select Data Plan</label>
+                  <div className="relative">
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[#66df75]">
+                      {isLoadingPlans ? (
+                        <RefreshCcw size={20} className="animate-spin" />
+                      ) : (
+                        <Wifi size={20} />
+                      )}
+                    </div>
+                    <select
+                      value={selectedPlanId}
+                      onChange={(e) => setSelectedPlanId(e.target.value)}
+                      disabled={!selectedNetworkId || isLoadingPlans || dataPlans.length === 0}
+                      className="w-full bg-[#111415] border border-white/10 rounded-2xl py-5 pl-14 pr-12 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none disabled:opacity-30"
+                    >
+                      <option value="" disabled className="bg-[#111415]">
+                        {isLoadingPlans 
+                          ? 'Loading plans...' 
+                          : selectedNetworkId 
+                            ? dataPlans.length === 0 
+                              ? 'No data plans allocated' 
+                              : 'Select package' 
+                            : 'Select network first'}
                       </option>
-                    ))}
-                  </select>
-                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-[#e1e3e4]/30">
-                    <ChevronDown size={20} />
+                      {dataPlans.map(p => (
+                        <option key={p.id} value={p.id} className="bg-[#111415]">
+                          {p.name} — ₦{Number(p.price).toLocaleString()} ({p.type})
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-[#e1e3e4]/30">
+                      <ChevronDown size={20} />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={!network || !selectedPlanId || phone.length < 11}
-                className="w-full btn-primary py-5 flex justify-center items-center gap-3 disabled:opacity-50 disabled:grayscale transition-all"
-              >
-                <span className="uppercase tracking-[0.1em] font-black text-sm">Review Purchase</span>
-                <ArrowRight size={20} />
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={!selectedNetworkId || !selectedPlanId || phone.length < 11 || isLoadingPlans}
+                  className="w-full btn-primary py-5 flex justify-center items-center gap-3 disabled:opacity-50 disabled:grayscale transition-all"
+                >
+                  <span className="uppercase tracking-[0.1em] font-black text-sm">Review Purchase</span>
+                  <ArrowRight size={20} />
+                </button>
+              </form>
+            )}
           </div>
         )}
 
@@ -245,7 +355,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">Authorize Payment</h2>
               <p className="text-xs text-[#e1e3e4]/40 font-medium px-8 leading-relaxed">
-                Purchase <span className="text-white font-bold">{activeNetworkConfig?.name} {selectedPlan?.size}</span> for <span className="text-white font-bold">{phone}</span>?
+                Purchase <span className="text-white font-bold">{selectedPlan?.name}</span> for <span className="text-white font-bold">{phone}</span>?
               </p>
             </div>
 
@@ -264,7 +374,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
               {isProcessing ? (
                 <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <span className="uppercase tracking-[0.1em] font-black text-sm">Pay ₦{selectedPlan?.price.toLocaleString()}</span>
+                <span className="uppercase tracking-[0.1em] font-black text-sm">Pay ₦{selectedPlan ? Number(selectedPlan.price).toLocaleString() : '0'}</span>
               )}
             </button>
           </div>
@@ -285,7 +395,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
               <div className="space-y-4 text-left mb-8">
                 <div className="flex justify-between items-center py-3 border-b border-white/5">
                   <span className="text-[10px] font-bold text-[#e1e3e4]/40 uppercase">Plan</span>
-                  <span className="text-sm font-bold text-white">{activeNetworkConfig?.name} {selectedPlan?.size}</span>
+                  <span className="text-sm font-bold text-white">{selectedPlan?.name}</span>
                 </div>
                 <div className="flex justify-between items-center py-3 border-b border-white/5">
                   <span className="text-[10px] font-bold text-[#e1e3e4]/40 uppercase">Recipient</span>
@@ -293,11 +403,11 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                 </div>
                 <div className="flex justify-between items-center py-3 border-b border-white/5">
                   <span className="text-[10px] font-bold text-[#e1e3e4]/40 uppercase">Amount</span>
-                  <span className="text-sm font-bold text-[#66df75]">₦{selectedPlan?.price.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-[#66df75]">₦{selectedPlan ? Number(selectedPlan.price).toLocaleString() : '0'}</span>
                 </div>
                 <div className="flex justify-between items-center py-3">
                   <span className="text-[10px] font-bold text-[#e1e3e4]/40 uppercase">Reference</span>
-                  <span className="text-[10px] font-mono font-bold text-white/60">{receiptData?.reference || 'SG-DAT-77123'}</span>
+                  <span className="text-[10px] font-mono font-bold text-white/60">{receiptData?.reference || 'SG-DAT-88172'}</span>
                 </div>
               </div>
 
@@ -311,7 +421,14 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
               </div>
 
               <button
-                onClick={onBack}
+                onClick={() => {
+                  setStep('form');
+                  setPhone('');
+                  setSelectedNetworkId('');
+                  setSelectedPlanId('');
+                  setTransactionPin(['', '', '', '']);
+                  onBack();
+                }}
                 className="w-full btn-primary py-4 mt-2"
               >
                 Done
@@ -324,4 +441,3 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
     </div>
   );
 }
-
