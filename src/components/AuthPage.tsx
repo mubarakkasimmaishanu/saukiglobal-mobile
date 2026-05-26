@@ -29,19 +29,18 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
   const { refreshUser, setUserContext } = useUser();
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot' | 'verify_otp' | 'reset_password'>(initialMode);
   
-  // Registration Form Steps: 1 = Personal Details, 2 = Security & Compliance
-  const [signupStep, setSignupStep] = useState<1 | 2>(1);
-
   // Form Fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   
-  // Step 2 Fields
-  const [transactionPin, setTransactionPin] = useState(['', '', '', '']);
-  const [referralCode, setReferralCode] = useState('');
-  const [kycType, setKycType] = useState('nin');
+  // Compliance / Security Fields
+  const [transactionPin, setTransactionPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [kycType, setKycType] = useState('none');
+  const [bvn, setBvn] = useState('');
   const [nin, setNin] = useState('');
 
   // Password Reset Fields
@@ -51,23 +50,12 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
 
   // UI States
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+  const [showConfirmPin, setShowConfirmPin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
-
-  const handleNextStep = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !email || !phone || !password) {
-      setError('Please fill in all fields.');
-      return;
-    }
-    if (phone.length < 11) {
-      setError('Phone number must be at least 11 digits.');
-      return;
-    }
-    setError(null);
-    setSignupStep(2);
-  };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,14 +122,70 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
     if (mode === 'login') {
       if (!email || !password) return;
     } else {
-      // Signup Step 2 Validation
-      if (transactionPin.join('').length !== 4) {
-        setError('Please set a 4-digit transaction PIN.');
+      // Registration Form Client Validations (Mirrors main web app)
+      if (!name) {
+        setError('Full name is required.');
         return;
       }
-      if (!nin || nin.length < 11) {
-        setError('Please enter your valid 11-digit NIN.');
+      if (!email) {
+        setError('Email address is required.');
         return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setError('Invalid email address format.');
+        return;
+      }
+      if (!phone) {
+        setError('Phone number is required.');
+        return;
+      }
+      if (!/^\d{10,15}$/.test(phone)) {
+        setError('Phone number must be between 10 and 15 digits.');
+        return;
+      }
+      if (!password) {
+        setError('Password is required.');
+        return;
+      }
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters long.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.');
+        return;
+      }
+      if (!transactionPin) {
+        setError('Transaction PIN is required.');
+        return;
+      }
+      if (!/^\d{4}$/.test(transactionPin)) {
+        setError('Transaction PIN must be exactly 4 digits.');
+        return;
+      }
+      if (transactionPin !== confirmPin) {
+        setError('Transaction PINs do not match.');
+        return;
+      }
+      if (kycType === 'bvn' || kycType === 'both') {
+        if (!bvn) {
+          setError('Bank Verification Number (BVN) is required.');
+          return;
+        }
+        if (!/^\d{11}$/.test(bvn)) {
+          setError('BVN must be exactly 11 digits.');
+          return;
+        }
+      }
+      if (kycType === 'nin' || kycType === 'both') {
+        if (!nin) {
+          setError('National Identification Number (NIN) is required.');
+          return;
+        }
+        if (!/^\d{11}$/.test(nin)) {
+          setError('NIN must be exactly 11 digits.');
+          return;
+        }
       }
     }
     
@@ -158,15 +202,15 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
           email,
           phone,
           password,
-          transactionPin.join(''),
-          referralCode,
+          transactionPin,
+          '', // No referral code on main backend registration form
           kycType,
+          bvn,
           nin
         );
       }
       
       if (loggedInUser) {
-        // Robust mapping for user profile name formatting
         if (!loggedInUser.firstName && (loggedInUser as any).name) {
           const parts = (loggedInUser as any).name.split(' ');
           loggedInUser.firstName = parts[0] || 'User';
@@ -199,10 +243,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
       {/* Back Navigation */}
       <button
         onClick={() => {
-          if (mode === 'signup' && signupStep === 2) {
-            setSignupStep(1);
-            setError(null);
-          } else if (mode === 'forgot' || mode === 'verify_otp' || mode === 'reset_password') {
+          if (mode === 'forgot' || mode === 'verify_otp' || mode === 'reset_password') {
             setMode('login');
             setError(null);
             setInfoMessage(null);
@@ -213,9 +254,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
         className="absolute top-8 left-8 flex items-center gap-2 text-[#e1e3e4]/50 hover:text-[#66df75] font-bold transition-all group z-10"
       >
         <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-        <span className="text-xs uppercase tracking-widest">
-          {mode === 'signup' && signupStep === 2 ? 'Previous Step' : 'Back'}
-        </span>
+        <span className="text-xs uppercase tracking-widest">Back</span>
       </button>
 
       {/* Corporate Logo & Headline */}
@@ -224,7 +263,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
         <h2 className="text-3xl font-black text-white tracking-tighter mb-1.5">SaukiGlobal</h2>
         <p className="text-xs font-black text-[#66df75] uppercase tracking-[0.25em]">
           {mode === 'login' && 'Secure Portal Access'}
-          {mode === 'signup' && `Create Account (Step ${signupStep}/2)`}
+          {mode === 'signup' && 'Create Account'}
           {mode === 'forgot' && 'Password Recovery'}
           {mode === 'verify_otp' && 'Verify OTP Code'}
           {mode === 'reset_password' && 'Choose New Password'}
@@ -241,7 +280,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
             </div>
             <div>
               <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                {mode === 'signup' && signupStep === 2 ? 'Compliance KYC' : 'Encrypted Authentication'}
+                {mode === 'signup' ? 'Compliance KYC' : 'Encrypted Authentication'}
               </h3>
               <p className="text-[9px] text-[#e1e3e4]/40 uppercase tracking-widest font-black">Military Grade Security</p>
             </div>
@@ -320,9 +359,10 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
             </form>
           )}
 
-          {/* SIGNUP STEP 1: PERSONAL DETAILS */}
-          {mode === 'signup' && signupStep === 1 && (
-            <form onSubmit={handleNextStep} className="space-y-5">
+          {/* SIGNUP MODULE (COMPLETE MIRROR OF WEB FRONTEND UI) */}
+          {mode === 'signup' && (
+            <form onSubmit={handleSubmit} className="space-y-5 max-h-[62vh] overflow-y-auto pr-2 scrollbar-thin">
+              {/* Full Name */}
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Full Name</label>
                 <div className="relative">
@@ -335,11 +375,12 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
-                    placeholder="Jane Doe"
+                    placeholder="John Doe"
                   />
                 </div>
               </div>
 
+              {/* Email Address */}
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Email Address</label>
                 <div className="relative">
@@ -352,11 +393,12 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
-                    placeholder="jane@example.com"
+                    placeholder="you@example.com"
                   />
                 </div>
               </div>
 
+              {/* Phone Number */}
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Phone Number</label>
                 <div className="relative">
@@ -366,15 +408,19 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                   <input
                     type="tel"
                     required
-                    maxLength={11}
+                    maxLength={15}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                     className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
                     placeholder="08012345678"
                   />
                 </div>
+                <p className={`text-[10px] mt-1.5 font-bold uppercase tracking-wider ${phone.length >= 10 ? 'text-[#66df75]' : phone.length > 0 ? 'text-red-400' : 'text-[#e1e3e4]/40'}`}>
+                  {phone.length === 0 ? 'Enter 10-15 digits only' : phone.length >= 10 ? `${phone.length} digits ✓` : `${phone.length} digits — need at least 10`}
+                </p>
               </div>
 
+              {/* Password */}
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Password</label>
                 <div className="relative">
@@ -387,7 +433,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
-                    placeholder="••••••••"
+                    placeholder="Min. 6 characters"
                   />
                   <button
                     type="button"
@@ -399,99 +445,175 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 </div>
               </div>
 
-              <button
-                type="submit"
-                className="w-full btn-primary py-4 mt-6 flex justify-center items-center gap-3"
-              >
-                <span className="uppercase tracking-[0.1em] font-black">Continue to Security</span>
-                <ArrowRight size={18} />
-              </button>
-            </form>
-          )}
-
-          {/* SIGNUP STEP 2: SECURITY & COMPLIANCE */}
-          {mode === 'signup' && signupStep === 2 && (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Transaction PIN */}
-              <div className="space-y-3">
-                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-1 flex items-center gap-1.5">
-                  <KeyRound size={12} /> Set Transaction PIN
-                </label>
-                <p className="text-[10px] text-[#e1e3e4]/40 font-medium">This 4-digit code will authorize payments and purchases.</p>
-                <PinInput
-                  pin={transactionPin}
-                  setPin={setTransactionPin}
-                  onComplete={() => {}}
-                  disabled={isLoading}
-                />
-              </div>
-
-              {/* Compliance / KYC */}
-              <div className="space-y-4">
-                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-1 flex items-center gap-1.5">
-                  <FileCheck2 size={12} /> KYC Compliance Verification
-                </label>
-                <div className="grid grid-cols-2 p-1 bg-white/5 border border-white/10 rounded-xl mb-3">
-                  <button
-                    type="button"
-                    onClick={() => setKycType('nin')}
-                    className={`py-2 text-[10px] font-bold rounded-lg transition-all ${kycType === 'nin' ? 'bg-[#66df75] text-[#111415]' : 'text-gray-400'}`}
-                  >
-                    National ID (NIN)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setKycType('bvn')}
-                    className={`py-2 text-[10px] font-bold rounded-lg transition-all ${kycType === 'bvn' ? 'bg-[#66df75] text-[#111415]' : 'text-gray-400'}`}
-                  >
-                    Bank Verification
-                  </button>
-                </div>
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Confirm Password</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/30 text-xs font-black">
-                    {kycType.toUpperCase()}
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Lock size={18} className="text-[#e1e3e4]/30" />
                   </div>
                   <input
-                    type="text"
+                    type={showConfirmPassword ? "text" : "password"}
                     required
-                    maxLength={11}
-                    value={nin}
-                    onChange={(e) => setNin(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-14 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all font-mono font-bold tracking-wider"
-                    placeholder="12345678901"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                    placeholder="Repeat password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#e1e3e4]/30 hover:text-[#66df75] transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
-              {/* Referral Code (Optional) */}
+              {/* Transaction PIN */}
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
-                  <Gift size={12} /> Referral Code (Optional)
+                  <KeyRound size={12} /> Transaction PIN
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Sparkles size={16} className="text-[#66df75]" />
+                    <KeyRound size={18} className="text-[#e1e3e4]/30" />
                   </div>
                   <input
-                    type="text"
-                    value={referralCode}
-                    onChange={(e) => setReferralCode(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
-                    placeholder="e.g. SAUKI10"
+                    type={showPin ? "text" : "password"}
+                    required
+                    maxLength={4}
+                    value={transactionPin}
+                    onChange={(e) => setTransactionPin(e.target.value.replace(/\D/g, ''))}
+                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 font-mono tracking-wider"
+                    placeholder="4 digits"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPin(!showPin)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#e1e3e4]/30 hover:text-[#66df75] transition-colors"
+                  >
+                    {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
+              {/* Confirm Transaction PIN */}
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
+                  <KeyRound size={12} /> Confirm Transaction PIN
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <KeyRound size={18} className="text-[#e1e3e4]/30" />
+                  </div>
+                  <input
+                    type={showConfirmPin ? "text" : "password"}
+                    required
+                    maxLength={4}
+                    value={confirmPin}
+                    onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 font-mono tracking-wider"
+                    placeholder="Repeat PIN"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPin(!showConfirmPin)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#e1e3e4]/30 hover:text-[#66df75] transition-colors"
+                  >
+                    {showConfirmPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Virtual Account KYC Option */}
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
+                  <FileCheck2 size={12} /> Virtual Account KYC Option
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Fingerprint size={18} className="text-[#e1e3e4]/30" />
+                  </div>
+                  <select
+                    value={kycType}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setKycType(val);
+                      if (val === 'bvn') {
+                        setNin('');
+                      } else if (val === 'nin') {
+                        setBvn('');
+                      } else if (val === 'none') {
+                        setBvn('');
+                        setNin('');
+                      }
+                    }}
+                    className="w-full pl-12 pr-10 py-4 bg-[#1e2324] border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="none">Get virtual account with your NIN or BVN (optional)</option>
+                    <option value="nin">NIN Only</option>
+                    <option value="bvn">BVN Only</option>
+                    <option value="both">Both NIN & BVN</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-white/30 text-xs">
+                    ▼
+                  </div>
+                </div>
+              </div>
+
+              {/* Bank Verification Number (BVN) */}
+              {(kycType === 'bvn' || kycType === 'both') && (
+                <div className="animate-in slide-in-from-top duration-300">
+                  <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Bank Verification Number (BVN)</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/30 text-xs font-black">
+                      BVN
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      maxLength={11}
+                      value={bvn}
+                      onChange={(e) => setBvn(e.target.value.replace(/\D/g, ''))}
+                      className="w-full pl-14 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all font-mono font-bold tracking-wider"
+                      placeholder="11-digit number"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* National Identification Number (NIN) */}
+              {(kycType === 'nin' || kycType === 'both') && (
+                <div className="animate-in slide-in-from-top duration-300">
+                  <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">National Identification Number (NIN)</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/30 text-xs font-black">
+                      NIN
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      maxLength={11}
+                      value={nin}
+                      onChange={(e) => setNin(e.target.value.replace(/\D/g, ''))}
+                      className="w-full pl-14 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all font-mono font-bold tracking-wider"
+                      placeholder="11-digit number"
+                    />
+                  </div>
+                </div>
+              )}
+
               <button
                 type="submit"
-                disabled={isLoading || transactionPin.join('').length !== 4 || !nin || nin.length < 11}
+                disabled={isLoading}
                 className="w-full btn-primary py-4 mt-8 flex justify-center items-center gap-3 disabled:opacity-50 disabled:grayscale transition-all"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <>
-                    <span className="uppercase tracking-[0.1em] font-black">Register & Secure</span>
+                    <span className="uppercase tracking-[0.1em] font-black">Create Account</span>
                     <ShieldCheck size={18} />
                   </>
                 )}
@@ -631,7 +753,6 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 type="button"
                 onClick={() => {
                   setMode(mode === 'login' ? 'signup' : 'login');
-                  setSignupStep(1);
                   setError(null);
                   setInfoMessage(null);
                 }}

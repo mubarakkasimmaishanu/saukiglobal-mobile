@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ShieldAlert, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ShieldAlert, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import PinInput from '../PinInput';
 import { api } from '../../services/api';
 
@@ -17,7 +17,6 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const handleCurrentComplete = () => {
-    // In real app, verify current PIN via API
     setStep('new');
   };
 
@@ -52,32 +51,34 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-      <header className="px-5 pt-8 pb-4 sticky top-0 z-20 flex items-center gap-4 bg-gray-50">
-        <button onClick={onBack} className="p-2 -ml-2 text-gray-600 hover:text-emerald-600 transition-colors">
-          <ChevronLeft size={24} />
-        </button>
-        <h1 className="text-xl font-bold text-gray-900">Transaction PIN</h1>
-      </header>
+    <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans pb-12 mesh-gradient animate-in fade-in slide-in-from-right-4 duration-300">
+      <div className="max-w-md mx-auto relative px-6">
+        
+        {/* Header */}
+        <header className="py-8 flex items-center gap-4 bg-transparent">
+          <button onClick={onBack} className="w-10 h-10 glass-panel flex items-center justify-center hover:bg-white/10 transition-colors">
+            <ChevronLeft size={20} />
+          </button>
+          <h1 className="text-lg font-bold tracking-tight">Transaction PIN</h1>
+        </header>
 
-      <div className="px-5 pb-10">
-        <div className="bg-orange-50 p-4 rounded-2xl flex gap-3 border border-orange-100 mb-8">
-          <ShieldAlert size={20} className="text-orange-500 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-orange-800 leading-relaxed font-medium">
-            Your transaction PIN is required for all payments and transfers. Never share this PIN with anyone, including our support team.
+        <div className="glass-panel p-4 flex gap-3 border-white/5 mb-8">
+          <ShieldAlert size={20} className="text-[#66df75] flex-shrink-0 mt-0.5" />
+          <p className="text-[10px] text-[#e1e3e4]/60 leading-relaxed font-bold uppercase tracking-wider">
+            Your transaction PIN is required for all payments and transfers. Never share this PIN with anyone under any circumstance.
           </p>
         </div>
 
         {message && (
           <div className={`p-4 rounded-2xl flex gap-3 items-center border mb-6 ${
-            message.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-red-50 border-red-100 text-red-700'
-          }`}>
-            {message.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
-            <p className="text-sm font-medium">{message.text}</p>
+            message.type === 'success' ? 'bg-[#66df75]/10 border-[#66df75]/20 text-[#66df75]' : 'bg-[#ef4444]/10 border-[#ef4444]/20 text-[#ef4444]'
+          } text-xs font-bold animate-in zoom-in-95`}>
+            {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+            <p>{message.text}</p>
           </div>
         )}
 
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-center">
+        <div className="glass-panel p-8 border-white/5 flex flex-col items-center shadow-xl">
           {step === 'current' && (
             <div className="w-full animate-in fade-in duration-300">
               <PinInput 
@@ -89,7 +90,7 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
               />
               <button 
                 onClick={() => {
-                  if (window.confirm('A 6-digit reset code will be sent to your registered email. Proceed?')) {
+                  if (window.confirm('A password reset pin code will be dispatched to your registered email. Proceed?')) {
                     setIsSaving(true);
                     api.forgotPin()
                       .then((res) => {
@@ -98,17 +99,17 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
                           alert(res.message || 'Reset code sent! You can now set your new PIN.');
                           setStep('new');
                         } else {
-                          alert(res.message || 'Failed to request PIN reset. Please try again.');
+                          alert(res.message || 'Failed to request PIN reset.');
                         }
                       })
                       .catch((err) => {
                         setIsSaving(false);
-                        alert(err.message || 'An error occurred. Please try again.');
+                        alert(err.message || 'An error occurred.');
                       });
                   }
                 }}
                 disabled={isSaving}
-                className="mt-6 text-xs font-bold text-emerald-600 hover:text-emerald-700 disabled:text-gray-400 underline block mx-auto"
+                className="mt-6 text-xs font-bold text-[#66df75] hover:text-[#66df75]/85 disabled:text-gray-600 underline block mx-auto uppercase tracking-wider transition-colors"
               >
                 Forgot PIN? Reset via Email
               </button>
@@ -126,7 +127,7 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
               />
               <button 
                 onClick={() => setStep('current')}
-                className="mt-6 text-xs font-bold text-gray-400 hover:text-gray-600 block mx-auto"
+                className="mt-6 text-xs font-bold text-gray-400 hover:text-white block mx-auto uppercase tracking-wider"
               >
                 Go Back
               </button>
@@ -143,14 +144,14 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
                 disabled={isSaving}
               />
               {isSaving && (
-                <div className="mt-6 flex items-center justify-center gap-2 text-emerald-600 font-bold text-sm">
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <div className="mt-6 flex items-center justify-center gap-2 text-[#66df75] font-bold text-xs uppercase tracking-wider">
+                  <RefreshCw size={14} className="animate-spin text-[#66df75]" />
                   Saving PIN...
                 </div>
               )}
               <button 
                 onClick={() => setStep('new')}
-                className="mt-6 text-xs font-bold text-gray-400 hover:text-gray-600 block mx-auto"
+                className="mt-6 text-xs font-bold text-gray-400 hover:text-white block mx-auto uppercase tracking-wider"
               >
                 Change New PIN
               </button>
