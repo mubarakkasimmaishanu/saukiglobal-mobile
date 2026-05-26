@@ -1,9 +1,8 @@
-import { User, Transaction, ServiceRequest } from '../types';
+import { User, Transaction } from '../types';
 
 // SaukiGlobal Unified API Configuration
 const envBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://saukiglobal.com/api/v1/';
 const BASE_URL = envBaseUrl.replace(/\/+$/, '') + '/';
-const STORAGE_KEY = 'saukiglobal_data';
 const API_KEY_KEY = 'saukiglobal_api_key';
 
 // Helper to get API Key
@@ -13,7 +12,7 @@ interface ApiResponse<T = any> {
   success: boolean;
   message: string;
   data: T;
-  status: 'success' | 'failed' | 'processing';
+  status: 'success' | 'failed' | 'processing' | boolean;
 }
 
 /**
@@ -24,7 +23,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'sApiKey': apiKey,
+    'Authorization': apiKey ? `Bearer ${apiKey}` : '',
     ...options.headers,
   };
 
@@ -33,12 +32,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers,
   });
 
-  const data = await response.json();
-
-  // Handle global auth failure (if applicable)
+  // Handle global auth failure
   if (response.status === 401) {
     localStorage.removeItem(API_KEY_KEY);
   }
+
+  const data = await response.json();
 
   // Normalize backend 'status' boolean/string to 'success' boolean
   if (typeof data.status === 'boolean') {
@@ -49,6 +48,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     data.success = false;
   } else if (data.status === 'processing') {
     data.success = true;
+  } else {
+    data.success = !!data.status;
   }
 
   return data as ApiResponse<T>;
@@ -60,8 +61,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 async function pollTransaction(ref: string, maxAttempts = 10): Promise<ApiResponse> {
   let attempts = 0;
   while (attempts < maxAttempts) {
-    const res = await request(`verify.php?ref=${ref}`);
-    if (res.status !== 'processing') {
+    const res = await request(`verify.php?reference=${ref}`);
+    if (res.status !== 'processing' && (res as any).data?.status !== 'processing' && (res as any).data?.status !== 'Pending') {
       return res;
     }
     attempts++;
@@ -87,10 +88,28 @@ export const api = {
     return res.data.user;
   },
 
-  register: async (name: string, email: string, phone: string, password: string): Promise<User> => {
+  register: async (
+    name: string,
+    email: string,
+    phone: string,
+    password: string,
+    transactionPin: string,
+    referralCode?: string,
+    kycType?: string,
+    nin?: string
+  ): Promise<User> => {
     const res = await request<{ token: string, user: User }>('auth.php?action=register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, phone, password })
+      body: JSON.stringify({
+        name,
+        email,
+        phone,
+        password,
+        transaction_pin: transactionPin,
+        referral_code: referralCode || '',
+        kyc_type: kycType || 'nin',
+        nin: nin || ''
+      })
     });
 
     if (!res.success) {
@@ -105,11 +124,217 @@ export const api = {
     localStorage.removeItem(API_KEY_KEY);
   },
 
-  // Services Integration (Unified Endpoint)
-  performService: async (serviceData: any): Promise<ApiResponse> => {
-    const res = await request('services.php', {
+  // Forgot Password Flow
+  forgotPassword: async (email: string): Promise<ApiResponse> => {
+    return request('auth.php?action=forgot_password', {
       method: 'POST',
-      body: JSON.stringify(serviceData)
+      body: JSON.stringify({ email })
+    });
+  },
+
+  verifyResetCode: async (email: string, code: string): Promise<ApiResponse> => {
+    return request('auth.php?action=verify_reset_code', {
+      method: 'POST',
+      body: JSON.stringify({ email, code })
+    });
+  },
+
+  resetPassword: async (email: string, code: string, password: string): Promise<ApiResponse> => {
+    return request('auth.php?action=reset_password', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, password })
+    });
+  },
+
+  // Dashboard Stats & Real-time Info
+  getDashboardStats: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getDashboardStats', {
+      method: 'POST'
+    });
+  },
+
+  getVirtualAccounts: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getVirtualAccounts', {
+      method: 'POST'
+    });
+  },
+
+  // Dynamic Lookups
+  getAirtimeNetworks: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getAirtimeNetworks', {
+      method: 'POST'
+    });
+  },
+
+  getDataPlans: async (networkId: number | string): Promise<ApiResponse> => {
+    return request('services.php?action=getDataPlans', {
+      method: 'POST',
+      body: JSON.stringify({ network_id: Number(networkId) })
+    });
+  },
+
+  getCableProviders: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getCableProviders', {
+      method: 'POST'
+    });
+  },
+
+  getCablePlans: async (providerId: string): Promise<ApiResponse> => {
+    return request('services.php?action=getCablePlans', {
+      method: 'POST',
+      body: JSON.stringify({ provider_id: providerId })
+    });
+  },
+
+  getElectricityProviders: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getElectricityProviders', {
+      method: 'POST'
+    });
+  },
+
+  getExamProviders: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getExamProviders', {
+      method: 'POST'
+    });
+  },
+
+  // Financial VTU Dispatching (Appended Query Parameter Routing)
+  buyAirtime: async (network: number | string, amount: number, phone: string, pin: string) => {
+    const res = await request('services.php?type=airtime', {
+      method: 'POST',
+      body: JSON.stringify({
+        network: isNaN(Number(network)) ? network : Number(network),
+        amount,
+        phone,
+        networktype: 'VTU',
+        pin
+      })
+    });
+
+    if (res.status === 'processing' && (res.data as any)?.reference) {
+      return await pollTransaction((res.data as any).reference);
+    }
+    return res;
+  },
+
+  buyData: async (network: number | string, plan: number | string, phone: string, pin: string) => {
+    const res = await request('services.php?type=data', {
+      method: 'POST',
+      body: JSON.stringify({
+        network: isNaN(Number(network)) ? network : Number(network),
+        plan: isNaN(Number(plan)) ? plan : Number(plan),
+        phone,
+        pin
+      })
+    });
+
+    if (res.status === 'processing' && (res.data as any)?.reference) {
+      return await pollTransaction((res.data as any).reference);
+    }
+    return res;
+  },
+
+  payCable: async (provider: string, customerId: string, plan: string, pin: string, amount = 0) => {
+    const res = await request('services.php?type=bills', {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'cable',
+        provider,
+        customer_id: customerId,
+        amount,
+        plan,
+        pin
+      })
+    });
+
+    if (res.status === 'processing' && (res.data as any)?.reference) {
+      return await pollTransaction((res.data as any).reference);
+    }
+    return res;
+  },
+
+  payElectricity: async (provider: string, customerId: string, amount: number, pin: string) => {
+    const res = await request('services.php?type=bills', {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'electricity',
+        provider,
+        customer_id: customerId,
+        amount,
+        pin
+      })
+    });
+
+    if (res.status === 'processing' && (res.data as any)?.reference) {
+      return await pollTransaction((res.data as any).reference);
+    }
+    return res;
+  },
+
+  buyExamPin: async (provider: number | string, quantity: number, pin: string) => {
+    const res = await request('services.php?type=exam', {
+      method: 'POST',
+      body: JSON.stringify({
+        provider: isNaN(Number(provider)) ? provider : Number(provider),
+        quantity,
+        pin
+      })
+    });
+
+    if (res.status === 'processing' && (res.data as any)?.reference) {
+      return await pollTransaction((res.data as any).reference);
+    }
+    return res;
+  },
+
+  // Secure Wallet Funding (Online Payments)
+  initializePayment: async (amount: number, gateway: string): Promise<ApiResponse> => {
+    return request('fund.php', {
+      method: 'POST',
+      body: JSON.stringify({ amount, gateway })
+    });
+  },
+
+  // Unified Transaction History & Verification
+  getTransactions: async (limit = 50, offset = 0, type?: string, status?: string): Promise<Transaction[]> => {
+    const body: any = { limit, offset };
+    if (type) body.type = type;
+    if (status) body.status = status;
+
+    const res = await request<Transaction[]>('services.php?action=getTransactions', {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+    return res.data || [];
+  },
+
+  verifyTransaction: async (referenceId: string): Promise<ApiResponse> => {
+    return request(`verify.php?reference=${referenceId}`, {
+      method: 'GET'
+    });
+  },
+
+  // Backwards compatibility/support for local or requested service logs
+  addRequest: async (req: any) => {
+    return request('services.php?action=add_request', {
+      method: 'POST',
+      body: JSON.stringify(req)
+    });
+  },
+
+  getRequests: async (): Promise<any[]> => {
+    const res = await request<any[]>('services.php?action=get_requests', {
+      method: 'POST'
+    });
+    return res.data || [];
+  },
+
+  // performService for legacy features Compatibility
+  performService: async (serviceData: any): Promise<ApiResponse> => {
+    const { action, ...rest } = serviceData;
+    const res = await request(`services.php?action=${action || 'perform'}`, {
+      method: 'POST',
+      body: JSON.stringify(rest)
     });
 
     if (res.status === 'processing' && (res.data as any)?.reference) {
@@ -119,62 +344,7 @@ export const api = {
     return res;
   },
 
-  // Airtime
-  buyAirtime: async (network: string, amount: number, phone: string, pin: string) => {
-    return api.performService({
-      action: 'airtime',
-      network,
-      amount,
-      phone,
-      pin
-    });
-  },
-
-  // Data
-  buyData: async (network: string, plan: string, phone: string, pin: string) => {
-    return api.performService({
-      action: 'data',
-      network,
-      plan,
-      phone,
-      pin
-    });
-  },
-
-  // Cable
-  payCable: async (provider: string, iuc: string, plan: string, pin: string) => {
-    return api.performService({
-      action: 'cable',
-      provider,
-      iuc,
-      plan,
-      pin
-    });
-  },
-
-  // Electricity
-  payElectricity: async (disco: string, meter: string, amount: number, type: 'prepaid' | 'postpaid', pin: string) => {
-    return api.performService({
-      action: 'electricity',
-      disco,
-      meter,
-      amount,
-      type,
-      pin
-    });
-  },
-
-  // Exam PINs
-  buyExamPin: async (exam: string, quantity: number, pin: string) => {
-    return api.performService({
-      action: 'exams',
-      exam,
-      quantity,
-      pin
-    });
-  },
-
-  // Alpha Topup
+  // Alpha Topup Compatibility
   buyAlpha: async (phone: string, amount: number, pin: string) => {
     return api.performService({
       action: 'alpha',
@@ -184,7 +354,7 @@ export const api = {
     });
   },
 
-  // Kirani Service
+  // Kirani Service Compatibility
   buyKirani: async (kiraniId: string, amount: number) => {
     return api.performService({
       action: 'kirani',
@@ -193,7 +363,7 @@ export const api = {
     });
   },
 
-  // Smile Services
+  // Smile Services Compatibility
   buySmile: async (smileId: string, plan: string, type: string, pin: string) => {
     return api.performService({
       action: 'smile',
@@ -204,7 +374,7 @@ export const api = {
     });
   },
 
-  // Airtime to Cash
+  // Airtime to Cash Compatibility
   submitA2C: async (network: string, phone: string, amount: number) => {
     return api.performService({
       action: 'a2c',
@@ -214,103 +384,71 @@ export const api = {
     });
   },
 
-  // Transaction History
-  getTransactions: async (): Promise<Transaction[]> => {
-    const res = await request<Transaction[]>('services.php', {
-      method: 'POST',
-      body: JSON.stringify({ action: 'getTransactions' })
-    });
-    return res.data || [];
-  },
-
-  // User Profile
-  getUser: async (): Promise<User | null> => {
-    const apiKey = getApiKey();
-    if (!apiKey) return null;
-    
-    const res = await request<User>('services.php', {
-      method: 'POST',
-      body: JSON.stringify({ action: 'getUser' })
-    });
-    return res.success ? res.data : null;
-  },
-
-  // Get Virtual Accounts
-  getVirtualAccounts: async () => {
-    return api.performService({
-      action: 'get_virtual_accounts'
-    });
-  },
-
-  // Initialize Flutterwave
-  initializeFlutterwave: async (amount: number) => {
-    return api.performService({
-      action: 'initialize_flutterwave',
-      amount
-    });
-  },
-
-  // Security & PIN
-  changePassword: async (currentPassword: string, newPassword: string) => {
-    return api.performService({
-      action: 'change_password',
-      currentPassword,
-      newPassword
-    });
-  },
-
-  changePin: async (currentPin: string, newPin: string) => {
-    return api.performService({
-      action: 'change_pin',
-      currentPin,
-      newPin
-    });
-  },
-
-  forgotPin: async () => {
-    return api.performService({
-      action: 'forgot_pin'
-    });
-  },
-
-  // Add mock transaction (for UI updates, though ideally the backend returns them)
+  // Add transaction Compatibility
   addTransaction: async (tx: any) => {
-    // In a real app this might be hitting an endpoint to log transfer
     return api.performService({
       action: 'transfer',
       ...tx
     });
   },
 
-  addRequest: async (req: any) => {
-    return api.performService({
-      action: 'add_request',
-      ...req
-    });
-  },
-
-  getRequests: async (): Promise<any[]> => {
-    const res = await request<any[]>('services.php', {
-      method: 'POST',
-      body: JSON.stringify({ action: 'get_requests' })
-    });
-    return res.data || [];
-  },
-
-  updateUser: async (data: any) => {
-    return api.performService({
-      action: 'update_profile',
-      ...data
-    });
-  },
-
+  // buyService helper Compatibility (CAC, ESim, IntlTopup)
   buyService: async (action: string, amount: number, details: any = {}) => {
     return api.performService({
       action,
       amount,
       ...details
     });
+  },
+
+  // Backwards compatibility for non-documented endpoints if requested
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    return request('services.php?action=change_password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+  },
+
+  changePin: async (currentPin: string, newPin: string) => {
+    return request('services.php?action=change_pin', {
+      method: 'POST',
+      body: JSON.stringify({ currentPin, newPin })
+    });
+  },
+
+  forgotPin: async () => {
+    return request('services.php?action=forgot_pin', {
+      method: 'POST'
+    });
+  },
+
+  updateUser: async (data: any) => {
+    return request('services.php?action=update_profile', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  getUser: async (): Promise<User | null> => {
+    // For compatibility with the legacy components, we return the dashboard stats mapped into User.
+    const res = await api.getDashboardStats();
+    if (res.success && res.data) {
+      const stats = res.data;
+      const cached = localStorage.getItem('saukiglobal_data');
+      const cachedUser = cached ? JSON.parse(cached) : {};
+      
+      const balance = stats.wallet?.balance !== undefined ? Number(stats.wallet.balance) : (cachedUser.balance || 0);
+      const commissionBalance = stats.wallet?.referral_commission !== undefined ? Number(stats.wallet.referral_commission) : (cachedUser.commissionBalance || 0);
+
+      return {
+        ...cachedUser,
+        balance,
+        commissionBalance,
+        isReseller: stats.tier === 'Reseller' || stats.tier === 'Reseller Pro',
+        kycStatus: stats.kyc_status,
+        tier: stats.tier
+      } as User;
+    }
+    return null;
   }
 };
-
-

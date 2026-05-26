@@ -7,12 +7,17 @@ import {
   EyeOff,
   Lock,
   Mail,
-  User,
+  User as UserIcon,
   Phone,
-  Fingerprint
+  Fingerprint,
+  Sparkles,
+  KeyRound,
+  FileCheck2,
+  Gift
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useUser } from '../context/UserContext';
+import PinInput from './PinInput';
 
 interface AuthPageProps {
   initialMode?: 'login' | 'signup';
@@ -22,22 +27,123 @@ interface AuthPageProps {
 
 export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: AuthPageProps) {
   const { refreshUser, setUserContext } = useUser();
-  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot' | 'verify_otp' | 'reset_password'>(initialMode);
   
-  // Form State
+  // Registration Form Steps: 1 = Personal Details, 2 = Security & Compliance
+  const [signupStep, setSignupStep] = useState<1 | 2>(1);
+
+  // Form Fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   
+  // Step 2 Fields
+  const [transactionPin, setTransactionPin] = useState(['', '', '', '']);
+  const [referralCode, setReferralCode] = useState('');
+  const [kycType, setKycType] = useState('nin');
+  const [nin, setNin] = useState('');
+
+  // Password Reset Fields
+  const [resetEmail, setResetEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+
+  // UI States
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+
+  const handleNextStep = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !email || !phone || !password) {
+      setError('Please fill in all fields.');
+      return;
+    }
+    if (phone.length < 11) {
+      setError('Phone number must be at least 11 digits.');
+      return;
+    }
+    setError(null);
+    setSignupStep(2);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await api.forgotPassword(resetEmail);
+      if (res.success) {
+        setInfoMessage(res.message || 'Reset code sent to your email.');
+        setMode('verify_otp');
+      } else {
+        setError(res.message || 'Failed to send reset code.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail || !otpCode) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await api.verifyResetCode(resetEmail, otpCode);
+      if (res.success) {
+        setInfoMessage('Verification successful. Please enter your new password.');
+        setMode('reset_password');
+      } else {
+        setError(res.message || 'Invalid or expired OTP code.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail || !otpCode || !newPassword) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await api.resetPassword(resetEmail, otpCode, newPassword);
+      if (res.success) {
+        alert('Password reset successful! Please log in.');
+        setMode('login');
+      } else {
+        setError(res.message || 'Reset password failed.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
-    if (mode === 'signup' && (!name || !phone)) return;
+    if (mode === 'login') {
+      if (!email || !password) return;
+    } else {
+      // Signup Step 2 Validation
+      if (transactionPin.join('').length !== 4) {
+        setError('Please set a 4-digit transaction PIN.');
+        return;
+      }
+      if (!nin || nin.length < 11) {
+        setError('Please enter your valid 11-digit NIN.');
+        return;
+      }
+    }
     
     setIsLoading(true);
     setError(null);
@@ -47,12 +153,20 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
       if (mode === 'login') {
         loggedInUser = await api.login(email, password);
       } else {
-        loggedInUser = await api.register(name, email, phone, password);
+        loggedInUser = await api.register(
+          name,
+          email,
+          phone,
+          password,
+          transactionPin.join(''),
+          referralCode,
+          kycType,
+          nin
+        );
       }
       
-      // Immediately set the user in context to prevent loading screen freeze
       if (loggedInUser) {
-        // Robust mapping for legacy data structures
+        // Robust mapping for user profile name formatting
         if (!loggedInUser.firstName && (loggedInUser as any).name) {
           const parts = (loggedInUser as any).name.split(' ');
           loggedInUser.firstName = parts[0] || 'User';
@@ -69,7 +183,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
       await refreshUser();
       onSuccess();
     } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please check your details.');
+      setError(err.message || 'Authentication failed. Please verify your entries.');
     } finally {
       setIsLoading(false);
     }
@@ -78,150 +192,449 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
   return (
     <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient flex flex-col justify-center py-12 px-6 relative overflow-hidden">
       
-      {/* Decorative Orbs */}
+      {/* Decorative Blur Background Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#66df75]/10 rounded-full blur-[120px]"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#66df75]/5 rounded-full blur-[120px]"></div>
 
-      {/* Back Button */}
+      {/* Back Navigation */}
       <button
-        onClick={onBack}
+        onClick={() => {
+          if (mode === 'signup' && signupStep === 2) {
+            setSignupStep(1);
+            setError(null);
+          } else if (mode === 'forgot' || mode === 'verify_otp' || mode === 'reset_password') {
+            setMode('login');
+            setError(null);
+            setInfoMessage(null);
+          } else {
+            onBack();
+          }
+        }}
         className="absolute top-8 left-8 flex items-center gap-2 text-[#e1e3e4]/50 hover:text-[#66df75] font-bold transition-all group z-10"
       >
         <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-        <span className="text-xs uppercase tracking-widest">Back</span>
+        <span className="text-xs uppercase tracking-widest">
+          {mode === 'signup' && signupStep === 2 ? 'Previous Step' : 'Back'}
+        </span>
       </button>
 
-      {/* Brand Header */}
+      {/* Corporate Logo & Headline */}
       <div className="text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">
-        <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-24 h-24 object-contain mx-auto mb-6 drop-shadow-[0_0_25px_rgba(102,223,117,0.3)] transform hover:scale-105 transition-transform duration-500" />
-        <h2 className="text-3xl font-black text-white tracking-tighter mb-2">SaukiGlobal</h2>
-        <p className="text-xs font-bold text-[#66df75] uppercase tracking-[0.3em]">
-          {mode === 'login' ? 'Secure Login Portal' : 'Create Account'}
+        <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-20 h-20 object-contain mx-auto mb-5 drop-shadow-[0_0_25px_rgba(102,223,117,0.3)] transform hover:scale-105 transition-transform duration-500" />
+        <h2 className="text-3xl font-black text-white tracking-tighter mb-1.5">SaukiGlobal</h2>
+        <p className="text-xs font-black text-[#66df75] uppercase tracking-[0.25em]">
+          {mode === 'login' && 'Secure Portal Access'}
+          {mode === 'signup' && `Create Account (Step ${signupStep}/2)`}
+          {mode === 'forgot' && 'Password Recovery'}
+          {mode === 'verify_otp' && 'Verify OTP Code'}
+          {mode === 'reset_password' && 'Choose New Password'}
         </p>
       </div>
 
       <div className="max-w-md mx-auto w-full animate-in zoom-in-95 duration-500 relative z-10">
         <div className="glass-panel p-8 shadow-2xl border border-white/5 relative">
           
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-[#66df75]/10 flex items-center justify-center">
-              <Fingerprint size={20} className="text-[#66df75]" />
+          {/* Compliance Shield Badge */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-[#66df75]/10 flex items-center justify-center text-[#66df75]">
+              <Fingerprint size={20} className="animate-pulse" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Identity Verification</h3>
-              <p className="text-[10px] text-[#e1e3e4]/40 uppercase tracking-wider font-bold">Encrypted Session</p>
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                {mode === 'signup' && signupStep === 2 ? 'Compliance KYC' : 'Encrypted Authentication'}
+              </h3>
+              <p className="text-[9px] text-[#e1e3e4]/40 uppercase tracking-widest font-black">Military Grade Security</p>
             </div>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-[#ef4444]/10 border border-[#ef4444]/20 text-[#ef4444] text-[10px] font-black uppercase tracking-widest rounded-xl animate-in shake duration-300">
+            <div className="mb-6 p-4 bg-red-950/20 border border-red-500/20 text-red-400 text-xs font-semibold rounded-xl animate-in shake duration-300">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {mode === 'signup' && (
-              <>
-                <div>
-                  <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Full Name</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <User size={18} className="text-[#e1e3e4]/30" />
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wide"
-                      placeholder="John Doe"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Phone Number</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Phone size={18} className="text-[#e1e3e4]/30" />
-                    </div>
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wide"
-                      placeholder="08012345678"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
+          {infoMessage && (
+            <div className="mb-6 p-4 bg-blue-950/20 border border-blue-500/20 text-blue-400 text-xs font-semibold rounded-xl">
+              {infoMessage}
+            </div>
+          )}
 
-            <div>
-              <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Email Address</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail size={18} className="text-[#e1e3e4]/30" />
+          {/* LOGIN MODULE */}
+          {mode === 'login' && (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Email Address</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Mail size={18} className="text-[#e1e3e4]/30" />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                    placeholder="you@example.com"
+                  />
                 </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wide"
-                  placeholder="you@example.com"
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Lock size={18} className="text-[#e1e3e4]/30" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wider"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#e1e3e4]/30 hover:text-[#66df75] transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !email || !password}
+                className="w-full btn-primary py-4 mt-6 flex justify-center items-center gap-3 disabled:opacity-50 disabled:grayscale transition-all"
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <span className="uppercase tracking-[0.1em] font-black">Authorize Session</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* SIGNUP STEP 1: PERSONAL DETAILS */}
+          {mode === 'signup' && signupStep === 1 && (
+            <form onSubmit={handleNextStep} className="space-y-5">
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Full Name</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <UserIcon size={18} className="text-[#e1e3e4]/30" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                    placeholder="Jane Doe"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Email Address</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Mail size={18} className="text-[#e1e3e4]/30" />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                    placeholder="jane@example.com"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Phone Number</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Phone size={18} className="text-[#e1e3e4]/30" />
+                  </div>
+                  <input
+                    type="tel"
+                    required
+                    maxLength={11}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                    placeholder="08012345678"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Lock size={18} className="text-[#e1e3e4]/30" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#e1e3e4]/30 hover:text-[#66df75] transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full btn-primary py-4 mt-6 flex justify-center items-center gap-3"
+              >
+                <span className="uppercase tracking-[0.1em] font-black">Continue to Security</span>
+                <ArrowRight size={18} />
+              </button>
+            </form>
+          )}
+
+          {/* SIGNUP STEP 2: SECURITY & COMPLIANCE */}
+          {mode === 'signup' && signupStep === 2 && (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Transaction PIN */}
+              <div className="space-y-3">
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-1 flex items-center gap-1.5">
+                  <KeyRound size={12} /> Set Transaction PIN
+                </label>
+                <p className="text-[10px] text-[#e1e3e4]/40 font-medium">This 4-digit code will authorize payments and purchases.</p>
+                <PinInput
+                  pin={transactionPin}
+                  setPin={setTransactionPin}
+                  onComplete={() => {}}
+                  disabled={isLoading}
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock size={18} className="text-[#e1e3e4]/30" />
+              {/* Compliance / KYC */}
+              <div className="space-y-4">
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-1 flex items-center gap-1.5">
+                  <FileCheck2 size={12} /> KYC Compliance Verification
+                </label>
+                <div className="grid grid-cols-2 p-1 bg-white/5 border border-white/10 rounded-xl mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setKycType('nin')}
+                    className={`py-2 text-[10px] font-bold rounded-lg transition-all ${kycType === 'nin' ? 'bg-[#66df75] text-[#111415]' : 'text-gray-400'}`}
+                  >
+                    National ID (NIN)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setKycType('bvn')}
+                    className={`py-2 text-[10px] font-bold rounded-lg transition-all ${kycType === 'bvn' ? 'bg-[#66df75] text-[#111415]' : 'text-gray-400'}`}
+                  >
+                    Bank Verification
+                  </button>
                 </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-widest"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#e1e3e4]/30 hover:text-[#66df75] transition-colors"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/30 text-xs font-black">
+                    {kycType.toUpperCase()}
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    maxLength={11}
+                    value={nin}
+                    onChange={(e) => setNin(e.target.value.replace(/\D/g, ''))}
+                    className="w-full pl-14 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all font-mono font-bold tracking-wider"
+                    placeholder="12345678901"
+                  />
+                </div>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={isLoading || !email || !password || (mode === 'signup' && (!name || !phone))}
-              className="w-full btn-primary py-4 flex justify-center items-center gap-3 disabled:opacity-50 disabled:grayscale transition-all active:scale-95 mt-4"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <>
-                  <span className="uppercase tracking-[0.1em] font-black">
-                    {mode === 'login' ? 'Authorize Access' : 'Create Account'}
-                  </span>
-                  <ArrowRight size={18} />
-                </>
-              )}
-            </button>
-          </form>
+              {/* Referral Code (Optional) */}
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
+                  <Gift size={12} /> Referral Code (Optional)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Sparkles size={16} className="text-[#66df75]" />
+                  </div>
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                    placeholder="e.g. SAUKI10"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || transactionPin.join('').length !== 4 || !nin || nin.length < 11}
+                className="w-full btn-primary py-4 mt-8 flex justify-center items-center gap-3 disabled:opacity-50 disabled:grayscale transition-all"
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <span className="uppercase tracking-[0.1em] font-black">Register & Secure</span>
+                    <ShieldCheck size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* FORGOT PASSWORD: REQUEST RESET CODE */}
+          {mode === 'forgot' && (
+            <form onSubmit={handleForgotPassword} className="space-y-5">
+              <div className="text-center mb-6">
+                <p className="text-xs text-[#e1e3e4]/60">Enter your registered email address. We will verify your account and email you a 4-digit password reset OTP code.</p>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Registered Email</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Mail size={18} className="text-[#e1e3e4]/30" />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                    placeholder="jane@example.com"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !resetEmail}
+                className="w-full btn-primary py-4 mt-6 flex justify-center items-center gap-3 disabled:opacity-50 transition-all"
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <span className="uppercase tracking-[0.1em] font-black">Request Reset Code</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* VERIFY RESET CODE OTP */}
+          {mode === 'verify_otp' && (
+            <form onSubmit={handleVerifyOtp} className="space-y-5">
+              <div className="text-center mb-6">
+                <p className="text-xs text-[#e1e3e4]/60">Enter the verification OTP code sent to your email <strong className="text-white">{resetEmail}</strong>.</p>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">4-Digit OTP Code</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Lock size={18} className="text-[#e1e3e4]/30" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    maxLength={4}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-lg text-white font-mono font-bold text-center tracking-[1em] focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all"
+                    placeholder="0000"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || otpCode.length !== 4}
+                className="w-full btn-primary py-4 mt-6 flex justify-center items-center gap-3 disabled:opacity-50 transition-all"
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <span className="uppercase tracking-[0.1em] font-black">Verify Code</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* CONFIRM NEW PASSWORD */}
+          {mode === 'reset_password' && (
+            <form onSubmit={handleResetPassword} className="space-y-5">
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">New Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Lock size={18} className="text-[#e1e3e4]/30" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wider"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#e1e3e4]/30 hover:text-[#66df75] transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !newPassword}
+                className="w-full btn-primary py-4 mt-6 flex justify-center items-center gap-3 disabled:opacity-50 transition-all"
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <span className="uppercase tracking-[0.1em] font-black">Update Password</span>
+                    <ShieldCheck size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
 
           <div className="mt-8 pt-8 border-t border-white/5 flex flex-col items-center gap-4">
             <p className="text-xs text-[#e1e3e4]/50">
               {mode === 'login' ? "Don't have an account?" : "Already have an account?"}
               <button
                 type="button"
-                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                onClick={() => {
+                  setMode(mode === 'login' ? 'signup' : 'login');
+                  setSignupStep(1);
+                  setError(null);
+                  setInfoMessage(null);
+                }}
                 className="ml-2 text-[#66df75] font-bold hover:underline"
               >
                 {mode === 'login' ? 'Register Now' : 'Login Here'}
@@ -230,10 +643,13 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
           </div>
         </div>
 
-        {/* Footer Links */}
+        {/* Footer Options */}
         {mode === 'login' && (
           <div className="mt-6 flex justify-center gap-8">
-            <button className="text-[10px] font-black text-[#e1e3e4]/30 hover:text-[#66df75] uppercase tracking-widest transition-colors">
+            <button
+              onClick={() => setMode('forgot')}
+              className="text-[10px] font-black text-[#e1e3e4]/30 hover:text-[#66df75] uppercase tracking-widest transition-colors"
+            >
               Forgot Password?
             </button>
             <button className="text-[10px] font-black text-[#e1e3e4]/30 hover:text-[#66df75] uppercase tracking-widest transition-colors">
