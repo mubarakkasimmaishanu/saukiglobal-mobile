@@ -1,23 +1,7 @@
 import React, { useState } from 'react';
-import {
-  ShieldCheck,
-  ArrowRight,
-  ChevronLeft,
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  User as UserIcon,
-  Phone,
-  Fingerprint,
-  Sparkles,
-  KeyRound,
-  FileCheck2,
-  Gift
-} from 'lucide-react';
+import { ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import { api } from '../services/api';
 import { useUser } from '../context/UserContext';
-import PinInput from './PinInput';
 
 interface AuthPageProps {
   initialMode?: 'login' | 'signup';
@@ -35,8 +19,6 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
-  // Compliance / Security Fields
   const [transactionPin, setTransactionPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [kycType, setKycType] = useState('none');
@@ -65,7 +47,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
     try {
       const res = await api.forgotPassword(resetEmail);
       if (res.success) {
-        setInfoMessage(res.message || 'Reset code sent to your email.');
+        setInfoMessage(res.message || 'OTP code sent to email.');
         setMode('verify_otp');
       } else {
         setError(res.message || 'Failed to send reset code.');
@@ -85,7 +67,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
     try {
       const res = await api.verifyResetCode(resetEmail, otpCode);
       if (res.success) {
-        setInfoMessage('Verification successful. Please enter your new password.');
+        setInfoMessage('OTP verified. Enter a new password.');
         setMode('reset_password');
       } else {
         setError(res.message || 'Invalid or expired OTP code.');
@@ -105,7 +87,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
     try {
       const res = await api.resetPassword(resetEmail, otpCode, newPassword);
       if (res.success) {
-        alert('Password reset successful! Please log in.');
+        alert('Password reset successful. Please log in.');
         setMode('login');
       } else {
         setError(res.message || 'Reset password failed.');
@@ -122,7 +104,6 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
     if (mode === 'login') {
       if (!email || !password) return;
     } else {
-      // Registration Form Client Validations (Mirrors main web app)
       if (!name) {
         setError('Full name is required.');
         return;
@@ -169,7 +150,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
       }
       if (kycType === 'bvn' || kycType === 'both') {
         if (!bvn) {
-          setError('Bank Verification Number (BVN) is required.');
+          setError('BVN is required.');
           return;
         }
         if (!/^\d{11}$/.test(bvn)) {
@@ -179,7 +160,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
       }
       if (kycType === 'nin' || kycType === 'both') {
         if (!nin) {
-          setError('National Identification Number (NIN) is required.');
+          setError('NIN is required.');
           return;
         }
         if (!/^\d{11}$/.test(nin)) {
@@ -203,7 +184,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
           phone,
           password,
           transactionPin,
-          '', // No referral code on main backend registration form
+          '', // No referral code on simple form
           kycType,
           bvn,
           nin
@@ -234,11 +215,10 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
   };
 
   return (
-    <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient flex flex-col justify-center py-12 px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#080d09] text-[#e1e3e4] font-sans flex flex-col justify-center py-12 px-6 relative overflow-hidden">
       
-      {/* Decorative Blur Background Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#66df75]/10 rounded-full blur-[120px]"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#66df75]/5 rounded-full blur-[120px]"></div>
+      {/* Emerald core background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[80%] bg-[radial-gradient(circle,rgba(102,223,117,0.06)_0%,transparent_60%)] pointer-events-none z-0"></div>
 
       {/* Back Navigation */}
       <button
@@ -251,41 +231,26 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
             onBack();
           }
         }}
-        className="absolute top-8 left-8 flex items-center gap-2 text-[#e1e3e4]/50 hover:text-[#66df75] font-bold transition-all group z-10"
+        className="absolute top-8 left-8 flex items-center gap-2 text-[#e1e3e4]/40 hover:text-[#66df75] font-black transition-all group z-10"
       >
         <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
         <span className="text-xs uppercase tracking-widest">Back</span>
       </button>
 
-      {/* Corporate Logo & Headline */}
+      {/* Clean Header */}
       <div className="text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">
-        <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-20 h-20 object-contain mx-auto mb-5 drop-shadow-[0_0_25px_rgba(102,223,117,0.3)] transform hover:scale-105 transition-transform duration-500" />
-        <h2 className="text-3xl font-black text-white tracking-tighter mb-1.5">SaukiGlobal</h2>
-        <p className="text-xs font-black text-[#66df75] uppercase tracking-[0.25em]">
-          {mode === 'login' && 'Secure Portal Access'}
+        <h2 className="text-3xl font-black text-white tracking-tighter">
+          {mode === 'login' && 'Sign In'}
           {mode === 'signup' && 'Create Account'}
-          {mode === 'forgot' && 'Password Recovery'}
-          {mode === 'verify_otp' && 'Verify OTP Code'}
-          {mode === 'reset_password' && 'Choose New Password'}
-        </p>
+          {mode === 'forgot' && 'Reset Password'}
+          {mode === 'verify_otp' && 'Verify OTP'}
+          {mode === 'reset_password' && 'New Password'}
+        </h2>
       </div>
 
       <div className="max-w-md mx-auto w-full animate-in zoom-in-95 duration-500 relative z-10">
-        <div className="glass-panel p-8 shadow-2xl border border-white/5 relative">
+        <div className="bg-[#0b120c]/60 backdrop-blur-xl border border-white/5 p-8 rounded-3xl shadow-2xl relative">
           
-          {/* Compliance Shield Badge */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-[#66df75]/10 flex items-center justify-center text-[#66df75]">
-              <Fingerprint size={20} className="animate-pulse" />
-            </div>
-            <div>
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                {mode === 'signup' ? 'Compliance KYC' : 'Encrypted Authentication'}
-              </h3>
-              <p className="text-[9px] text-[#e1e3e4]/40 uppercase tracking-widest font-black">Military Grade Security</p>
-            </div>
-          </div>
-
           {error && (
             <div className="mb-6 p-4 bg-red-950/20 border border-red-500/20 text-red-400 text-xs font-semibold rounded-xl animate-in shake duration-300">
               {error}
@@ -303,33 +268,25 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Email Address</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Mail size={18} className="text-[#e1e3e4]/30" />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
-                    placeholder="you@example.com"
-                  />
-                </div>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                  placeholder="you@example.com"
+                />
               </div>
 
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Password</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-[#e1e3e4]/30" />
-                  </div>
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wider"
+                    className="w-full pl-4 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wider"
                     placeholder="••••••••"
                   />
                   <button
@@ -350,89 +307,61 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  <>
-                    <span className="uppercase tracking-[0.1em] font-black">Authorize Session</span>
-                    <ArrowRight size={18} />
-                  </>
+                  <span className="uppercase tracking-[0.1em] font-black">Sign In</span>
                 )}
               </button>
             </form>
           )}
 
-          {/* SIGNUP MODULE (COMPLETE MIRROR OF WEB FRONTEND UI) */}
+          {/* SIGNUP MODULE */}
           {mode === 'signup' && (
             <form onSubmit={handleSubmit} className="space-y-5 max-h-[62vh] overflow-y-auto pr-2 scrollbar-thin">
-              {/* Full Name */}
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Full Name</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <UserIcon size={18} className="text-[#e1e3e4]/30" />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
-                    placeholder="John Doe"
-                  />
-                </div>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                  placeholder="John Doe"
+                />
               </div>
 
-              {/* Email Address */}
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Email Address</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Mail size={18} className="text-[#e1e3e4]/30" />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
-                    placeholder="you@example.com"
-                  />
-                </div>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                  placeholder="you@example.com"
+                />
               </div>
 
-              {/* Phone Number */}
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Phone Number</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Phone size={18} className="text-[#e1e3e4]/30" />
-                  </div>
-                  <input
-                    type="tel"
-                    required
-                    maxLength={15}
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
-                    placeholder="08012345678"
-                  />
-                </div>
-                <p className={`text-[10px] mt-1.5 font-bold uppercase tracking-wider ${phone.length >= 10 ? 'text-[#66df75]' : phone.length > 0 ? 'text-red-400' : 'text-[#e1e3e4]/40'}`}>
-                  {phone.length === 0 ? 'Enter 10-15 digits only' : phone.length >= 10 ? `${phone.length} digits ✓` : `${phone.length} digits — need at least 10`}
-                </p>
+                <input
+                  type="tel"
+                  required
+                  maxLength={15}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                  placeholder="08012345678"
+                />
               </div>
 
-              {/* Password */}
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Password</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-[#e1e3e4]/30" />
-                  </div>
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                    className="w-full pl-4 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
                     placeholder="Min. 6 characters"
                   />
                   <button
@@ -445,19 +374,15 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 </div>
               </div>
 
-              {/* Confirm Password */}
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Confirm Password</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-[#e1e3e4]/30" />
-                  </div>
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                    className="w-full pl-4 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
                     placeholder="Repeat password"
                   />
                   <button
@@ -470,22 +395,16 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 </div>
               </div>
 
-              {/* Transaction PIN */}
               <div>
-                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
-                  <KeyRound size={12} /> Transaction PIN
-                </label>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Transaction PIN</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <KeyRound size={18} className="text-[#e1e3e4]/30" />
-                  </div>
                   <input
                     type={showPin ? "text" : "password"}
                     required
                     maxLength={4}
                     value={transactionPin}
                     onChange={(e) => setTransactionPin(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 font-mono tracking-wider"
+                    className="w-full pl-4 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 font-mono tracking-wider"
                     placeholder="4 digits"
                   />
                   <button
@@ -498,22 +417,16 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 </div>
               </div>
 
-              {/* Confirm Transaction PIN */}
               <div>
-                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
-                  <KeyRound size={12} /> Confirm Transaction PIN
-                </label>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Confirm Transaction PIN</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <KeyRound size={18} className="text-[#e1e3e4]/30" />
-                  </div>
                   <input
                     type={showConfirmPin ? "text" : "password"}
                     required
                     maxLength={4}
                     value={confirmPin}
                     onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 font-mono tracking-wider"
+                    className="w-full pl-4 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 font-mono tracking-wider"
                     placeholder="Repeat PIN"
                   />
                   <button
@@ -526,81 +439,58 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 </div>
               </div>
 
-              {/* Virtual Account KYC Option */}
               <div>
-                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
-                  <FileCheck2 size={12} /> Virtual Account KYC Option
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Fingerprint size={18} className="text-[#e1e3e4]/30" />
-                  </div>
-                  <select
-                    value={kycType}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setKycType(val);
-                      if (val === 'bvn') {
-                        setNin('');
-                      } else if (val === 'nin') {
-                        setBvn('');
-                      } else if (val === 'none') {
-                        setBvn('');
-                        setNin('');
-                      }
-                    }}
-                    className="w-full pl-12 pr-10 py-4 bg-[#1e2324] border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none cursor-pointer"
-                  >
-                    <option value="none">Get virtual account with your NIN or BVN (optional)</option>
-                    <option value="nin">NIN Only</option>
-                    <option value="bvn">BVN Only</option>
-                    <option value="both">Both NIN & BVN</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-white/30 text-xs">
-                    ▼
-                  </div>
-                </div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Virtual Account KYC Option</label>
+                <select
+                  value={kycType}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setKycType(val);
+                    if (val === 'bvn') {
+                      setNin('');
+                    } else if (val === 'nin') {
+                      setBvn('');
+                    } else if (val === 'none') {
+                      setBvn('');
+                      setNin('');
+                    }
+                  }}
+                  className="w-full px-4 pr-10 py-4 bg-[#080d09] border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all cursor-pointer"
+                >
+                  <option value="none">None (Optional)</option>
+                  <option value="nin">NIN Only</option>
+                  <option value="bvn">BVN Only</option>
+                  <option value="both">Both NIN & BVN</option>
+                </select>
               </div>
 
-              {/* Bank Verification Number (BVN) */}
               {(kycType === 'bvn' || kycType === 'both') && (
                 <div className="animate-in slide-in-from-top duration-300">
                   <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Bank Verification Number (BVN)</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/30 text-xs font-black">
-                      BVN
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      maxLength={11}
-                      value={bvn}
-                      onChange={(e) => setBvn(e.target.value.replace(/\D/g, ''))}
-                      className="w-full pl-14 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all font-mono font-bold tracking-wider"
-                      placeholder="11-digit number"
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    required
+                    maxLength={11}
+                    value={bvn}
+                    onChange={(e) => setBvn(e.target.value.replace(/\D/g, ''))}
+                    className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all font-mono font-bold tracking-wider"
+                    placeholder="11-digit number"
+                  />
                 </div>
               )}
 
-              {/* National Identification Number (NIN) */}
               {(kycType === 'nin' || kycType === 'both') && (
                 <div className="animate-in slide-in-from-top duration-300">
                   <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">National Identification Number (NIN)</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/30 text-xs font-black">
-                      NIN
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      maxLength={11}
-                      value={nin}
-                      onChange={(e) => setNin(e.target.value.replace(/\D/g, ''))}
-                      className="w-full pl-14 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all font-mono font-bold tracking-wider"
-                      placeholder="11-digit number"
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    required
+                    maxLength={11}
+                    value={nin}
+                    onChange={(e) => setNin(e.target.value.replace(/\D/g, ''))}
+                    className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all font-mono font-bold tracking-wider"
+                    placeholder="11-digit number"
+                  />
                 </div>
               )}
 
@@ -612,36 +502,25 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  <>
-                    <span className="uppercase tracking-[0.1em] font-black">Create Account</span>
-                    <ShieldCheck size={18} />
-                  </>
+                  <span className="uppercase tracking-[0.1em] font-black">Create Account</span>
                 )}
               </button>
             </form>
           )}
 
-          {/* FORGOT PASSWORD: REQUEST RESET CODE */}
+          {/* FORGOT PASSWORD */}
           {mode === 'forgot' && (
             <form onSubmit={handleForgotPassword} className="space-y-5">
-              <div className="text-center mb-6">
-                <p className="text-xs text-[#e1e3e4]/60">Enter your registered email address. We will verify your account and email you a 4-digit password reset OTP code.</p>
-              </div>
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Registered Email</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Mail size={18} className="text-[#e1e3e4]/30" />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
-                    placeholder="jane@example.com"
-                  />
-                </div>
+                <input
+                  type="email"
+                  required
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                  placeholder="jane@example.com"
+                />
               </div>
 
               <button
@@ -652,10 +531,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  <>
-                    <span className="uppercase tracking-[0.1em] font-black">Request Reset Code</span>
-                    <ArrowRight size={18} />
-                  </>
+                  <span className="uppercase tracking-[0.1em] font-black">Request Reset Code</span>
                 )}
               </button>
             </form>
@@ -664,25 +540,17 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
           {/* VERIFY RESET CODE OTP */}
           {mode === 'verify_otp' && (
             <form onSubmit={handleVerifyOtp} className="space-y-5">
-              <div className="text-center mb-6">
-                <p className="text-xs text-[#e1e3e4]/60">Enter the verification OTP code sent to your email <strong className="text-white">{resetEmail}</strong>.</p>
-              </div>
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">4-Digit OTP Code</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-[#e1e3e4]/30" />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    maxLength={4}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-lg text-white font-mono font-bold text-center tracking-[1em] focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all"
-                    placeholder="0000"
-                  />
-                </div>
+                <input
+                  type="text"
+                  required
+                  maxLength={4}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-lg text-white font-mono font-bold text-center tracking-[1em] focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all"
+                  placeholder="0000"
+                />
               </div>
 
               <button
@@ -693,10 +561,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  <>
-                    <span className="uppercase tracking-[0.1em] font-black">Verify Code</span>
-                    <ArrowRight size={18} />
-                  </>
+                  <span className="uppercase tracking-[0.1em] font-black">Verify Code</span>
                 )}
               </button>
             </form>
@@ -708,15 +573,12 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
               <div>
                 <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">New Password</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-[#e1e3e4]/30" />
-                  </div>
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wider"
+                    className="w-full pl-4 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 focus:bg-white/10 transition-all placeholder:text-white/20 tracking-wider"
                     placeholder="••••••••"
                   />
                   <button
@@ -737,10 +599,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  <>
-                    <span className="uppercase tracking-[0.1em] font-black">Update Password</span>
-                    <ShieldCheck size={18} />
-                  </>
+                  <span className="uppercase tracking-[0.1em] font-black">Update Password</span>
                 )}
               </button>
             </form>
