@@ -162,6 +162,13 @@ export const api = {
     });
   },
 
+  createVirtualAccount: async (bvn: string, nin: string): Promise<ApiResponse> => {
+    return request('services.php?action=createVirtualAccount', {
+      method: 'POST',
+      body: JSON.stringify({ bvn, nin })
+    });
+  },
+
   // Dynamic Lookups
   getAirtimeNetworks: async (): Promise<ApiResponse> => {
     return request('services.php?action=getAirtimeNetworks', {
