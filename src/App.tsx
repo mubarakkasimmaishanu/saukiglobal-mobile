@@ -9,7 +9,6 @@ import HelpSupport from './components/HelpSupport';
 import BuyAirtime from './components/BuyAirtime';
 import TransactionHistory from './components/TransactionHistory';
 import ExamPins from './components/ExamPins';
-import ReferAndEarn from './components/ReferAndEarn';
 import FundWallet from './components/FundWallet';
 import BuyData from './components/BuyData';
 import WalletTransfer from './components/WalletTransfer';
@@ -25,7 +24,7 @@ import ESimServices from './components/ESimServices';
 import CACRegistration from './components/CACRegistration';
 import IntlTopup from './components/IntlTopup';
 
-type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'referral' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl';
+type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('landing');
@@ -86,7 +85,6 @@ export default function App() {
           }}
           onViewPricing={() => navigateTo('pricing')}
           onViewSupport={() => navigateTo('support')}
-          onViewReferrals={() => navigateTo('referral')}
         />
       )}
 
@@ -126,11 +124,7 @@ export default function App() {
         />
       )}
 
-      {currentView === 'referral' && (
-        <ReferAndEarn
-          onBack={() => navigateTo('profile')}
-        />
-      )}
+
 
       {currentView === 'fund' && (
         <FundWallet

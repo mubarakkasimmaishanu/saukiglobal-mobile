@@ -305,6 +305,29 @@ export const api = {
     });
   },
 
+  submitManualDeposit: async (
+    reference: string,
+    amount: number,
+    senderName: string,
+    senderBank: string,
+    senderAccount: string,
+    receiptBase64: string,
+    receiptName: string
+  ): Promise<ApiResponse> => {
+    return request('fund.php?action=submit_manual', {
+      method: 'POST',
+      body: JSON.stringify({
+        reference,
+        amount,
+        sender_name: senderName,
+        sender_bank: senderBank,
+        sender_account: senderAccount,
+        receipt: receiptBase64,
+        receipt_name: receiptName
+      })
+    });
+  },
+
   // Unified Transaction History & Verification
   getTransactions: async (limit = 50, offset = 0, type?: string, status?: string): Promise<Transaction[]> => {
     const body: any = { limit, offset };

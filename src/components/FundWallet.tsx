@@ -36,19 +36,31 @@ export default function FundWallet({ onBack }: FundWalletProps) {
   const { user, refreshUser } = useUser();
   const [activeTab, setActiveTab] = useState<'payvessel' | 'gateway' | 'manual'>('payvessel');
   const [amount, setAmount] = useState('');
-  const [selectedGateway, setSelectedGateway] = useState('paystack');
+  const [selectedGateway, setSelectedGateway] = useState('korapay');
   
   // PayVessel virtual accounts state
   const [accounts, setAccounts] = useState<VirtualAccount[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [accountsError, setAccountsError] = useState('');
   
+  // Dynamic virtual account creation state
+  const [bvn, setBvn] = useState('');
+  const [nin, setNin] = useState('');
+  const [generatingAccounts, setGeneratingAccounts] = useState(false);
+
   // Manual Transfer state
   const [manualAmount, setManualAmount] = useState('');
   const [senderName, setSenderName] = useState('');
   const [senderBank, setSenderBank] = useState('');
+  const [senderAccount, setSenderAccount] = useState('');
   const [reference, setReference] = useState('');
   const [submittingManual, setSubmittingManual] = useState(false);
+  const [manualStep, setManualStep] = useState<'amount' | 'details'>('amount');
+  const [manualInstructions, setManualInstructions] = useState('');
+  const [loadingManualInit, setLoadingManualInit] = useState(false);
+  
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptBase64, setReceiptBase64] = useState('');
 
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [step, setStep] = useState<'form' | 'processing' | 'success'>('form');
@@ -59,6 +71,15 @@ export default function FundWallet({ onBack }: FundWalletProps) {
   useEffect(() => {
     if (activeTab === 'payvessel') {
       fetchVirtualAccounts();
+    } else if (activeTab === 'manual') {
+      setManualStep('amount');
+      setManualAmount('');
+      setSenderName('');
+      setSenderBank('');
+      setSenderAccount('');
+      setReference('');
+      setReceiptFile(null);
+      setReceiptBase64('');
     }
   }, [activeTab]);
 
@@ -79,6 +100,39 @@ export default function FundWallet({ onBack }: FundWalletProps) {
       setAccountsError('Failed to synchronize virtual bank nodes.');
     } finally {
       setLoadingAccounts(false);
+    }
+  };
+
+  const handleCreateVirtualAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bvn && !nin) {
+      alert('Please enter either your BVN or NIN');
+      return;
+    }
+    
+    if (bvn && bvn.length !== 11) {
+      alert('BVN must be exactly 11 digits');
+      return;
+    }
+    if (nin && nin.length !== 11) {
+      alert('NIN must be exactly 11 digits');
+      return;
+    }
+
+    setGeneratingAccounts(true);
+    setAccountsError('');
+    try {
+      const res = await api.createVirtualAccount(bvn, nin);
+      if (res.success) {
+        // Fetch accounts again to display them
+        await fetchVirtualAccounts();
+      } else {
+        alert(res.message || 'Failed to generate virtual accounts.');
+      }
+    } catch (error) {
+      setAccountsError('An error occurred during virtual account generation.');
+    } finally {
+      setGeneratingAccounts(false);
     }
   };
 
@@ -119,25 +173,64 @@ export default function FundWallet({ onBack }: FundWalletProps) {
     }
   };
 
+  const handleManualInit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const numAmount = Number(manualAmount);
+    if (!manualAmount || numAmount < 100) {
+      alert('Minimum funding amount is ₦100');
+      return;
+    }
+    setLoadingManualInit(true);
+    try {
+      const res = await api.initializePayment(numAmount, 'bank_transfer');
+      if (res.success && res.data) {
+        setReference(res.data.reference);
+        setManualInstructions(res.data.instructions || '');
+        setManualStep('details');
+      } else {
+        alert(res.message || 'Failed to initialize manual transfer.');
+      }
+    } catch (error) {
+      alert('Failed to connect to funding server.');
+    } finally {
+      setLoadingManualInit(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File is too large (max 5MB)');
+        return;
+      }
+      setReceiptFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setReceiptBase64(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualAmount || !senderName || !senderBank || !reference) {
-      alert('Please fill in all requested audit details.');
+    if (!manualAmount || !senderName || !senderBank || !senderAccount || !reference || !receiptBase64) {
+      alert('Please fill in all details and upload a payment receipt.');
       return;
     }
 
     setSubmittingManual(true);
     try {
-      const payload = {
-        type: 'Manual Funding',
-        amount: Number(manualAmount),
-        sender_name: senderName,
-        bank_name: senderBank,
-        reference: reference,
-        details: `Manual Refill: ₦${Number(manualAmount).toLocaleString()} via ${senderBank} by ${senderName} (Audit Ref: ${reference})`
-      };
-
-      const res = await api.addRequest(payload);
+      const res = await api.submitManualDeposit(
+        reference,
+        Number(manualAmount),
+        senderName,
+        senderBank,
+        senderAccount,
+        receiptBase64,
+        receiptFile?.name || 'receipt.png'
+      );
       if (res.success) {
         setSuccessMsg(`Your verification report of ₦${Number(manualAmount).toLocaleString()} has been queued for audit. Wallet will credit upon confirmation.`);
         setStep('success');
@@ -249,16 +342,56 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                     </button>
                   </div>
                 ) : accounts.length === 0 ? (
-                  <div className="glass-panel p-6 text-center border-yellow-500/20 bg-yellow-950/10">
-                    <p className="text-xs text-yellow-400 font-semibold">No dynamic details assigned yet.</p>
+                  <form onSubmit={handleCreateVirtualAccount} className="glass-panel p-6 space-y-4 border-yellow-500/20 bg-yellow-950/10">
+                    <div className="text-center mb-2">
+                      <p className="text-xs text-yellow-400 font-bold uppercase tracking-wider">No dynamic details assigned yet.</p>
+                      <p className="text-[10px] text-gray-400 mt-1">To automatically credit your wallet via bank transfers, please generate your dedicated accounts using your BVN or NIN.</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-[9px] font-black text-[#e1e3e4]/40 uppercase tracking-widest mb-1.5">BVN (11 Digits)</label>
+                      <input
+                        type="text"
+                        maxLength={11}
+                        placeholder="Enter 11-digit BVN"
+                        value={bvn}
+                        onChange={(e) => setBvn(e.target.value.replace(/\D/g, ''))}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all text-white font-mono font-bold"
+                      />
+                    </div>
+
+                    <div className="text-center text-[10px] text-gray-500 font-bold uppercase tracking-wider">— OR —</div>
+
+                    <div>
+                      <label className="block text-[9px] font-black text-[#e1e3e4]/40 uppercase tracking-widest mb-1.5">NIN (11 Digits)</label>
+                      <input
+                        type="text"
+                        maxLength={11}
+                        placeholder="Enter 11-digit NIN"
+                        value={nin}
+                        onChange={(e) => setNin(e.target.value.replace(/\D/g, ''))}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all text-white font-mono font-bold"
+                      />
+                    </div>
+
                     <button
-                      type="button"
-                      onClick={fetchVirtualAccounts}
-                      className="mt-4 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 text-xs font-black px-4 py-2 rounded-xl border border-yellow-500/20 uppercase tracking-widest"
+                      type="submit"
+                      disabled={generatingAccounts || (!bvn && !nin)}
+                      className="w-full bg-[#66df75] text-[#111415] hover:bg-[#66df75]/95 disabled:bg-gray-700 disabled:text-gray-500 text-sm font-black py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2 uppercase tracking-wider"
                     >
-                      Allocate bank keys
+                      {generatingAccounts ? (
+                        <>
+                          <RefreshCw size={18} className="animate-spin" />
+                          Generating accounts...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={18} />
+                          Generate accounts
+                        </>
+                      )}
                     </button>
-                  </div>
+                  </form>
                 ) : (
                   <div className="space-y-4">
                     {accounts.map((acc, index) => {
@@ -316,25 +449,11 @@ export default function FundWallet({ onBack }: FundWalletProps) {
             {/* ONLINE GATEWAYS PAYMENT */}
             {activeTab === 'gateway' && (
               <form onSubmit={handleOnlinePayment} className="space-y-6 animate-in fade-in duration-300">
-                {/* Gateway Selector Options */}
-                <div className="space-y-3">
-                  <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] px-1">Choose Payment Gateway</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {['paystack', 'korapay', 'monnify'].map((gateway) => (
-                      <button
-                        key={gateway}
-                        type="button"
-                        onClick={() => setSelectedGateway(gateway)}
-                        className={`py-3.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all ${
-                          selectedGateway === gateway
-                            ? 'bg-[#66df75] border-[#66df75] text-[#111415] shadow-lg shadow-[#66df75]/10'
-                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                        }`}
-                      >
-                        {gateway}
-                      </button>
-                    ))}
-                  </div>
+                <div className="glass-panel p-4 flex gap-3 border-[#66df75]/10">
+                  <Info size={20} className="text-[#66df75] flex-shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-[#e1e3e4]/70 leading-relaxed font-bold uppercase tracking-wider">
+                    Online payments are securely processed via <strong className="text-white">PayVessel (Card / Bank Transfer)</strong>.
+                  </p>
                 </div>
 
                 {/* Amount to refuel */}
@@ -393,117 +512,191 @@ export default function FundWallet({ onBack }: FundWalletProps) {
             {/* MANUAL DIRECT PAYMENT */}
             {activeTab === 'manual' && (
               <div className="space-y-6 animate-in fade-in duration-300">
-                <div className="glass-panel p-4 flex gap-3 border-yellow-500/10 bg-yellow-950/5">
-                  <Info size={20} className="text-yellow-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-yellow-200/70 leading-relaxed font-bold uppercase tracking-wider">
-                    Deposit funds to our administrative banking details, then submit your payment verification payload.
-                  </p>
-                </div>
-
-                {/* Corporate banking details */}
-                <div className="glass-panel rounded-[2rem] p-6 text-white shadow-lg border border-white/5 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-yellow-600"></div>
-
-                  <div className="mb-4">
-                    <p className="text-[9px] text-[#e1e3e4]/30 font-black uppercase tracking-wider mb-1">Corporate beneficiary</p>
-                    <p className="text-sm font-black text-white">SaukiGlobal - Mubarak Kasim Maishanu</p>
-                  </div>
-
-                  <div className="mb-4 flex justify-between items-end">
-                    <div>
-                      <p className="text-[9px] text-[#e1e3e4]/30 font-black uppercase tracking-wider mb-1">Beneficiary account</p>
-                      <p className="text-xl font-mono font-black tracking-widest text-white select-all">8123456789</p>
+                {manualStep === 'amount' ? (
+                  <form onSubmit={handleManualInit} className="space-y-6">
+                    <div className="glass-panel p-4 flex gap-3 border-yellow-500/10 bg-yellow-950/5">
+                      <Info size={20} className="text-yellow-400 flex-shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-yellow-200/70 leading-relaxed font-bold uppercase tracking-wider">
+                        Enter the amount you wish to deposit. We will generate a secure reference and display our payment instructions.
+                      </p>
                     </div>
+
+                    <div className="space-y-3">
+                      <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] px-1">Deposit Amount</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-2xl font-black text-white/30">
+                          ₦
+                        </div>
+                        <input
+                          type="number"
+                          placeholder="0.00"
+                          min="100"
+                          required
+                          value={manualAmount}
+                          onChange={(e) => setManualAmount(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-12 pr-6 text-3xl font-black text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <p className="text-[9px] font-black text-[#e1e3e4]/40 uppercase tracking-widest px-1">Quick Select Options</p>
+                      <div className="grid grid-cols-4 gap-3">
+                        {quickAmounts.map((amt) => (
+                          <button
+                            key={amt}
+                            type="button"
+                            onClick={() => setManualAmount(amt.toString())}
+                            className="py-3 bg-white/5 border border-white/10 text-[#e1e3e4]/80 text-xs font-bold rounded-xl hover:bg-white/10 transition-colors"
+                          >
+                            ₦{amt.toLocaleString()}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <button
-                      type="button"
-                      onClick={() => handleCopy('8123456789', 'admin-number')}
-                      className={`px-3 py-2 rounded-xl flex items-center gap-1 text-[10px] font-black uppercase tracking-wider transition-colors ${
-                        copiedStates['admin-number'] ? 'bg-[#66df75] text-[#111415]' : 'bg-white/5 text-[#e1e3e4]/70 border border-white/10'
-                      }`}
+                      type="submit"
+                      disabled={loadingManualInit || !manualAmount || Number(manualAmount) < 100}
+                      className="w-full bg-[#66df75] text-[#111415] hover:bg-[#66df75]/95 disabled:bg-gray-700 disabled:text-gray-500 text-sm font-black py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2 uppercase tracking-wider"
                     >
-                      {copiedStates['admin-number'] ? <CheckCircle2 size={12} /> : <Copy size={12} />}
-                      {copiedStates['admin-number'] ? 'Copied' : 'Copy'}
+                      {loadingManualInit ? (
+                        <>
+                          <RefreshCw size={18} className="animate-spin" />
+                          Initializing...
+                        </>
+                      ) : (
+                        <>
+                          <Send size={18} />
+                          Proceed to instructions
+                        </>
+                      )}
                     </button>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-[9px] text-[#e1e3e4]/30 font-black uppercase tracking-wider mb-0.5">Corporate bank</p>
-                      <p className="text-xs font-black text-yellow-400 tracking-wider">WEMA BANK</p>
+                  </form>
+                ) : (
+                  <div className="space-y-6 animate-in fade-in duration-300">
+                    <div className="glass-panel p-4 flex gap-3 border-yellow-500/10 bg-yellow-950/5">
+                      <Info size={20} className="text-yellow-400 flex-shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-yellow-200/70 leading-relaxed font-bold uppercase tracking-wider">
+                        Please transfer exactly <strong className="text-white">₦{Number(manualAmount).toLocaleString()}</strong> to the account below, then upload your receipt.
+                      </p>
                     </div>
+
+                    {/* Dynamic bank instructions */}
+                    <div className="glass-panel rounded-[2rem] p-6 text-white shadow-lg border border-white/5 relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-yellow-600"></div>
+
+                      <div className="mb-4">
+                        <p className="text-[9px] text-[#e1e3e4]/30 font-black uppercase tracking-wider mb-1">Corporate Beneficiary & Instructions</p>
+                        <p className="text-xs leading-relaxed text-[#e1e3e4]/80 whitespace-pre-line font-bold">{manualInstructions}</p>
+                      </div>
+
+                      <div className="mb-4 flex justify-between items-end">
+                        <div>
+                          <p className="text-[9px] text-[#e1e3e4]/30 font-black uppercase tracking-wider mb-1">Narration/Description Reference</p>
+                          <p className="text-md font-mono font-black text-[#66df75] tracking-wider select-all">{reference}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(reference, 'admin-ref')}
+                          className={`px-3 py-2 rounded-xl flex items-center gap-1 text-[10px] font-black uppercase tracking-wider transition-colors ${
+                            copiedStates['admin-ref'] ? 'bg-[#66df75] text-[#111415]' : 'bg-white/5 text-[#e1e3e4]/70 border border-white/10'
+                          }`}
+                        >
+                          {copiedStates['admin-ref'] ? <CheckCircle2 size={12} /> : <Copy size={12} />}
+                          {copiedStates['admin-ref'] ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Audit Form */}
+                    <form onSubmit={handleManualSubmit} className="space-y-4 pt-4 border-t border-white/5">
+                      <h3 className="text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-4">Verification Audit Form</h3>
+
+                      <div>
+                        <label className="block text-[9px] font-black text-[#e1e3e4]/40 uppercase tracking-widest mb-1.5">Depositor Account Name</label>
+                        <input
+                          type="text"
+                          placeholder="Name on bank receipt"
+                          required
+                          value={senderName}
+                          onChange={(e) => setSenderName(e.target.value)}
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all text-white font-semibold"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[9px] font-black text-[#e1e3e4]/40 uppercase tracking-widest mb-1.5">Originating Bank Name</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. GTBank"
+                            required
+                            value={senderBank}
+                            onChange={(e) => setSenderBank(e.target.value)}
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all text-white font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[9px] font-black text-[#e1e3e4]/40 uppercase tracking-widest mb-1.5">Originating Account Number</label>
+                          <input
+                            type="text"
+                            placeholder="Sender Account No"
+                            required
+                            value={senderAccount}
+                            onChange={(e) => setSenderAccount(e.target.value)}
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all text-white font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="block text-[9px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Upload Payment Receipt (Image/PDF)</label>
+                        <div className="relative border-2 border-dashed border-white/10 hover:border-[#66df75]/30 rounded-2xl p-6 text-center transition-all bg-white/5">
+                          <input
+                            type="file"
+                            required
+                            accept="image/*,application/pdf"
+                            onChange={handleFileChange}
+                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                          />
+                          <div className="space-y-1">
+                            <p className="text-xs text-[#e1e3e4]/70 font-bold">
+                              {receiptFile ? receiptFile.name : 'Click to select receipt'}
+                            </p>
+                            <p className="text-[9px] text-[#e1e3e4]/40 uppercase tracking-wider">Max size 5MB (Image/PDF)</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={submittingManual || !senderName || !senderBank || !senderAccount || !receiptBase64}
+                        className="w-full bg-[#66df75] text-[#111415] hover:bg-[#66df75]/95 disabled:bg-gray-700 disabled:text-gray-500 text-sm font-black py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2 uppercase tracking-wider mt-6"
+                      >
+                        {submittingManual ? (
+                          <>
+                            <RefreshCw size={18} className="animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          <>
+                            <Send size={18} />
+                            Submit Verification
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setManualStep('amount')}
+                        className="w-full bg-transparent border border-white/10 text-white/70 hover:bg-white/5 text-xs font-bold py-3 rounded-xl transition-colors uppercase tracking-wider mt-2"
+                      >
+                        Back / Change Amount
+                      </button>
+                    </form>
                   </div>
-                </div>
-
-                {/* Audit Form */}
-                <form onSubmit={handleManualSubmit} className="space-y-4 pt-4 border-t border-white/5">
-                  <h3 className="text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-4">Verification Audit Form</h3>
-
-                  <div>
-                    <label className="block text-[9px] font-black text-[#e1e3e4]/40 uppercase tracking-widest mb-1.5">Amount Deposited (₦)</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 5000"
-                      required
-                      value={manualAmount}
-                      onChange={(e) => setManualAmount(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all text-white font-mono font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[9px] font-black text-[#e1e3e4]/40 uppercase tracking-widest mb-1.5">Depositor Profile name</label>
-                    <input
-                      type="text"
-                      placeholder="Name on bank receipt"
-                      required
-                      value={senderName}
-                      onChange={(e) => setSenderName(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all text-white font-semibold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[9px] font-black text-[#e1e3e4]/40 uppercase tracking-widest mb-1.5">Originating Institution Bank</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. GTBank / Kuda"
-                      required
-                      value={senderBank}
-                      onChange={(e) => setSenderBank(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all text-white font-semibold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[9px] font-black text-[#e1e3e4]/40 uppercase tracking-widest mb-1.5">Reference Pin / Session ID</label>
-                    <input
-                      type="text"
-                      placeholder="Reference session number"
-                      required
-                      value={reference}
-                      onChange={(e) => setReference(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all text-white font-mono"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={submittingManual || !manualAmount || !senderName || !senderBank || !reference}
-                    className="w-full bg-[#66df75] text-[#111415] hover:bg-[#66df75]/95 disabled:bg-gray-700 disabled:text-gray-500 text-sm font-black py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2 uppercase tracking-wider mt-6"
-                  >
-                    {submittingManual ? (
-                      <>
-                        <RefreshCw size={18} className="animate-spin" />
-                        Auditing dispatch...
-                      </>
-                    ) : (
-                      <>
-                        <Send size={18} />
-                        File deposit audit
-                      </>
-                    )}
-                  </button>
-                </form>
+                )}
               </div>
             )}
           </div>
@@ -521,8 +714,8 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                 <CreditCard size={24} className="text-[#66df75] animate-pulse" />
               </div>
             </div>
-            <h2 className="text-xl font-bold text-white mb-2">Connecting Escrows...</h2>
-            <p className="text-xs text-[#e1e3e4]/50 font-semibold uppercase tracking-wider">Redirecting to verified payment gateway</p>
+            <h2 className="text-xl font-bold text-white mb-2">Initializing Payment...</h2>
+            <p className="text-xs text-[#e1e3e4]/50 font-semibold uppercase tracking-wider">Connecting to PayVessel</p>
           </div>
         )}
 
@@ -545,7 +738,11 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                 setManualAmount('');
                 setSenderName('');
                 setSenderBank('');
+                setSenderAccount('');
                 setReference('');
+                setReceiptFile(null);
+                setReceiptBase64('');
+                setManualStep('amount');
                 onBack();
               }}
               className="w-full btn-primary py-4"
