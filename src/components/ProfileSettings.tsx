@@ -1,20 +1,14 @@
 import React, { useState } from 'react';
 import {
-  User,
   Shield,
   Lock,
   ChevronRight,
-  HelpCircle,
   MessageCircle,
   LogOut,
   Award,
-  Gift,
-  Copy,
   CheckCircle2,
-  FileText,
   ChevronLeft
 } from 'lucide-react';
-import PersonalInfo from './profile/PersonalInfo';
 import SecurityPassword from './profile/SecurityPassword';
 import TransactionPinSettings from './profile/TransactionPinSettings';
 import { useUser } from '../context/UserContext';
@@ -24,15 +18,13 @@ interface ProfileSettingsProps {
   onLogout: () => void;
   onViewPricing: () => void;
   onViewSupport: () => void;
-  onViewReferrals: () => void;
 }
 
 type ProfileView = 'main' | 'personal' | 'password' | 'pin';
 
-export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport, onViewReferrals }: ProfileSettingsProps) {
+export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport }: ProfileSettingsProps) {
   const { user, loading, logout } = useUser();
   const [currentView, setCurrentView] = useState<ProfileView>('main');
-  const [copied, setCopied] = useState(false);
 
   if (loading) {
     return (
@@ -43,14 +35,6 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
   }
 
   const isReseller = user?.isReseller ?? false;
-  const referralCode = user?.referralCode || 'SAUKI' + (user?.id || 'GLOBAL');
-
-  const handleCopyReferral = () => {
-    navigator.clipboard.writeText(referralCode).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
 
   const SettingsGroup = ({ title, children }: { title: string, children: React.ReactNode }) => (
     <div className="mb-8">
@@ -95,10 +79,6 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
     </button>
   );
 
-  if (currentView === 'personal') {
-    return <PersonalInfo onBack={() => setCurrentView('main')} user={user} />;
-  }
-
   if (currentView === 'password') {
     return <SecurityPassword onBack={() => setCurrentView('main')} />;
   }
@@ -127,12 +107,14 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
 
         {/* User Card */}
         <div className="glass-panel p-5 border-white/5 mb-6 flex items-center gap-4 shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4">
-            <div className={`inline-flex items-center gap-1 ${isReseller ? 'bg-[#66df75]/20 text-[#66df75] border-[#66df75]/30' : 'bg-white/5 text-[#e1e3e4]/60 border-white/10'} px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border`}>
-              <Award size={10} />
-              {isReseller ? 'Reseller Pro' : 'Basic Account'}
+          {isReseller && (
+            <div className="absolute top-0 right-0 p-4">
+              <div className="inline-flex items-center gap-1 bg-[#66df75]/20 text-[#66df75] border-[#66df75]/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border">
+                <Award size={10} />
+                Reseller Pro
+              </div>
             </div>
-          </div>
+          )}
           <div className="relative">
             <div className="w-14 h-14 bg-gradient-to-tr from-[#66df75] to-[#4ade80] rounded-full flex items-center justify-center text-[#111415] font-black text-xl shadow-lg">
               {user?.firstName?.charAt(0) || 'U'}
@@ -147,66 +129,10 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
           </div>
         </div>
 
-        {/* Commission & Referral Card */}
-        <div className="card-mesh rounded-3xl p-6 shadow-2xl mb-8 border border-white/5 relative overflow-hidden">
-          <Gift size={80} className="absolute -right-4 -bottom-4 text-[#66df75] opacity-5 animate-pulse" />
 
-          <div className="flex justify-between items-end mb-5">
-            <div>
-              <p className="text-[#e1e3e4]/40 text-[10px] font-black uppercase tracking-widest mb-1.5">Commission Balance</p>
-              <p className="text-2xl font-black text-white">₦{(user?.commissionBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-            </div>
-            <button
-              onClick={() => {
-                const commission = user?.commissionBalance || 0;
-                if (commission <= 0) {
-                  alert('No commission balance to withdraw.');
-                  return;
-                }
-                alert(`₦${commission.toLocaleString()} has been moved to your main wallet. This is a demo action.`);
-              }}
-              className="bg-[#66df75] hover:bg-[#66df75]/95 text-[#111415] text-xs font-black px-4 py-2.5 rounded-xl transition-colors uppercase tracking-wider shadow-md"
-            >
-              Withdraw
-            </button>
-          </div>
-
-          <div className="pt-4 border-t border-white/5 flex justify-between items-center">
-            <div>
-              <p className="text-[#e1e3e4]/30 text-[9px] font-black uppercase tracking-wider mb-1">Referral Code</p>
-              <p className="text-sm font-bold tracking-widest text-[#66df75] font-mono">{referralCode}</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={onViewReferrals}
-                className="px-3 py-2 rounded-xl bg-white/5 text-[#e1e3e4]/70 hover:bg-white/10 text-[10px] font-black uppercase tracking-wider transition-colors border border-white/10"
-              >
-                Details
-              </button>
-              <button
-                onClick={handleCopyReferral}
-                className={`px-3 py-2 rounded-xl flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${
-                  copied 
-                    ? 'bg-[#66df75] text-[#111415]' 
-                    : 'bg-white/5 text-[#e1e3e4]/70 hover:bg-white/10 border border-white/10'
-                }`}
-              >
-                {copied ? <CheckCircle2 size={12} /> : <Copy size={12} />}
-                {copied ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Settings Groups */}
         <SettingsGroup title="Account settings">
-          <SettingsItem
-            icon={User}
-            title="Personal Information"
-            subtitle="Update name and basic info"
-            bg="bg-blue-500/10" color="text-blue-400"
-            onClick={() => setCurrentView('personal')}
-          />
           <SettingsItem
             icon={Lock}
             title="Transaction PIN"
@@ -224,40 +150,26 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
           />
         </SettingsGroup>
 
-        <SettingsGroup title="Business & Rates">
-          {isReseller && (
+        {isReseller && (
+          <SettingsGroup title="Business & Rates">
             <SettingsItem
               icon={Award}
               title="Reseller Account Status"
               subtitle="Active — Lifetime Access"
               bg="bg-yellow-500/10" color="text-yellow-400"
+              isLast={true}
             />
-          )}
-          <SettingsItem
-            icon={FileText}
-            title="My Pricing Matrix"
-            subtitle="View your current discount rates"
-            bg="bg-[#66df75]/10" color="text-[#66df75]"
-            isLast={true}
-            onClick={onViewPricing}
-          />
-        </SettingsGroup>
+          </SettingsGroup>
+        )}
 
         <SettingsGroup title="Helpdesk & Support">
           <SettingsItem
             icon={MessageCircle}
-            title="WhatsApp Support Hub"
+            title="WhatsApp Support"
             subtitle="Chat with us directly on WhatsApp"
             bg="bg-emerald-500/10" color="text-emerald-400"
-            onClick={() => window.open('https://wa.me/2349068500544', '_blank')}
-          />
-          <SettingsItem
-            icon={HelpCircle}
-            title="Ecosystem FAQs"
-            subtitle="Learn how to use SaukiGlobal"
-            bg="bg-teal-500/10" color="text-teal-400"
             isLast={true}
-            onClick={onViewSupport}
+            onClick={() => window.open('https://wa.me/2349068500544', '_blank')}
           />
         </SettingsGroup>
 
