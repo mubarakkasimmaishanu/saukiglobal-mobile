@@ -120,6 +120,38 @@ export default function ExamPins({ onBack }: ExamPinsProps) {
               </div>
             </div>
 
+            {/* Dynamic branding header */}
+            {selectedExam && (() => {
+              const lowerName = selectedExam.name.toLowerCase();
+              let iconFile = 'others.png';
+              if (lowerName.includes('waec')) iconFile = 'waec.png';
+              else if (lowerName.includes('neco')) iconFile = 'neco.png';
+              else if (lowerName.includes('nabteb')) iconFile = 'nabteb.png';
+              return (
+                <div className="glass-panel p-4 mb-6 flex items-center justify-between border-white/5 animate-in slide-in-from-top-4 duration-300">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center p-1.5 border border-white/10">
+                      <img
+                        src={`/icons/${iconFile}`}
+                        alt={selectedExam.name}
+                        className="w-full h-full object-contain rounded-lg"
+                        onError={(e) => {
+                          e.currentTarget.src = '/icons/others.png';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Selected Exam</p>
+                      <p className="text-sm font-black text-white">{selectedExam.name}</p>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg bg-[#66df75]/10 text-[#66df75] border border-[#66df75]/10">
+                    Active
+                  </span>
+                </div>
+              );
+            })()}
+
             {error && (
               <div className="mb-6 p-4 bg-[#ef4444]/10 border border-[#ef4444]/20 text-[#ef4444] text-xs font-bold rounded-xl animate-in shake">
                 {error}
@@ -134,12 +166,17 @@ export default function ExamPins({ onBack }: ExamPinsProps) {
             ) : (
               <div className="grid grid-cols-1 gap-4 mb-8">
                 {examsList.map((exam) => {
-                  const IconComponent = getExamIcon(exam.name);
+                  const lowerName = exam.name.toLowerCase();
+                  let iconFile = 'others.png';
+                  if (lowerName.includes('waec')) iconFile = 'waec.png';
+                  else if (lowerName.includes('neco')) iconFile = 'neco.png';
+                  else if (lowerName.includes('nabteb')) iconFile = 'nabteb.png';
                   const isSelected = selectedExam?.id === exam.id;
 
                   return (
                     <button
                       key={exam.id}
+                      type="button"
                       onClick={() => { setSelectedExam(exam); setError(null); }}
                       className={`p-5 rounded-2xl border transition-all flex items-center justify-between group ${
                         isSelected 
@@ -148,8 +185,15 @@ export default function ExamPins({ onBack }: ExamPinsProps) {
                       }`}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? 'bg-[#66df75] text-[#111415]' : 'bg-white/5 text-[#e1e3e4]/40'}`}>
-                          <IconComponent size={24} />
+                        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center p-1.5 border border-white/5">
+                          <img
+                            src={`/icons/${iconFile}`}
+                            alt={exam.name}
+                            className="w-full h-full object-contain rounded-lg"
+                            onError={(e) => {
+                              e.currentTarget.src = '/icons/others.png';
+                            }}
+                          />
                         </div>
                         <div className="text-left">
                           <p className="text-sm font-bold text-white mb-0.5">{exam.name}</p>

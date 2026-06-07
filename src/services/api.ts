@@ -208,6 +208,24 @@ export const api = {
     });
   },
 
+  getSmilePlans: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getSmilePlans', {
+      method: 'POST'
+    });
+  },
+
+  getKiraniPlans: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getKiraniPlans', {
+      method: 'POST'
+    });
+  },
+
+  getAlphaPlans: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getAlphaPlans', {
+      method: 'POST'
+    });
+  },
+
   // Financial VTU Dispatching (Appended Query Parameter Routing)
   buyAirtime: async (network: number | string, amount: number, phone: string, pin: string) => {
     const res = await request('services.php?type=airtime', {
@@ -378,31 +396,33 @@ export const api = {
   },
 
   // Alpha Topup Compatibility
-  buyAlpha: async (phone: string, amount: number, pin: string) => {
+  buyAlpha: async (phone: string, plan: number | string, pin: string) => {
     return api.performService({
       action: 'alpha',
       phone,
-      amount,
+      plan: Number(plan),
       pin
     });
   },
 
   // Kirani Service Compatibility
-  buyKirani: async (kiraniId: string, amount: number) => {
+  buyKirani: async (phone: string, plan: number | string, pin: string) => {
     return api.performService({
       action: 'kirani',
-      kiraniId,
-      amount
+      phone,
+      plan: Number(plan),
+      pin
     });
   },
 
   // Smile Services Compatibility
-  buySmile: async (smileId: string, plan: string, type: string, pin: string) => {
+  buySmile: async (accountId: string, accountType: string, serviceType: string, plan: number | string, pin: string) => {
     return api.performService({
       action: 'smile',
-      smileId,
-      plan,
-      type,
+      account_id: accountId,
+      account_type: accountType,
+      service_type: serviceType,
+      plan: Number(plan),
       pin
     });
   },
@@ -483,5 +503,52 @@ export const api = {
       } as User;
     }
     return null;
+  },
+
+  getRatelPlans: async (): Promise<ApiResponse> => {
+    try {
+      const res = await request<any>('services.php?action=getRatelPlans', {
+        method: 'POST'
+      });
+      if (res.success && res.data) {
+        return res;
+      }
+    } catch (err) {
+      console.warn("Failed to retrieve Ratel plans from backend, using fallback configuration.", err);
+    }
+    return {
+      success: true,
+      message: 'Ratel plans retrieved (Fallback)',
+      status: 'success',
+      data: {
+        "10": { "plan_id": "8", "user_price": 100.00, "agent_price": 95.00, "vendor_price": 90.00, "buying_price": 80.00 },
+        "20": { "plan_id": "9", "user_price": 200.00, "agent_price": 190.00, "vendor_price": 180.00, "buying_price": 160.00 },
+        "30": { "plan_id": "10", "user_price": 300.00, "agent_price": 285.00, "vendor_price": 270.00, "buying_price": 240.00 },
+        "60": { "plan_id": "11", "user_price": 600.00, "agent_price": 570.00, "vendor_price": 540.00, "buying_price": 480.00 }
+      }
+    };
+  },
+
+  buyRatel: async (phone: string, duration: number, network: string, pin: string): Promise<ApiResponse> => {
+    const res = await request('services.php?type=ratel_call', {
+      method: 'POST',
+      body: JSON.stringify({
+        phone,
+        duration,
+        network,
+        pin
+      })
+    });
+
+    if (res.status === 'processing' && (res.data as any)?.reference) {
+      return await pollTransaction((res.data as any).reference);
+    }
+    return res;
+  },
+
+  getNotifications: async (): Promise<ApiResponse<{ count: number, notifications: any[] }>> => {
+    return request('notifications.php?action=list', {
+      method: 'GET'
+    });
   }
 };

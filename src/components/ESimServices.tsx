@@ -11,7 +11,7 @@ interface ESimServicesProps {
 export default function ESimServices({ onBack }: ESimServicesProps) {
   const { user, refreshUser } = useUser();
   const [step, setStep] = useState('form');
-  const [network, setNetwork] = useState('MTN');
+  const [network, setNetwork] = useState('Kirani');
   const [email, setEmail] = useState('');
   const [transactionPin, setTransactionPin] = useState(['', '', '', '']);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -72,9 +72,9 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
                   onChange={(e) => setNetwork(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none"
                 >
-                  <option value="MTN" className="bg-[#111415]">MTN eSIM (₦2,500)</option>
-                  <option value="Airtel" className="bg-[#111415]">Airtel eSIM (₦2,500)</option>
-                  <option value="9Mobile" className="bg-[#111415]">9Mobile eSIM (₦2,500)</option>
+                  <option value="Kirani" className="bg-[#111415]">Kirani E-sim (₦2,500)</option>
+                  <option value="Ratel" className="bg-[#111415]">Ratel E-sim (₦2,500)</option>
+                  <option value="Smile" className="bg-[#111415]">Smile E-sim (₦2,500)</option>
                 </select>
               </div>
               <div className="space-y-2">

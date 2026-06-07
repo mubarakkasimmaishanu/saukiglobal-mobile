@@ -17,11 +17,12 @@ export interface User {
   upgradeDate?: string;
   address?: string;
   dob?: string;
+  tier?: string;
 }
 
 export interface Transaction {
   id: string;
-  type: 'Airtime' | 'Data' | 'Transfer' | 'Electricity' | 'Cable' | 'Exam' | 'NIN' | 'Funding';
+  type: 'Airtime' | 'Data' | 'Transfer' | 'Electricity' | 'Cable' | 'Exam' | 'NIN' | 'Funding' | 'Ratel_call' | 'Ratel';
   amount: number;
   status: 'Success' | 'Pending' | 'Processing' | 'Failed';
   date: string;

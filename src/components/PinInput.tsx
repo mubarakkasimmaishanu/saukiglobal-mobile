@@ -19,17 +19,55 @@ export default function PinInput({ pin, setPin, onComplete, label, error, disabl
     }
   }, [disabled]);
 
-  const handleChange = (value: string, index: number) => {
-    const digit = value.replace(/\D/g, '').slice(-1);
-    if (!digit && value !== '') return;
+  const handlePasteData = (data: string) => {
+    const pastedData = data.replace(/\D/g, '').slice(0, 4);
+    if (pastedData.length === 0) return;
 
+    const newPin = ['', '', '', ''];
+    pastedData.split('').forEach((digit, i) => {
+      if (i < 4) newPin[i] = digit;
+    });
+    setPin(newPin);
+
+    // Focus the last filled input or the next empty one
+    const nextIndex = Math.min(pastedData.length, 3);
+    setTimeout(() => {
+      inputRefs.current[nextIndex]?.focus();
+    }, 0);
+
+    if (newPin.every(d => d !== '') && onComplete) {
+      onComplete(newPin.join(''));
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const value = e.target.value;
+    const cleanValue = value.replace(/\D/g, '');
+
+    // Check if the user pasted a multi-digit string (like a 4-digit PIN)
+    if (cleanValue.length >= 4) {
+      handlePasteData(cleanValue);
+      return;
+    }
+
+    if (cleanValue === '') {
+      const newPin = [...pin];
+      newPin[index] = '';
+      setPin(newPin);
+      return;
+    }
+
+    // Take the last character typed
+    const digit = cleanValue.slice(-1);
     const newPin = [...pin];
     newPin[index] = digit;
     setPin(newPin);
 
     // Auto-focus next input
-    if (digit && index < 3 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1]?.focus();
+    if (index < 3 && inputRefs.current[index + 1]) {
+      setTimeout(() => {
+        inputRefs.current[index + 1]?.focus();
+      }, 0);
     }
 
     // Check if complete
@@ -39,30 +77,40 @@ export default function PinInput({ pin, setPin, onComplete, label, error, disabl
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === 'Backspace' && !pin[index] && index > 0 && inputRefs.current[index - 1]) {
-      // Move focus to previous input on backspace if current is empty
-      inputRefs.current[index - 1]?.focus();
+    if ((e.key === 'Backspace' || e.keyCode === 8) && index > 0) {
+      if (!pin[index]) {
+        // Current box is empty, delete previous and focus previous
+        const newPin = [...pin];
+        newPin[index - 1] = '';
+        setPin(newPin);
+        setTimeout(() => {
+          inputRefs.current[index - 1]?.focus();
+        }, 0);
+      }
     }
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
-    if (pastedData.length === 0) return;
+    const pastedData = e.clipboardData.getData('text');
+    handlePasteData(pastedData);
+  };
 
-    const newPin = [...pin];
-    pastedData.split('').forEach((digit, i) => {
-      if (i < 4) newPin[i] = digit;
-    });
-    setPin(newPin);
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    const target = e.target;
+    target.select();
+    // iOS Safari / WebView fallback
+    setTimeout(() => {
+      try {
+        target.setSelectionRange(0, target.value.length);
+      } catch (err) {
+        // ignore if not supported
+      }
+    }, 0);
+  };
 
-    // Focus the last filled input or the next empty one
-    const nextIndex = Math.min(pastedData.length, 3);
-    inputRefs.current[nextIndex]?.focus();
-
-    if (newPin.every(d => d !== '') && onComplete) {
-      onComplete(newPin.join(''));
-    }
+  const handleClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    (e.target as HTMLInputElement).select();
   };
 
   return (
@@ -76,12 +124,13 @@ export default function PinInput({ pin, setPin, onComplete, label, error, disabl
             type="password"
             inputMode="numeric"
             autoComplete="one-time-code"
-            maxLength={1}
             value={pin[index]}
             disabled={disabled}
-            onChange={(e) => handleChange(e.target.value, index)}
+            onChange={(e) => handleChange(e, index)}
             onKeyDown={(e) => handleKeyDown(e, index)}
             onPaste={handlePaste}
+            onFocus={handleFocus}
+            onClick={handleClick}
             className={`w-14 h-14 text-center text-2xl font-bold bg-gray-50 border rounded-xl outline-none transition-all ${
               error 
                 ? 'border-red-500 ring-2 ring-red-100' 

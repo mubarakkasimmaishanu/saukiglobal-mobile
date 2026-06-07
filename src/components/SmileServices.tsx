@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ChevronLeft, 
   Wallet, 
@@ -6,7 +6,7 @@ import {
   CheckCircle2, 
   Wifi,
   ArrowRight,
-  PhoneCall
+  RefreshCcw
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { api } from '../services/api';
@@ -19,30 +19,47 @@ interface SmileServicesProps {
 export default function SmileServices({ onBack }: SmileServicesProps) {
   const { user, refreshUser } = useUser();
   const [activeTab, setActiveTab] = useState('data'); // 'data', 'voice'
+  const [accountType, setAccountType] = useState('phone_number'); // 'phone_number', 'account_number'
   const [step, setStep] = useState('form');
   const [smileId, setSmileId] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [plansList, setPlansList] = useState<any[]>([]);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(true);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | number>('');
   const [transactionPin, setTransactionPin] = useState(['', '', '', '']);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const dataPlans = [
-    { id: '1gb', name: 'Smile 1GB (30 Days)', price: 1000 },
-    { id: '2gb', name: 'Smile 2GB (30 Days)', price: 2000 },
-    { id: '5gb', name: 'Smile 5GB (30 Days)', price: 4500 }
-  ];
+  useEffect(() => {
+    fetchPlans();
+  }, []);
 
-  const voicePlans = [
-    { id: 'v1000', name: 'Smile Voice ₦1000', price: 1000 },
-    { id: 'v2000', name: 'Smile Voice ₦2000', price: 2000 }
-  ];
+  const fetchPlans = async () => {
+    setIsLoadingPlans(true);
+    setError(null);
+    try {
+      const res = await api.getSmilePlans();
+      if (res.success && Array.isArray(res.data)) {
+        setPlansList(res.data);
+      } else {
+        setError('Failed to fetch Smile plans.');
+      }
+    } catch (err) {
+      setError('Connection to billing server lost.');
+    } finally {
+      setIsLoadingPlans(false);
+    }
+  };
 
-  const plans = activeTab === 'data' ? dataPlans : voicePlans;
+  const plans = plansList.filter(p => p.type.toLowerCase() === activeTab.toLowerCase());
+  const selectedPlan = plansList.find(p => p.id.toString() === selectedPlanId.toString());
 
   const handleConfirmPurchase = async () => {
+    if (!selectedPlan) return;
     setIsProcessing(true);
+    setError(null);
     try {
-      const res = await api.buySmile(smileId, selectedPlan.id, activeTab, transactionPin.join(''));
+      const serviceType = activeTab === 'data' ? 'smile-bundle' : 'smile-airtime';
+      const res = await api.buySmile(smileId, accountType, serviceType, selectedPlan.id, transactionPin.join(''));
       if (res.success) {
         await refreshUser();
         setStep('success');
@@ -59,98 +76,144 @@ export default function SmileServices({ onBack }: SmileServicesProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient">
-      <div className="max-w-md mx-auto relative px-6 pb-12">
+    <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient pb-12">
+      <div className="max-w-md mx-auto relative px-6">
         <header className="py-8 flex items-center gap-4">
-          <button onClick={onBack} className="w-10 h-10 glass-panel flex items-center justify-center">
+          <button onClick={step === 'form' ? onBack : () => setStep('form')} className="w-10 h-10 glass-panel flex items-center justify-center hover:bg-white/10">
             <ChevronLeft size={20} />
           </button>
-          <h1 className="text-lg font-bold tracking-tight">Smile Services</h1>
+          <h1 className="text-lg font-bold tracking-tight">Smile eSIM</h1>
         </header>
 
         {step === 'form' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="glass-panel p-4 mb-6 flex items-center justify-between border-emerald-500/10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#66df75]/10 flex items-center justify-center text-[#66df75]">
+                  <Wallet size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Balance</p>
+                  <p className="text-sm font-black text-white">₦{(user?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-[#66df75] bg-[#66df75]/10 px-2 py-1 rounded-lg">Instant</span>
+            </div>
+
             <div className="flex gap-2 mb-8 bg-white/5 p-1 rounded-2xl">
               <button
-                onClick={() => { setActiveTab('data'); setSelectedPlan(null); }}
+                type="button"
+                onClick={() => { setActiveTab('data'); setSelectedPlanId(''); }}
                 className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === 'data' ? 'bg-[#66df75] text-[#111415]' : 'text-[#e1e3e4]/40'}`}
               >
                 Smile Data
               </button>
               <button
-                onClick={() => { setActiveTab('voice'); setSelectedPlan(null); }}
+                type="button"
+                onClick={() => { setActiveTab('voice'); setSelectedPlanId(''); }}
                 className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === 'voice' ? 'bg-[#66df75] text-[#111415]' : 'text-[#e1e3e4]/40'}`}
               >
                 Smile Voice
               </button>
             </div>
 
-            <form onSubmit={(e) => { e.preventDefault(); setStep('pin'); }} className="space-y-8">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Smile ID / Account</label>
-                <input
-                  type="text"
-                  value={smileId}
-                  onChange={(e) => setSmileId(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-xl font-bold text-white"
-                  placeholder="Enter Account Number"
-                />
-              </div>
+            {error && <div className="mb-6 p-4 bg-[#ef4444]/10 border border-[#ef4444]/20 text-[#ef4444] text-xs font-bold rounded-xl animate-in shake">{error}</div>}
 
-              <div className="space-y-4">
-                <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Select Plan</label>
-                <div className="grid grid-cols-1 gap-3">
-                  {plans.map(plan => (
-                    <button
-                      key={plan.id}
-                      type="button"
-                      onClick={() => setSelectedPlan(plan)}
-                      className={`p-5 rounded-2xl border transition-all flex justify-between items-center ${selectedPlan?.id === plan.id ? 'bg-[#66df75]/10 border-[#66df75]' : 'bg-white/5 border-white/10'}`}
-                    >
-                      <div className="text-left">
-                        <p className="text-sm font-bold text-white">{plan.name}</p>
-                        <p className="text-[10px] font-black text-[#66df75] uppercase tracking-widest mt-1">₦{plan.price.toLocaleString()}</p>
-                      </div>
-                      {selectedPlan?.id === plan.id && <CheckCircle2 size={20} className="text-[#66df75]" />}
-                    </button>
-                  ))}
+            {isLoadingPlans ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <RefreshCcw size={24} className="animate-spin text-[#66df75]" />
+                <p className="text-xs text-[#e1e3e4]/50 font-bold uppercase tracking-wider">Loading Smile Packages...</p>
+              </div>
+            ) : (
+              <form onSubmit={(e) => { e.preventDefault(); setStep('pin'); }} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Account Type</label>
+                  <select
+                    value={accountType}
+                    onChange={(e) => setAccountType(e.target.value)}
+                    required
+                    className="w-full bg-[#111415] border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none"
+                  >
+                    <option value="phone_number">Phone Number</option>
+                    <option value="account_number">Account Number</option>
+                  </select>
                 </div>
-              </div>
-
-              <button type="submit" disabled={!smileId || !selectedPlan} className="w-full btn-primary py-5 uppercase tracking-widest font-black text-sm">
-                Confirm Selection
-              </button>
-            </form>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Smile ID / Account Number</label>
+                  <input
+                    type="text"
+                    value={smileId}
+                    onChange={(e) => setSmileId(e.target.value.replace(/\D/g, ''))}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all tracking-widest"
+                    placeholder="Enter Smile Account"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Select Bundle Plan</label>
+                  <select
+                    value={selectedPlanId}
+                    onChange={(e) => setSelectedPlanId(e.target.value)}
+                    required
+                    className="w-full bg-[#111415] border border-white/10 rounded-2xl py-5 px-6 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none"
+                  >
+                    <option value="" disabled>Choose bouquet</option>
+                    {plans.map(p => (
+                      <option key={p.id} value={p.id} className="bg-[#111415]">
+                        {p.name} — ₦{Number(p.price).toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button type="submit" disabled={!smileId || !selectedPlanId} className="w-full btn-primary py-5 flex justify-center items-center gap-3 disabled:opacity-50 transition-all uppercase tracking-widest font-black text-sm">
+                  Proceed <ArrowRight size={20} />
+                </button>
+              </form>
+            )}
           </div>
         )}
 
-        {step === 'pin' && (
+        {step === 'pin' && selectedPlan && (
           <div className="animate-in slide-in-from-bottom-8 duration-500 pt-8">
             <div className="text-center mb-10">
               <div className="w-20 h-20 bg-[#66df75]/10 rounded-3xl flex items-center justify-center mx-auto mb-6 text-[#66df75]">
                 <ShieldCheck size={40} />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Authorize Smile</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">Confirm Smile Service</h2>
               <p className="text-xs text-[#e1e3e4]/40 font-medium px-8 leading-relaxed">
-                Buying <span className="text-white font-bold">{selectedPlan.name}</span> for <span className="text-[#66df75] font-black">₦{selectedPlan.price.toLocaleString()}</span>.
+                Confirm purchasing <span className="text-white font-bold">{selectedPlan.name}</span> for <span className="text-[#66df75] font-black">₦{Number(selectedPlan.price).toLocaleString()}</span> on account <span className="text-white font-bold">{smileId}</span>.
               </p>
             </div>
             <PinInput pin={transactionPin} setPin={setTransactionPin} onComplete={handleConfirmPurchase} disabled={isProcessing} />
-            <button onClick={handleConfirmPurchase} disabled={isProcessing || transactionPin.join('').length !== 4} className="w-full btn-primary py-5 mt-12">
-              {isProcessing ? <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin mx-auto"></div> : "Pay Securely"}
+            <button onClick={handleConfirmPurchase} disabled={isProcessing || transactionPin.join('').length !== 4} className="w-full btn-primary py-5 mt-12 flex justify-center items-center gap-3">
+              {isProcessing ? <div className="w-5 h-5 border-2 border-[#111415] border-t-transparent rounded-full animate-spin"></div> : "Pay Securely"}
             </button>
           </div>
         )}
 
-        {step === 'success' && (
+        {step === 'success' && selectedPlan && (
           <div className="animate-in zoom-in-95 duration-500 pt-8">
-            <div className="glass-panel p-8 text-center">
+            <div className="glass-panel p-8 text-center border-[#66df75]/20">
               <div className="w-20 h-20 bg-[#66df75] text-[#111415] rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 size={40} />
               </div>
-              <h2 className="text-2xl font-black text-white mb-1">Smile Success</h2>
-              <p className="text-[10px] text-[#66df75] font-black uppercase tracking-[0.3em] mb-8">Plan Activated Instantly</p>
-              <button onClick={onBack} className="w-full btn-primary py-4">Back to Dashboard</button>
+              <h2 className="text-2xl font-black text-white mb-1">Recharge Complete</h2>
+              <p className="text-[10px] text-[#66df75] font-black uppercase tracking-[0.3em] mb-8">Smile Service Processed</p>
+              <div className="space-y-4 text-left my-8 bg-white/5 p-6 rounded-2xl border border-white/5">
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-[10px] font-bold text-[#e1e3e4]/40 uppercase">Plan</span>
+                  <span className="text-sm font-bold text-white">{selectedPlan.name}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-[10px] font-bold text-[#e1e3e4]/40 uppercase">Smile Account</span>
+                  <span className="text-sm font-bold text-white">{smileId}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-[10px] font-bold text-[#e1e3e4]/40 uppercase">Amount Paid</span>
+                  <span className="text-sm font-bold text-[#66df75]">₦{Number(selectedPlan.price).toLocaleString()}</span>
+                </div>
+              </div>
+              <button onClick={() => { setStep('form'); setSmileId(''); setSelectedPlanId(''); setTransactionPin(['','','','']); onBack(); }} className="w-full btn-primary py-4">Back to Dashboard</button>
             </div>
           </div>
         )}

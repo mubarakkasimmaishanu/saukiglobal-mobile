@@ -204,6 +204,31 @@ export default function CableTV({ onBack }: CableTVProps) {
               <span className="text-[10px] font-bold text-[#66df75] bg-[#66df75]/10 px-2 py-1 rounded-lg">Auto-reconnect</span>
             </div>
 
+            {/* Dynamic branding header */}
+            {provider && (() => {
+              const prov = providersList.find(p => p.id === provider);
+              if (!prov) return null;
+              const lowerName = prov.name.toLowerCase();
+              return (
+                <div className="glass-panel p-4 mb-6 flex items-center gap-3 border-white/5 animate-in slide-in-from-top-4 duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center p-1.5 border border-white/10">
+                    <img
+                      src={`/icons/${lowerName}.png`}
+                      alt={prov.name}
+                      className="w-full h-full object-contain rounded-lg"
+                      onError={(e) => {
+                        e.currentTarget.src = '/icons/others.png';
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Selected TV Service</p>
+                    <p className="text-sm font-black text-white">{prov.name}</p>
+                  </div>
+                </div>
+              );
+            })()}
+
             {error && (
               <div className="mb-6 p-4 bg-[#ef4444]/10 border border-[#ef4444]/20 text-[#ef4444] text-xs font-bold rounded-xl animate-in shake">
                 {error}
@@ -231,14 +256,23 @@ export default function CableTV({ onBack }: CableTVProps) {
                           key={p.id}
                           type="button"
                           onClick={() => { setProvider(p.id); setSelectedPackage(''); setError(null); }}
-                          className={`py-4 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 ${
+                          className={`py-4 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-3 ${
                             isSelected 
-                              ? 'bg-[#66df75] border-[#66df75] text-[#111415] shadow-lg shadow-[#66df75]/20 scale-[1.02]' 
+                              ? 'border-[#66df75] bg-[#66df75]/5 text-[#66df75] shadow-lg shadow-[#66df75]/5 scale-[1.02]' 
                               : 'bg-white/5 border-white/10 text-[#e1e3e4]/70 hover:bg-white/10 hover:border-white/20'
                           }`}
                         >
-                          <Tv size={18} className={isSelected ? 'text-[#111415]' : 'text-[#e1e3e4]/50'} /> 
-                          {p.name}
+                          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center p-1 border border-white/5">
+                            <img
+                              src={`/icons/${p.name.toLowerCase()}.png`}
+                              alt={p.name}
+                              className="w-full h-full object-contain rounded"
+                              onError={(e) => {
+                                e.currentTarget.src = '/icons/others.png';
+                              }}
+                            />
+                          </div>
+                          <span>{p.name}</span>
                         </button>
                       );
                     })}
@@ -295,7 +329,15 @@ export default function CableTV({ onBack }: CableTVProps) {
 
             {/* Customer Decoder Details Card */}
             <div className="glass-panel text-white rounded-2xl p-6 border-white/10 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4">
+              <div className="absolute top-0 right-0 p-4 flex items-center gap-2">
+                <img
+                  src={`/icons/${provider.toLowerCase()}.png`}
+                  alt={provider}
+                  className="w-5 h-5 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
                 <span className="text-[9px] font-black bg-white/10 px-2 py-1 rounded border border-white/10 uppercase tracking-widest">
                   {provider.toUpperCase()}
                 </span>
@@ -322,8 +364,19 @@ export default function CableTV({ onBack }: CableTVProps) {
             <div className="space-y-3">
               <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Choose Subscription bouquet</label>
               <div className="relative">
-                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[#66df75]">
-                  {isLoadingPlans ? <RefreshCcw size={20} className="animate-spin" /> : <Tv size={20} />}
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5">
+                  {isLoadingPlans ? (
+                    <RefreshCcw size={20} className="animate-spin text-[#66df75]" />
+                  ) : (
+                    <img
+                      src={`/icons/${provider.toLowerCase()}.png`}
+                      alt={provider}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  )}
                 </div>
                 <select 
                   value={selectedPackage}

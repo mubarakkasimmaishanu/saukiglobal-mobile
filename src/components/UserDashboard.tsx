@@ -21,7 +21,8 @@ import {
   RefreshCcw,
   Cpu,
   Globe2,
-  Briefcase
+  Briefcase,
+  PhoneCall
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { api } from '../services/api';
@@ -39,6 +40,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   const [virtualAccounts, setVirtualAccounts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [greeting, setGreeting] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // KYC States
   const [showKycModal, setShowKycModal] = useState(false);
@@ -81,8 +83,23 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
       }
     };
 
+    const fetchNotificationsCount = async () => {
+      try {
+        const res = await api.getNotifications();
+        if (res.success && res.data && Array.isArray(res.data.notifications)) {
+          const readIdsStr = localStorage.getItem('saukiglobal_read_notifs') || '[]';
+          const readIds = JSON.parse(readIdsStr) as number[];
+          const unread = res.data.notifications.filter((n: any) => !readIds.includes(Number(n.id)));
+          setUnreadCount(unread.length);
+        }
+      } catch (err) {
+        console.error("Failed to fetch notifications count:", err);
+      }
+    };
+
     fetchTransactions();
     fetchVirtualAccounts();
+    fetchNotificationsCount();
   }, []);
 
   const handleCopy = (num: string) => {
@@ -163,7 +180,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
     </div>
   );
 
-  const ServiceButton = ({ icon: Icon, title, onClick }: { icon: any, title: string, onClick: () => void }) => (
+  const ServiceButton = ({ icon: Icon, title, onClick }: { icon: any, title: string, onClick: () => void, key?: any }) => (
     <button 
       onClick={onClick}
       className="flex flex-col items-center gap-3 group transition-all"
@@ -177,6 +194,26 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
     </button>
   );
 
+  // Service configuration for ecosystem features
+  const servicesConfig = [
+    { id: 'data', title: 'Data', icon: Wifi, onClick: () => onNavigate('data'), visible: true },
+    { id: 'airtime', title: 'Airtime', icon: Smartphone, onClick: () => onNavigate('airtime'), visible: true },
+    { id: 'ratel', title: 'Ratel', icon: PhoneCall, onClick: () => onNavigate('ratel'), visible: true },
+    { id: 'cable', title: 'Cable TV', icon: Tv, onClick: () => onNavigate('cable'), visible: true },
+    { id: 'electricity', title: 'Electricity', icon: Lightbulb, onClick: () => onNavigate('electricity'), visible: true },
+    { id: 'exams', title: 'Exams', icon: GraduationCap, onClick: () => onNavigate('exams'), visible: true },
+    { id: 'alpha', title: 'Alpha', icon: Zap, onClick: () => onNavigate('alpha'), visible: true },
+    { id: 'kirani', title: 'Kirani', icon: RefreshCcw, onClick: () => onNavigate('kirani'), visible: true },
+    { id: 'smile', title: 'Smile', icon: Wifi, onClick: () => onNavigate('smile'), visible: true },
+    { id: 'a2c', title: 'A2C', icon: ArrowUpRight, onClick: () => onNavigate('a2c'), visible: false },
+    { id: 'nin', title: 'NIN', icon: FileText, onClick: () => onNavigate('nin'), visible: false },
+    { id: 'history', title: 'History', icon: History, onClick: () => onNavigate('history'), visible: false },
+    { id: 'esim', title: 'eSIM', icon: Cpu, onClick: () => onNavigate('esim'), visible: true },
+    { id: 'cac', title: 'CAC', icon: Briefcase, onClick: () => onNavigate('cac'), visible: false },
+    { id: 'intl', title: 'Intl Topup', icon: Globe2, onClick: () => onNavigate('intl'), visible: false },
+    { id: 'more', title: 'More', icon: PlusCircle, onClick: () => onNavigate('pricing'), visible: false },
+  ];
+
   return (
     <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient pb-24">
       <div className="max-w-md mx-auto relative px-6">
@@ -187,23 +224,22 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-12 h-12 object-contain drop-shadow-[0_0_15px_rgba(102,223,117,0.3)]" />
             <div>
               <p className="text-[10px] text-[#66df75] font-black uppercase tracking-[0.2em]">{greeting}</p>
-              <h1 className="text-lg font-bold tracking-tight">@{user?.firstName?.toLowerCase() || 'user'}</h1>
+              <h1 className="text-base font-bold text-white tracking-tight">{user?.firstName || 'User'}</h1>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#66df75] to-[#4ade80] flex items-center justify-center text-[#111415] font-black text-lg shadow-[0_0_15px_rgba(102,223,117,0.3)]">
-              {user?.firstName?.charAt(0) || 'S'}
-            </div>
-            <button
-              onClick={() => onNavigate('notifications')}
-              className="w-10 h-10 glass-panel flex items-center justify-center relative hover:bg-white/10 transition-colors"
-            >
-              <Bell size={18} className="text-[#e1e3e4]" />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-[#66df75] rounded-full shadow-[0_0_10px_#66df75]"></span>
-            </button>
-          </div>
+          <button
+            onClick={() => onNavigate('notifications')}
+            className="w-10 h-10 glass-panel flex items-center justify-center relative hover:bg-white/10 transition-colors"
+          >
+            <Bell size={18} className="text-[#e1e3e4]" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[#ef4444] text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border border-[#111415] shadow-[0_0_10px_#ef4444] animate-in zoom-in-50 duration-200">
+                {unreadCount}
+              </span>
+            )}
+          </button>
         </header>
-
+ 
         {/* Balance Card */}
         <div className="card-mesh rounded-3xl p-6 mb-6 relative overflow-hidden shadow-2xl border border-white/5">
           <div className="absolute top-0 right-0 p-4">
@@ -211,7 +247,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               {user.isReseller ? 'Reseller Pro' : 'Premium'}
             </span>
           </div>
-
+ 
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-1.5">
               <p className="text-[10px] font-bold text-[#e1e3e4]/50 uppercase tracking-widest">Available Balance</p>
@@ -226,7 +262,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               {showBalance ? `₦${(user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••••••'}
             </h2>
           </div>
-
+ 
           <div className="flex gap-3 mb-5">
             <button
               onClick={() => onNavigate('fund')}
@@ -243,7 +279,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               <span>Transfer</span>
             </button>
           </div>
-
+ 
           {/* Virtual Accounts inside Dashboard Card (Mirroring wallet.php) */}
           <div className="border-t border-white/5 pt-4 space-y-3">
             {virtualAccounts.length > 0 ? (
@@ -292,7 +328,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             )}
           </div>
         </div>
-
+ 
         {/* Services Grid */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
@@ -301,23 +337,12 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
           </div>
           
           <div className="grid grid-cols-4 gap-y-8 gap-x-4">
-            <ServiceButton icon={Wifi} title="Data" onClick={() => onNavigate('data')} />
-            <ServiceButton icon={Smartphone} title="Airtime" onClick={() => onNavigate('airtime')} />
-            <ServiceButton icon={Tv} title="Cable TV" onClick={() => onNavigate('cable')} />
-            <ServiceButton icon={Lightbulb} title="Power" onClick={() => onNavigate('electricity')} />
-            
-            <ServiceButton icon={GraduationCap} title="Exams" onClick={() => onNavigate('exams')} />
-            <ServiceButton icon={Zap} title="Alpha" onClick={() => onNavigate('alpha')} />
-            <ServiceButton icon={RefreshCcw} title="Kirani" onClick={() => onNavigate('kirani')} />
-            <ServiceButton icon={Wifi} title="Smile" onClick={() => onNavigate('smile')} />
-
-            <ServiceButton icon={ArrowUpRight} title="A2C" onClick={() => onNavigate('a2c')} />
-            <ServiceButton icon={FileText} title="NIN" onClick={() => onNavigate('nin')} />
-            <ServiceButton icon={History} title="History" onClick={() => onNavigate('history')} />
-            <ServiceButton icon={Cpu} title="eSIM" onClick={() => onNavigate('esim')} />
-            <ServiceButton icon={Briefcase} title="CAC" onClick={() => onNavigate('cac')} />
-            <ServiceButton icon={Globe2} title="Intl Topup" onClick={() => onNavigate('intl')} />
-            <ServiceButton icon={PlusCircle} title="More" onClick={() => onNavigate('pricing')} />
+            {servicesConfig
+              .filter(s => s.visible)
+              .map(s => (
+                <ServiceButton key={s.id} icon={s.icon} title={s.title} onClick={s.onClick} />
+              ))
+            }
           </div>
         </section>
 

@@ -23,8 +23,9 @@ import AirtimeToCash from './components/AirtimeToCash';
 import ESimServices from './components/ESimServices';
 import CACRegistration from './components/CACRegistration';
 import IntlTopup from './components/IntlTopup';
+import RatelCall from './components/RatelCall';
 
-type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl';
+type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl' | 'ratel';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('landing');
@@ -207,6 +208,12 @@ export default function App() {
 
       {currentView === 'intl' && (
         <IntlTopup
+          onBack={() => navigateTo('dashboard')}
+        />
+      )}
+
+      {currentView === 'ratel' && (
+        <RatelCall
           onBack={() => navigateTo('dashboard')}
         />
       )}

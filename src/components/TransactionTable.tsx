@@ -1,6 +1,6 @@
 import React from 'react';
 import { Transaction } from '../types';
-import { Smartphone, Wifi, Send, Lightbulb, Tv, BookOpen, FileText, Wallet, Zap, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { Smartphone, Wifi, Send, Lightbulb, Tv, BookOpen, FileText, Wallet, Zap, ArrowDownLeft, ArrowUpRight, PhoneCall } from 'lucide-react';
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -9,15 +9,17 @@ interface TransactionTableProps {
 }
 
 const getIconForType = (type: string) => {
-  switch (type) {
-    case 'Airtime': return Smartphone;
-    case 'Data': return Wifi;
-    case 'Transfer': return Send;
-    case 'Electricity': return Lightbulb;
-    case 'Cable': return Tv;
-    case 'Exam': return BookOpen;
-    case 'NIN': return FileText;
-    case 'Funding': return Wallet;
+  switch (type?.toLowerCase()) {
+    case 'airtime': return Smartphone;
+    case 'data': return Wifi;
+    case 'transfer': return Send;
+    case 'electricity': return Lightbulb;
+    case 'cable': return Tv;
+    case 'exam': return BookOpen;
+    case 'nin': return FileText;
+    case 'funding': return Wallet;
+    case 'ratel_call':
+    case 'ratel': return PhoneCall;
     default: return Zap;
   }
 };
