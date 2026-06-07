@@ -218,6 +218,41 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
               <button onClick={onFund} className="text-[10px] font-black text-[#66df75] hover:underline uppercase tracking-widest">Refill</button>
             </div>
 
+            {/* Dynamic branding header */}
+            {selectedNetworkId && (() => {
+              const net = networksList.find(n => n.id === selectedNetworkId);
+              if (!net) return null;
+              const lowerName = net.network.toLowerCase();
+              const style = networkStyles[lowerName] || { color: '#888888', label: net.network };
+              return (
+                <div className="glass-panel p-4 mb-6 flex items-center justify-between border-white/5 animate-in slide-in-from-top-4 duration-300">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center p-1.5 border border-white/10">
+                      <img
+                        src={`/icons/${lowerName}.png`}
+                        alt={style.label}
+                        className="w-full h-full object-contain rounded-lg"
+                        onError={(e) => {
+                          e.currentTarget.src = '/icons/others.png';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Selected Network</p>
+                      <p className="text-sm font-black text-white">{style.label}</p>
+                    </div>
+                  </div>
+                  <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border ${
+                    net.networkStatus.toLowerCase() === 'on' 
+                      ? 'bg-[#66df75]/10 text-[#66df75] border-[#66df75]/10' 
+                      : 'bg-red-500/10 text-red-500 border-red-500/10'
+                  }`}>
+                    {net.networkStatus.toLowerCase() === 'on' ? 'Online' : 'Offline'}
+                  </span>
+                </div>
+              );
+            })()}
+
             {error && (
               <div className="mb-6 p-4 bg-[#ef4444]/10 border border-[#ef4444]/20 text-[#ef4444] text-xs font-bold rounded-xl animate-in shake">
                 {error}
@@ -277,13 +312,22 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                             setSelectedPlanId('');
                             setError(null);
                           }}
-                          className={`py-3 rounded-xl border font-bold text-[10px] transition-all flex flex-col items-center gap-2 relative ${
+                          className={`py-3 px-2 rounded-xl border font-bold text-[10px] uppercase tracking-wider transition-all flex flex-col items-center gap-2 relative ${
                             isSelected 
-                              ? 'bg-[#66df75] border-[#66df75] text-[#111415]' 
-                              : 'bg-white/5 border-white/10 text-[#e1e3e4]/60'
+                              ? 'border-[#66df75] bg-[#66df75]/5 text-[#66df75] shadow-lg shadow-[#66df75]/5' 
+                              : 'bg-white/5 border-white/10 text-[#e1e3e4]/60 hover:bg-white/10'
                           } ${isOffline ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}
                         >
-                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: style.color }}></div>
+                          <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center p-1 border border-white/5">
+                            <img
+                              src={`/icons/${lowerName}.png`}
+                              alt={style.label}
+                              className="w-full h-full object-contain rounded-md"
+                              onError={(e) => {
+                                e.currentTarget.src = '/icons/others.png';
+                              }}
+                            />
+                          </div>
                           <span>{style.label}</span>
                           {isOffline && (
                             <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full scale-75">
