@@ -78,7 +78,12 @@ export default function AlphaTopup({ onBack }: AlphaTopupProps) {
           <button onClick={step === 'form' ? onBack : () => setStep('form')} className="w-10 h-10 glass-panel flex items-center justify-center hover:bg-white/10">
             <ChevronLeft size={20} />
           </button>
-          <h1 className="text-lg font-bold tracking-tight">Alpha eSIM</h1>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center p-1.5 overflow-hidden">
+              <img src="/icons/alpha.png" alt="Alpha Logo" className="w-full h-full object-contain" />
+            </div>
+            <h1 className="text-lg font-bold tracking-tight">Alpha eSIM</h1>
+          </div>
         </header>
 
         {step === 'form' && (

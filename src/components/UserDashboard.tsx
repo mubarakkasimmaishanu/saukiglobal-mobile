@@ -180,13 +180,17 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
     </div>
   );
 
-  const ServiceButton = ({ icon: Icon, title, onClick }: { icon: any, title: string, onClick: () => void, key?: any }) => (
+  const ServiceButton = ({ icon: Icon, image, title, onClick }: { icon?: any, image?: string, title: string, onClick: () => void, key?: any }) => (
     <button 
       onClick={onClick}
       className="flex flex-col items-center gap-3 group transition-all"
     >
-      <div className="w-16 h-16 glass-card flex items-center justify-center group-hover:bg-[#66df75]/10 group-active:scale-95 group-hover:border-[#66df75]/30 transition-all duration-300 shadow-lg">
-        <Icon size={28} className="text-[#e1e3e4] group-hover:text-[#66df75] transition-colors" />
+      <div className="w-16 h-16 glass-card flex items-center justify-center group-hover:bg-[#66df75]/10 group-active:scale-95 group-hover:border-[#66df75]/30 transition-all duration-300 shadow-lg overflow-hidden p-3.5">
+        {image ? (
+          <img src={image} alt={title} className="w-full h-full object-contain filter brightness-90 group-hover:brightness-100 transition-all" />
+        ) : (
+          Icon && <Icon size={28} className="text-[#e1e3e4] group-hover:text-[#66df75] transition-colors" />
+        )}
       </div>
       <span className="text-[10px] font-bold text-[#e1e3e4]/70 uppercase tracking-wider group-hover:text-[#66df75]">
         {title}
@@ -198,13 +202,13 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   const servicesConfig = [
     { id: 'data', title: 'Data', icon: Wifi, onClick: () => onNavigate('data'), visible: true },
     { id: 'airtime', title: 'Airtime', icon: Smartphone, onClick: () => onNavigate('airtime'), visible: true },
-    { id: 'ratel', title: 'Ratel', icon: PhoneCall, onClick: () => onNavigate('ratel'), visible: true },
+    { id: 'ratel', title: 'Ratel', icon: PhoneCall, onClick: () => onNavigate('ratel'), visible: true, image: '/icons/others.png' },
     { id: 'cable', title: 'Cable TV', icon: Tv, onClick: () => onNavigate('cable'), visible: true },
     { id: 'electricity', title: 'Electricity', icon: Lightbulb, onClick: () => onNavigate('electricity'), visible: true },
     { id: 'exams', title: 'Exams', icon: GraduationCap, onClick: () => onNavigate('exams'), visible: true },
-    { id: 'alpha', title: 'Alpha', icon: Zap, onClick: () => onNavigate('alpha'), visible: true },
-    { id: 'kirani', title: 'Kirani', icon: RefreshCcw, onClick: () => onNavigate('kirani'), visible: true },
-    { id: 'smile', title: 'Smile', icon: Wifi, onClick: () => onNavigate('smile'), visible: true },
+    { id: 'alpha', title: 'Alpha', icon: Zap, onClick: () => onNavigate('alpha'), visible: true, image: '/icons/alpha.png' },
+    { id: 'kirani', title: 'Kirani', icon: RefreshCcw, onClick: () => onNavigate('kirani'), visible: true, image: '/icons/kirani icon.png' },
+    { id: 'smile', title: 'Smile', icon: Wifi, onClick: () => onNavigate('smile'), visible: true, image: '/icons/smile.png' },
     { id: 'a2c', title: 'A2C', icon: ArrowUpRight, onClick: () => onNavigate('a2c'), visible: false },
     { id: 'nin', title: 'NIN', icon: FileText, onClick: () => onNavigate('nin'), visible: false },
     { id: 'history', title: 'History', icon: History, onClick: () => onNavigate('history'), visible: false },
@@ -340,7 +344,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             {servicesConfig
               .filter(s => s.visible)
               .map(s => (
-                <ServiceButton key={s.id} icon={s.icon} title={s.title} onClick={s.onClick} />
+                <ServiceButton key={s.id} icon={s.icon} image={s.image} title={s.title} onClick={s.onClick} />
               ))
             }
           </div>
