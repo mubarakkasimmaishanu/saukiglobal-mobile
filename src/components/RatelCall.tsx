@@ -161,8 +161,8 @@ export default function RatelCall({ onBack }: RatelCallProps) {
             <ChevronLeft size={20} />
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center p-1.5 overflow-hidden text-[#66df75]">
-              <PhoneCall size={18} />
+            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center p-1.5 overflow-hidden">
+              <img src="/icons/ratel.png" alt="Ratel Logo" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-lg font-bold tracking-tight">Ratel Voice Minutes</h1>
           </div>

@@ -220,6 +220,13 @@ export const api = {
     });
   },
 
+  getKiraniClientBalance: async (phone: string): Promise<ApiResponse> => {
+    return request('services.php?action=getKiraniClientBalance', {
+      method: 'POST',
+      body: JSON.stringify({ phone })
+    });
+  },
+
   getAlphaPlans: async (): Promise<ApiResponse> => {
     return request('services.php?action=getAlphaPlans', {
       method: 'POST'
