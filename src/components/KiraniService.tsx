@@ -27,6 +27,33 @@ export default function KiraniService({ onBack }: KiraniServiceProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Client balance states
+  const [clientBalance, setClientBalance] = useState<{ balance: number; name: string; did: string } | null>(null);
+  const [isCheckingBalance, setIsCheckingBalance] = useState(false);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
+
+  const handleCheckBalance = async () => {
+    if (!kiraniId) {
+      setBalanceError('Please enter a Kirani Phone Number / ID.');
+      return;
+    }
+    setIsCheckingBalance(true);
+    setBalanceError(null);
+    setClientBalance(null);
+    try {
+      const res = await api.getKiraniClientBalance(kiraniId);
+      if (res.success && res.data) {
+        setClientBalance(res.data);
+      } else {
+        setBalanceError(res.message || 'Failed to retrieve balance.');
+      }
+    } catch (err: any) {
+      setBalanceError('Connection error. Please try again.');
+    } finally {
+      setIsCheckingBalance(false);
+    }
+  };
+
   useEffect(() => {
     fetchPlans();
   }, []);
@@ -115,7 +142,11 @@ export default function KiraniService({ onBack }: KiraniServiceProps) {
                   <input
                     type="tel"
                     value={kiraniId}
-                    onChange={(e) => setKiraniId(e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) => {
+                      setKiraniId(e.target.value.replace(/\D/g, ''));
+                      setClientBalance(null);
+                      setBalanceError(null);
+                    }}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all tracking-widest"
                     placeholder="0800 000 0000"
                     maxLength={11}
@@ -141,6 +172,49 @@ export default function KiraniService({ onBack }: KiraniServiceProps) {
                 <button type="submit" disabled={!kiraniId || !selectedPlanId} className="w-full btn-primary py-5 flex justify-center items-center gap-3 disabled:opacity-50 transition-all uppercase tracking-widest font-black text-sm">
                   Proceed <ArrowRight size={20} />
                 </button>
+
+                <button 
+                  type="button" 
+                  onClick={handleCheckBalance}
+                  disabled={!kiraniId || isCheckingBalance} 
+                  className="w-full btn-primary py-5 flex justify-center items-center gap-3 disabled:opacity-50 transition-all uppercase tracking-widest font-black text-sm mt-3"
+                >
+                  {isCheckingBalance ? (
+                    <>
+                      <RefreshCcw size={20} className="animate-spin text-black" /> Checking...
+                    </>
+                  ) : (
+                    <>
+                      <Wallet size={20} /> Check Minute Balance
+                    </>
+                  )}
+                </button>
+
+                {clientBalance && (
+                  <div className="mt-6 glass-panel p-5 border-emerald-500/20 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+                          <Globe size={20} />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-white">{clientBalance.name || 'Unknown Client'}</h4>
+                          <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">{clientBalance.did}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest block">Minutes</span>
+                        <span className="text-xl font-black text-emerald-400">{clientBalance.balance} Min</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {balanceError && (
+                  <div className="mt-6 p-4 bg-[#ef4444]/10 border border-[#ef4444]/20 text-[#ef4444] text-xs font-bold rounded-xl animate-in shake">
+                    {balanceError}
+                  </div>
+                )}
               </form>
             )}
           </div>

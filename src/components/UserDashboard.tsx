@@ -202,7 +202,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   const servicesConfig = [
     { id: 'data', title: 'Data', icon: Wifi, onClick: () => onNavigate('data'), visible: true },
     { id: 'airtime', title: 'Airtime', icon: Smartphone, onClick: () => onNavigate('airtime'), visible: true },
-    { id: 'ratel', title: 'Ratel', icon: PhoneCall, onClick: () => onNavigate('ratel'), visible: true, image: '/icons/others.png' },
+    { id: 'ratel', title: 'Ratel', icon: PhoneCall, onClick: () => onNavigate('ratel'), visible: true, image: '/icons/ratel.png' },
     { id: 'cable', title: 'Cable TV', icon: Tv, onClick: () => onNavigate('cable'), visible: true },
     { id: 'electricity', title: 'Electricity', icon: Lightbulb, onClick: () => onNavigate('electricity'), visible: true },
     { id: 'exams', title: 'Exams', icon: GraduationCap, onClick: () => onNavigate('exams'), visible: true },
