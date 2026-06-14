@@ -85,12 +85,9 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
 
     const fetchNotificationsCount = async () => {
       try {
-        const res = await api.getNotifications();
-        if (res.success && res.data && Array.isArray(res.data.notifications)) {
-          const readIdsStr = localStorage.getItem('saukiglobal_read_notifs') || '[]';
-          const readIds = JSON.parse(readIdsStr) as number[];
-          const unread = res.data.notifications.filter((n: any) => !readIds.includes(Number(n.id)));
-          setUnreadCount(unread.length);
+        const res = await api.getUnreadNotificationsCount();
+        if (res.success && res.data) {
+          setUnreadCount(res.data.unread_count);
         }
       } catch (err) {
         console.error("Failed to fetch notifications count:", err);
@@ -187,7 +184,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
     >
       <div className="w-16 h-16 glass-card flex items-center justify-center group-hover:bg-[#66df75]/10 group-active:scale-95 group-hover:border-[#66df75]/30 transition-all duration-300 shadow-lg overflow-hidden p-3.5">
         {image ? (
-          <img src={image} alt={title} className="w-full h-full object-contain filter brightness-90 group-hover:brightness-100 transition-all" />
+          <img src={image} alt={title} className="w-full h-full object-contain rounded-xl filter brightness-90 group-hover:brightness-100 transition-all" />
         ) : (
           Icon && <Icon size={28} className="text-[#e1e3e4] group-hover:text-[#66df75] transition-colors" />
         )}
@@ -212,7 +209,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
     { id: 'a2c', title: 'A2C', icon: ArrowUpRight, onClick: () => onNavigate('a2c'), visible: false },
     { id: 'nin', title: 'NIN', icon: FileText, onClick: () => onNavigate('nin'), visible: false },
     { id: 'history', title: 'History', icon: History, onClick: () => onNavigate('history'), visible: false },
-    { id: 'esim', title: 'eSIM', icon: Cpu, onClick: () => onNavigate('esim'), visible: true },
+    { id: 'esim', title: 'eSIM', icon: Cpu, onClick: () => onNavigate('esim'), visible: true, image: '/icons/esim.png' },
     { id: 'cac', title: 'CAC', icon: Briefcase, onClick: () => onNavigate('cac'), visible: false },
     { id: 'intl', title: 'Intl Topup', icon: Globe2, onClick: () => onNavigate('intl'), visible: false },
     { id: 'more', title: 'More', icon: PlusCircle, onClick: () => onNavigate('pricing'), visible: false },
@@ -252,35 +249,27 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             </span>
           </div>
  
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-1.5">
-              <p className="text-[10px] font-bold text-[#e1e3e4]/50 uppercase tracking-widest">Available Balance</p>
-              <button 
-                onClick={() => setShowBalance(!showBalance)}
-                className="text-[#66df75] p-1 rounded-lg hover:bg-white/5 transition-colors"
-              >
-                {showBalance ? <Eye size={14} /> : <EyeOff size={14} />}
-              </button>
+          <div className="flex justify-between items-end mb-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <p className="text-[10px] font-bold text-[#e1e3e4]/50 uppercase tracking-widest">Available Balance</p>
+                <button 
+                  onClick={() => setShowBalance(!showBalance)}
+                  className="text-[#66df75] p-1 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  {showBalance ? <Eye size={14} /> : <EyeOff size={14} />}
+                </button>
+              </div>
+              <h2 className="text-3xl font-black tracking-tight text-white">
+                {showBalance ? `₦${(user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••••••'}
+              </h2>
             </div>
-            <h2 className="text-3xl font-black tracking-tight text-white">
-              {showBalance ? `₦${(user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••••••'}
-            </h2>
-          </div>
- 
-          <div className="flex gap-3 mb-5">
             <button
               onClick={() => onNavigate('fund')}
-              className="flex-1 bg-[#66df75] text-[#111415] hover:bg-[#52c860] active:scale-95 py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider transition-all shadow-[0_4px_12px_rgba(102,223,117,0.2)]"
+              className="bg-[#66df75] text-[#111415] hover:bg-[#52c860] active:scale-95 py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider transition-all shadow-[0_4px_12px_rgba(102,223,117,0.2)]"
             >
               <PlusCircle size={15} />
-              <span>Fund</span>
-            </button>
-            <button
-              onClick={() => onNavigate('transfer')}
-              className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 active:scale-95 py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider text-white transition-all"
-            >
-              <Send size={15} />
-              <span>Transfer</span>
+              <span>Add Money</span>
             </button>
           </div>
  
