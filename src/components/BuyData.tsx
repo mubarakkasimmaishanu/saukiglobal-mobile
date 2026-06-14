@@ -266,32 +266,6 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
               </div>
             ) : (
               <form onSubmit={handleProcessForm} className="space-y-8">
-                {/* Phone Input */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center px-1">
-                    <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest">Recipient Number</label>
-                    {activeStyle && (
-                      <span className="text-[9px] font-black uppercase px-2 py-1 rounded-md bg-white/5 text-white flex items-center gap-1.5 border border-white/5">
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: activeStyle.color }}></div>
-                        {activeStyle.label}
-                      </span>
-                    )}
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="tel"
-                      maxLength={11}
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all tracking-widest"
-                      placeholder="0800 000 0000"
-                    />
-                    <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-[#66df75] hover:bg-[#66df75]/10 rounded-xl transition-colors">
-                      <Contact size={20} />
-                    </button>
-                  </div>
-                </div>
-
                 {/* Network Selection Grid (Dynamic) */}
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Network Provider</label>
@@ -337,6 +311,32 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+
+                {/* Phone Input */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center px-1">
+                    <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest">Recipient Number</label>
+                    {activeStyle && (
+                      <span className="text-[9px] font-black uppercase px-2 py-1 rounded-md bg-white/5 text-white flex items-center gap-1.5 border border-white/5">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: activeStyle.color }}></div>
+                        {activeStyle.label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      maxLength={11}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all tracking-widest"
+                      placeholder="0800 000 0000"
+                    />
+                    <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-[#66df75] hover:bg-[#66df75]/10 rounded-xl transition-colors">
+                      <Contact size={20} />
+                    </button>
                   </div>
                 </div>
 

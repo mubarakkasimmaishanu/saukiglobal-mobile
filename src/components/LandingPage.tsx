@@ -47,32 +47,8 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
             {/* Inner green ring */}
             <div className="absolute inset-2 border border-[#66df75]/15 rounded-[1.6rem]"></div>
             
-            {/* Custom SVG logo mimicking "SK" Connection brand in reference */}
-            <svg viewBox="0 0 100 100" className="w-20 h-20 drop-shadow-[0_0_12px_rgba(102,223,117,0.5)]">
-              {/* Green orbital swoosh at the bottom */}
-              <path 
-                d="M18,65 C25,75 55,82 82,62 C68,75 40,78 26,71 Z" 
-                fill="#66df75" 
-                opacity="0.9" 
-              />
-              <path 
-                d="M15,62 C35,76 72,72 85,55 C65,70 32,68 18,59 Z" 
-                fill="#4ade80" 
-                opacity="0.7" 
-              />
-
-              {/* Stylized White "S" */}
-              <path 
-                d="M24,42 C24,35 32,32 38,32 C48,32 50,38 43,45 L32,54 C24,62 34,70 44,70 C52,70 54,65 54,61 L46,61 C46,63 44,65 41,65 C34,65 32,61 38,55 L48,46 C56,38 52,27 38,27 C28,27 16,33 16,42 Z" 
-                fill="#ffffff" 
-              />
-
-              {/* Stylized Emerald "K" */}
-              <path 
-                d="M58,26 L58,72 L65,72 L65,51 L77,72 L86,72 L72,47 L84,26 L75,26 L65,43 L65,26 Z" 
-                fill="#66df75" 
-              />
-            </svg>
+            {/* Official logo image */}
+            <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-24 h-24 object-contain drop-shadow-[0_0_20px_rgba(102,223,117,0.35)]" />
           </div>
         </div>
 
