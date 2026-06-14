@@ -37,9 +37,13 @@ export default function AirtimeToCash({ onBack }: AirtimeToCashProps) {
   const selectedNetwork = networks.find(n => n.id === network);
   const receiveAmount = Number(amount) * (selectedNetwork?.rate || 0);
 
-  const handleConfirmPurchase = async () => {
+  const handleConfirmPurchase = async (pinParam?: string | React.MouseEvent) => {
     setIsProcessing(true);
     try {
+      const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+      if (!finalPin || finalPin.length !== 4) {
+        throw new Error('Please enter a valid 4-digit transaction PIN.');
+      }
       const res = await api.submitA2C(network, phone, Number(amount));
       if (res.success) {
         setStep('success');

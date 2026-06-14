@@ -61,8 +61,9 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
     setRecipientIdentifier(beneficiary.identifier);
   };
 
-  const handlePinSubmit = async () => {
-    if (transactionPin.join('').length !== 4) return;
+  const handlePinSubmit = async (pinParam?: string | React.MouseEvent) => {
+    const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+    if (!finalPin || finalPin.length !== 4) return;
     setIsProcessing(true);
     
     try {
@@ -72,7 +73,7 @@ export default function WalletTransfer({ onBack }: WalletTransferProps) {
         status: 'Success',
         details: `Wallet Transfer to ${recipientName}`,
         recipient: recipientIdentifier,
-        pin: transactionPin.join('')
+        pin: finalPin
       });
       await refreshUser();
       setStep('success');

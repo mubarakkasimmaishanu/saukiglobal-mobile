@@ -74,12 +74,16 @@ export default function ExamPins({ onBack }: ExamPinsProps) {
     setStep('pin');
   };
 
-  const handleConfirmPurchase = async () => {
+  const handleConfirmPurchase = async (pinParam?: string | React.MouseEvent) => {
     if (!selectedExam) return;
     setIsProcessing(true);
     setError(null);
     try {
-      const res = await api.buyExamPin(selectedExam.id, Number(quantity), transactionPin.join(''));
+      const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+      if (!finalPin || finalPin.length !== 4) {
+        throw new Error('Please enter a valid 4-digit transaction PIN.');
+      }
+      const res = await api.buyExamPin(selectedExam.id, Number(quantity), finalPin);
       if (res.success) {
         setReceiptData(res.data || res);
         await refreshUser();

@@ -86,8 +86,9 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
     }, 1500);
   };
 
-  const handlePinSubmit = async () => {
-    if (transactionPin.join('').length !== 4) return;
+  const handlePinSubmit = async (pinParam?: string | React.MouseEvent) => {
+    const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+    if (!finalPin || finalPin.length !== 4) return;
     setIsProcessing(true);
     setError(null);
     
@@ -96,7 +97,7 @@ export default function ElectricityBill({ onBack }: ElectricityBillProps) {
         provider,
         meterNumber,
         Number(amount),
-        transactionPin.join('')
+        finalPin
       );
       if (res.success) {
         setReceiptData(res.data || res);

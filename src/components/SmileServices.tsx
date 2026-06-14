@@ -53,13 +53,18 @@ export default function SmileServices({ onBack }: SmileServicesProps) {
   const plans = plansList.filter(p => p.type.toLowerCase() === activeTab.toLowerCase());
   const selectedPlan = plansList.find(p => p.id.toString() === selectedPlanId.toString());
 
-  const handleConfirmPurchase = async () => {
+  const handleConfirmPurchase = async (pinParam?: string | React.MouseEvent) => {
     if (!selectedPlan) return;
     setIsProcessing(true);
     setError(null);
     try {
+      const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+      if (!finalPin || finalPin.length !== 4) {
+        throw new Error('Please enter a valid 4-digit transaction PIN.');
+      }
+      
       const serviceType = activeTab === 'data' ? 'smile-bundle' : 'smile-airtime';
-      const res = await api.buySmile(smileId, accountType, serviceType, selectedPlan.id, transactionPin.join(''));
+      const res = await api.buySmile(smileId, accountType, serviceType, selectedPlan.id, finalPin);
       if (res.success) {
         await refreshUser();
         setStep('success');

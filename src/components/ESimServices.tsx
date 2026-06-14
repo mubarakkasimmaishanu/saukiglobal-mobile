@@ -102,10 +102,14 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
     return selectedProvider === 'kirani' ? 6000 : 2500;
   };
 
-  const handlePurchase = async () => {
+  const handlePurchase = async (pinParam?: string | React.MouseEvent) => {
     setIsProcessing(true);
     setError(null);
     try {
+      const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+      if (!finalPin || finalPin.length !== 4) {
+        throw new Error('Please enter a valid 4-digit transaction PIN.');
+      }
       const price = getPrice();
       let res;
       if (selectedProvider === 'kirani') {
@@ -117,13 +121,13 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
           client_nin: clientNin || '12345678901',
           client_currency: clientCurrency,
           client_did: clientDid,
-          pin: transactionPin.join('')
+          pin: finalPin
         });
       } else {
         res = await api.buyService('esim', price, {
           network: selectedProvider,
           email: deliveryEmail,
-          pin: transactionPin.join('')
+          pin: finalPin
         });
       }
 

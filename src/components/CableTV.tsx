@@ -133,8 +133,9 @@ export default function CableTV({ onBack }: CableTVProps) {
     }, 1500);
   };
 
-  const handlePinSubmit = async () => {
-    if (transactionPin.join('').length !== 4) return;
+  const handlePinSubmit = async (pinParam?: string | React.MouseEvent) => {
+    const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+    if (!finalPin || finalPin.length !== 4) return;
     setIsProcessing(true);
     setError(null);
     
@@ -144,7 +145,7 @@ export default function CableTV({ onBack }: CableTVProps) {
         provider,
         iucNumber,
         selectedPackage,
-        transactionPin.join(''),
+        finalPin,
         planObj ? Number(planObj.price) : 0
       );
       if (res.success) {
