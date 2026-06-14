@@ -36,7 +36,10 @@ export default function PinInput({ pin, setPin, onComplete, label, error, disabl
     }, 0);
 
     if (newPin.every(d => d !== '') && onComplete) {
-      onComplete(newPin.join(''));
+      const pinStr = newPin.join('');
+      setTimeout(() => {
+        onComplete(pinStr);
+      }, 0);
     }
   };
 
@@ -72,7 +75,10 @@ export default function PinInput({ pin, setPin, onComplete, label, error, disabl
 
     // Check if complete
     if (newPin.every(d => d !== '') && onComplete) {
-      onComplete(newPin.join(''));
+      const pinStr = newPin.join('');
+      setTimeout(() => {
+        onComplete(pinStr);
+      }, 0);
     }
   };
 

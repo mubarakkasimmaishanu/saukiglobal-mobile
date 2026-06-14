@@ -12,6 +12,7 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
   const [currentPin, setCurrentPin] = useState(['', '', '', '']);
   const [newPin, setNewPin] = useState(['', '', '', '']);
   const [confirmPin, setConfirmPin] = useState(['', '', '', '']);
+  const [currentLabel, setCurrentLabel] = useState('Enter Current 4-Digit PIN');
   
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -85,7 +86,7 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
                 pin={currentPin} 
                 setPin={setCurrentPin} 
                 onComplete={handleCurrentComplete}
-                label="Enter Current 4-Digit PIN"
+                label={currentLabel}
                 disabled={isSaving}
               />
               <button 
@@ -96,8 +97,8 @@ export default function TransactionPinSettings({ onBack }: TransactionPinSetting
                       .then((res) => {
                         setIsSaving(false);
                         if (res.success) {
-                          alert(res.message || 'Reset code sent! You can now set your new PIN.');
-                          setStep('new');
+                          alert(res.message || 'Reset code sent! Please enter the 4-digit reset code you received in the box above.');
+                          setCurrentLabel('Enter 4-Digit Reset Code');
                         } else {
                           alert(res.message || 'Failed to request PIN reset.');
                         }
