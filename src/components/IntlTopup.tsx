@@ -18,10 +18,14 @@ export default function IntlTopup({ onBack }: IntlTopupProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handlePurchase = async () => {
+  const handlePurchase = async (pinParam?: string | React.MouseEvent) => {
     setIsProcessing(true);
     try {
-      const res = await api.buyService('intl', Number(amount), { country, phone });
+      const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+      if (!finalPin || finalPin.length !== 4) {
+        throw new Error('Please enter a valid 4-digit transaction PIN.');
+      }
+      const res = await api.buyService('intl', Number(amount), { country, phone, pin: finalPin });
       if (res.success) {
         await refreshUser();
         setStep('success');

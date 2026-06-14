@@ -50,8 +50,9 @@ export default function ResultChecker({ onBack }: ResultCheckerProps) {
     setStep('pin');
   };
 
-  const handlePinSubmit = async () => {
-    if (transactionPin.join('').length !== 4) return;
+  const handlePinSubmit = async (pinParam?: string | React.MouseEvent) => {
+    const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+    if (!finalPin || finalPin.length !== 4) return;
     setIsProcessing(true);
     
     try {
@@ -65,7 +66,8 @@ export default function ResultChecker({ onBack }: ResultCheckerProps) {
         amount: totalAmount,
         status: 'Success',
         details: `${quantity}x ${exams[examType].name} PINs Generated`,
-        recipient: examType.toUpperCase()
+        recipient: examType.toUpperCase(),
+        pin: finalPin
       });
       
       await refreshUser();

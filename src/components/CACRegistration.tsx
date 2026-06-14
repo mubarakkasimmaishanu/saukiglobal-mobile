@@ -18,10 +18,14 @@ export default function CACRegistration({ onBack }: CACRegistrationProps) {
 
   const price = 25000;
 
-  const handlePurchase = async () => {
+  const handlePurchase = async (pinParam?: string | React.MouseEvent) => {
     setIsProcessing(true);
     try {
-      const res = await api.buyService('cac', price, { businessName });
+      const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+      if (!finalPin || finalPin.length !== 4) {
+        throw new Error('Please enter a valid 4-digit transaction PIN.');
+      }
+      const res = await api.buyService('cac', price, { businessName, pin: finalPin });
       if (res.success) {
         await refreshUser();
         setStep('success');

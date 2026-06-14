@@ -43,8 +43,9 @@ export default function NINPrint({ onBack }: NINPrintProps) {
     setStep('pin');
   };
 
-  const handlePinSubmit = async () => {
-    if (transactionPin.join('').length !== 4) return;
+  const handlePinSubmit = async (pinParam?: string | React.MouseEvent) => {
+    const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+    if (!finalPin || finalPin.length !== 4) return;
     setIsProcessing(true);
     
     try {
@@ -53,7 +54,8 @@ export default function NINPrint({ onBack }: NINPrintProps) {
         amount: pricing[slipType],
         status: 'Success',
         details: `NIN Print (${slipType.toUpperCase()}) for ${ninNumber}`,
-        recipient: ninNumber
+        recipient: ninNumber,
+        pin: finalPin
       });
       
       await api.addRequest({

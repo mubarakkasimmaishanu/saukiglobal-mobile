@@ -11,6 +11,7 @@ interface PinInputProps {
 
 export default function PinInput({ pin, setPin, onComplete, label, error, disabled }: PinInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const lastTriggeredPin = useRef('');
 
   useEffect(() => {
     // Focus first input on mount
@@ -18,6 +19,21 @@ export default function PinInput({ pin, setPin, onComplete, label, error, disabl
       inputRefs.current[0].focus();
     }
   }, [disabled]);
+
+  // Handle the completion event inside a useEffect hook.
+  // This guarantees that the callback is executed in a render cycle
+  // where the parent state has already updated, avoiding stale closures.
+  useEffect(() => {
+    const pinStr = pin.join('');
+    if (pinStr.length === 4 && pinStr !== lastTriggeredPin.current) {
+      lastTriggeredPin.current = pinStr;
+      if (onComplete) {
+        onComplete(pinStr);
+      }
+    } else if (pinStr.length < 4) {
+      lastTriggeredPin.current = '';
+    }
+  }, [pin, onComplete]);
 
   const handlePasteData = (data: string) => {
     const pastedData = data.replace(/\D/g, '').slice(0, 4);
@@ -34,13 +50,6 @@ export default function PinInput({ pin, setPin, onComplete, label, error, disabl
     setTimeout(() => {
       inputRefs.current[nextIndex]?.focus();
     }, 0);
-
-    if (newPin.every(d => d !== '') && onComplete) {
-      const pinStr = newPin.join('');
-      setTimeout(() => {
-        onComplete(pinStr);
-      }, 0);
-    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -70,14 +79,6 @@ export default function PinInput({ pin, setPin, onComplete, label, error, disabl
     if (index < 3 && inputRefs.current[index + 1]) {
       setTimeout(() => {
         inputRefs.current[index + 1]?.focus();
-      }, 0);
-    }
-
-    // Check if complete
-    if (newPin.every(d => d !== '') && onComplete) {
-      const pinStr = newPin.join('');
-      setTimeout(() => {
-        onComplete(pinStr);
       }, 0);
     }
   };

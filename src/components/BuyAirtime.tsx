@@ -133,18 +133,23 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
     setStep('pin');
   };
 
-  const handleConfirmPurchase = async () => {
+  const handleConfirmPurchase = async (pinParam?: string | React.MouseEvent) => {
     setIsProcessing(true);
     setError(null);
     try {
       const activeNet = networksList.find((n) => n.id === selectedNetworkId);
       const networkParam = activeNet ? activeNet.id : (detectedNetwork?.id || '1');
+      
+      const finalPin = typeof pinParam === 'string' ? pinParam : transactionPin.join('');
+      if (!finalPin || finalPin.length !== 4) {
+        throw new Error('Please enter a valid 4-digit transaction PIN.');
+      }
 
       const res = await api.buyAirtime(
         networkParam,
         Number(amount),
         phone,
-        transactionPin.join('')
+        finalPin
       );
 
       if (res.success) {
