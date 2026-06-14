@@ -34,10 +34,18 @@ export default function Notifications({ onBack }: NotificationsProps) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null);
 
   useEffect(() => {
     fetchNotifications();
   }, []);
+
+  const handleSelectNotification = (notification: NotificationItem) => {
+    setSelectedNotification(notification);
+    if (!notification.isRead) {
+      markAsRead(notification.id);
+    }
+  };
 
   const fetchNotifications = async () => {
     setIsLoading(true);
@@ -45,17 +53,13 @@ export default function Notifications({ onBack }: NotificationsProps) {
     try {
       const res = await api.getNotifications();
       if (res.success && res.data && Array.isArray(res.data.notifications)) {
-        // Read read list from localStorage
-        const readIdsStr = localStorage.getItem('saukiglobal_read_notifs') || '[]';
-        const readIds = JSON.parse(readIdsStr) as number[];
-
         const mappedNotifs: NotificationItem[] = res.data.notifications.map((n: any) => ({
           id: Number(n.id),
           title: n.title || 'Broadcast Update',
           message: n.message || '',
           upload_path: n.upload_path || null,
           created_at: n.created_at || '',
-          isRead: readIds.includes(Number(n.id))
+          isRead: Number(n.is_read) === 1
         }));
 
         setNotifications(mappedNotifs);
@@ -69,45 +73,29 @@ export default function Notifications({ onBack }: NotificationsProps) {
     }
   };
 
-  const getReadIds = (): number[] => {
-    try {
-      return JSON.parse(localStorage.getItem('saukiglobal_read_notifs') || '[]') as number[];
-    } catch {
-      return [];
-    }
-  };
-
-  const saveReadIds = (ids: number[]) => {
-    localStorage.setItem('saukiglobal_read_notifs', JSON.stringify(ids));
-  };
-
   // Mark single notification as read
-  const markAsRead = (id: number) => {
-    const readIds = getReadIds();
-    if (!readIds.includes(id)) {
-      const updatedIds = [...readIds, id];
-      saveReadIds(updatedIds);
-      
-      setNotifications(prev =>
-        prev.map(n => n.id === id ? { ...n, isRead: true } : n)
-      );
+  const markAsRead = async (id: number) => {
+    // Optimistically update UI
+    setNotifications(prev =>
+      prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+    );
+    try {
+      await api.markNotificationAsRead(id);
+    } catch (err) {
+      console.error("Failed to mark notification as read on server:", err);
     }
   };
 
   // Mark all currently loaded notifications as read
-  const markAllAsRead = () => {
-    const readIds = getReadIds();
-    const loadedUnreadIds = notifications
-      .filter(n => !n.isRead)
-      .map(n => n.id);
-
-    if (loadedUnreadIds.length > 0) {
-      const updatedIds = [...new Set([...readIds, ...loadedUnreadIds])];
-      saveReadIds(updatedIds);
-      
-      setNotifications(prev =>
-        prev.map(n => ({ ...n, isRead: true }))
-      );
+  const markAllAsRead = async () => {
+    // Optimistically update UI
+    setNotifications(prev =>
+      prev.map(n => ({ ...n, isRead: true }))
+    );
+    try {
+      await api.markAllNotificationsAsRead();
+    } catch (err) {
+      console.error("Failed to mark all notifications as read on server:", err);
     }
   };
 
@@ -174,6 +162,79 @@ export default function Notifications({ onBack }: NotificationsProps) {
     }
     return `https://saukiglobal.com/${cleanPath}`;
   };
+
+  if (selectedNotification) {
+    const config = getIconAndColor(selectedNotification.title, selectedNotification.message);
+    const Icon = config.icon;
+
+    return (
+      <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient pb-12">
+        <div className="max-w-md mx-auto relative px-6">
+          {/* Header */}
+          <header className="pt-8 pb-4 bg-[#111415]/80 backdrop-blur-md sticky top-0 z-20 border-b border-white/5 flex items-center gap-4">
+            <button 
+              onClick={() => setSelectedNotification(null)}
+              className="w-10 h-10 glass-panel flex items-center justify-center hover:bg-white/10"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <h1 className="text-lg font-bold tracking-tight">Alert Detail</h1>
+          </header>
+
+          <div className="mt-6 animate-in slide-in-from-bottom-4 duration-500">
+            <div className="glass-panel p-6 border-white/5 bg-white/[0.02] relative overflow-hidden">
+              {/* Top info row */}
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${config.bg} ${config.color}`}>
+                    <Icon size={18} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-zinc-500 uppercase font-black tracking-wider block">Sender</span>
+                    <span className="text-xs font-black text-white uppercase tracking-widest">SaukiGlobal Admin</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-[9px] font-bold text-[#e1e3e4]/45 uppercase tracking-wider">
+                  <Clock size={11} /> {formatRelativeTime(selectedNotification.created_at)}
+                </div>
+              </div>
+
+              {/* Title & Body */}
+              <h2 className="text-xl font-black text-white mb-4 leading-tight tracking-tight break-words">
+                {selectedNotification.title}
+              </h2>
+              
+              <p className="text-sm leading-relaxed text-[#e1e3e4]/85 mb-6 whitespace-pre-wrap break-words">
+                {selectedNotification.message}
+              </p>
+
+              {/* Large banner attachment */}
+              {selectedNotification.upload_path && (
+                <div className="rounded-2xl overflow-hidden border border-white/5 bg-black/20 shadow-xl max-h-96 flex items-center justify-center mt-6">
+                  <img 
+                    src={getImageUrl(selectedNotification.upload_path)} 
+                    alt="Alert attachment" 
+                    className="object-contain w-full h-full max-h-96"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Back Button */}
+            <button 
+              onClick={() => setSelectedNotification(null)}
+              className="w-full btn-primary py-4 mt-6 text-xs uppercase tracking-widest font-black"
+            >
+              Back to Alerts
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient pb-12">
@@ -268,12 +329,12 @@ export default function Notifications({ onBack }: NotificationsProps) {
                 return (
                   <div 
                     key={notification.id} 
-                    className={`glass-panel p-5 flex gap-4 transition-all relative overflow-hidden ${
+                    className={`glass-panel p-5 flex gap-4 transition-all relative overflow-hidden cursor-pointer hover:bg-white/[0.05] ${
                       !notification.isRead 
                         ? 'border-[#66df75]/20 bg-white/[0.03]' 
                         : 'border-white/5 opacity-60'
                     }`}
-                    onClick={() => markAsRead(notification.id)}
+                    onClick={() => handleSelectNotification(notification)}
                   >
                     {/* Glowing highlight for unread */}
                     {!notification.isRead && (

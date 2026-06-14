@@ -557,5 +557,43 @@ export const api = {
     return request('notifications.php?action=list', {
       method: 'GET'
     });
+  },
+
+  getUnreadNotificationsCount: async (): Promise<ApiResponse<{ unread_count: number }>> => {
+    return request('notifications.php?action=unread_count', {
+      method: 'GET'
+    });
+  },
+
+  markNotificationAsRead: async (id: number): Promise<ApiResponse> => {
+    return request('notifications.php?action=read', {
+      method: 'POST',
+      body: JSON.stringify({ id })
+    });
+  },
+
+  markAllNotificationsAsRead: async (): Promise<ApiResponse> => {
+    return request('notifications.php?action=read_all', {
+      method: 'POST'
+    });
+  },
+
+  getKiraniAvailableDids: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getKiraniAvailableDids', {
+      method: 'POST'
+    });
+  },
+
+  getEsimStatuses: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getEsimStatuses', {
+      method: 'POST'
+    });
+  },
+
+  registerKiraniEsimClient: async (details: any): Promise<ApiResponse> => {
+    return request('services.php?action=registerKiraniEsimClient', {
+      method: 'POST',
+      body: JSON.stringify(details)
+    });
   }
 };
