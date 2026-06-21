@@ -578,6 +578,13 @@ export const api = {
     });
   },
 
+  updateFcmToken: async (fcmToken: string): Promise<ApiResponse> => {
+    return request('notifications.php?action=update_fcm_token', {
+      method: 'POST',
+      body: JSON.stringify({ fcm_token: fcmToken })
+    });
+  },
+
   getKiraniAvailableDids: async (): Promise<ApiResponse> => {
     return request('services.php?action=getKiraniAvailableDids', {
       method: 'POST'

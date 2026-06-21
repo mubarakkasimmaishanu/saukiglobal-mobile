@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Zap,
   RefreshCcw,
+  RefreshCw,
   Cpu,
   Globe2,
   Briefcase,
@@ -34,13 +35,19 @@ interface UserDashboardProps {
 }
 
 export default function UserDashboard({ onNavigate }: UserDashboardProps) {
-  const { user } = useUser();
+  const { user, refreshUser } = useUser();
   const [showBalance, setShowBalance] = useState(true);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [virtualAccounts, setVirtualAccounts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [greeting, setGreeting] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // Pull to Refresh & Manual Refresh States
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [refreshState, setRefreshState] = useState<'idle' | 'pulling' | 'refreshing'>('idle');
 
   // KYC States
   const [showKycModal, setShowKycModal] = useState(false);
@@ -53,51 +60,111 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   // Copy Feedback State
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
+  const fetchTransactions = async () => {
+    try {
+      const txs = await api.getTransactions();
+      if (Array.isArray(txs)) {
+        setRecentTransactions(txs.slice(0, 5));
+      }
+    } catch (err) {
+      console.error("Failed to fetch transactions:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchVirtualAccounts = async () => {
+    try {
+      const res = await api.getVirtualAccounts();
+      if (res.success && Array.isArray(res.data)) {
+        setVirtualAccounts(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch virtual accounts:", err);
+    }
+  };
+
+  const fetchNotificationsCount = async () => {
+    try {
+      const res = await api.getUnreadNotificationsCount();
+      if (res.success && res.data) {
+        setUnreadCount(res.data.unread_count);
+      }
+    } catch (err) {
+      console.error("Failed to fetch notifications count:", err);
+    }
+  };
+
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('Good morning');
     else if (hour < 17) setGreeting('Good afternoon');
     else setGreeting('Good evening');
 
-    const fetchTransactions = async () => {
-      try {
-        const txs = await api.getTransactions();
-        if (Array.isArray(txs)) {
-          setRecentTransactions(txs.slice(0, 5));
-        }
-      } catch (err) {
-        console.error("Failed to fetch transactions:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    const fetchVirtualAccounts = async () => {
-      try {
-        const res = await api.getVirtualAccounts();
-        if (res.success && Array.isArray(res.data)) {
-          setVirtualAccounts(res.data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch virtual accounts:", err);
-      }
-    };
-
-    const fetchNotificationsCount = async () => {
-      try {
-        const res = await api.getUnreadNotificationsCount();
-        if (res.success && res.data) {
-          setUnreadCount(res.data.unread_count);
-        }
-      } catch (err) {
-        console.error("Failed to fetch notifications count:", err);
-      }
-    };
-
     fetchTransactions();
     fetchVirtualAccounts();
     fetchNotificationsCount();
   }, []);
+
+  const triggerRefresh = async (fromPull = false) => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    if (fromPull) {
+      setRefreshState('refreshing');
+      setPullDistance(60);
+    }
+    try {
+      await Promise.all([
+        refreshUser(),
+        fetchTransactions(),
+        fetchVirtualAccounts(),
+        fetchNotificationsCount(),
+      ]);
+    } catch (err) {
+      console.error("Refresh failed:", err);
+    } finally {
+      setIsRefreshing(false);
+      if (fromPull) {
+        setRefreshState('idle');
+        setPullDistance(0);
+      }
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (window.scrollY === 0 && !isRefreshing) {
+      setStartY(e.touches[0].clientY);
+      setRefreshState('pulling');
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (refreshState === 'pulling') {
+      const currentY = e.touches[0].clientY;
+      const diff = currentY - startY;
+      if (diff > 0) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+        const distance = Math.min(diff * 0.4, 90);
+        setPullDistance(distance);
+      } else {
+        setPullDistance(0);
+        setRefreshState('idle');
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (refreshState === 'pulling') {
+      if (pullDistance >= 60) {
+        triggerRefresh(true);
+      } else {
+        setPullDistance(0);
+        setRefreshState('idle');
+      }
+    }
+  };
 
   const handleCopy = (num: string) => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -216,7 +283,32 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient pb-24">
+    <div 
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans mesh-gradient pb-24 relative overflow-x-hidden"
+    >
+      {/* Pull-to-refresh spinner */}
+      {pullDistance > 0 && (
+        <div 
+          className="fixed top-6 left-0 right-0 flex items-center justify-center pointer-events-none z-50 transition-transform duration-75"
+          style={{ 
+            transform: `translateY(${pullDistance}px)` 
+          }}
+        >
+          <div className="bg-[#1a1e20] border border-[#66df75]/25 shadow-[0_8px_24px_rgba(0,0,0,0.6)] rounded-full p-2.5 flex items-center justify-center">
+            <RefreshCw 
+              size={18} 
+              className={`text-[#66df75] ${refreshState === 'refreshing' ? 'animate-spin' : ''}`}
+              style={{ 
+                transform: refreshState !== 'refreshing' ? `rotate(${pullDistance * 5}deg)` : undefined 
+              }} 
+            />
+          </div>
+        </div>
+      )}
+
       <div className="max-w-md mx-auto relative px-6">
         
         {/* Header */}
@@ -228,17 +320,27 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               <h1 className="text-base font-bold text-white tracking-tight">{user?.firstName || 'User'}</h1>
             </div>
           </div>
-          <button
-            onClick={() => onNavigate('notifications')}
-            className="w-10 h-10 glass-panel flex items-center justify-center relative hover:bg-white/10 transition-colors"
-          >
-            <Bell size={18} className="text-[#e1e3e4]" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#ef4444] text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border border-[#111415] shadow-[0_0_10px_#ef4444] animate-in zoom-in-50 duration-200">
-                {unreadCount}
-              </span>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => triggerRefresh(false)}
+              disabled={isRefreshing}
+              className="w-10 h-10 glass-panel flex items-center justify-center hover:bg-white/10 transition-colors active:scale-95"
+              title="Refresh Data"
+            >
+              <RefreshCw size={16} className={`text-[#e1e3e4] ${isRefreshing && refreshState !== 'refreshing' ? 'animate-spin text-[#66df75]' : ''}`} />
+            </button>
+            <button
+              onClick={() => onNavigate('notifications')}
+              className="w-10 h-10 glass-panel flex items-center justify-center relative hover:bg-white/10 transition-colors active:scale-95"
+            >
+              <Bell size={18} className="text-[#e1e3e4]" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#ef4444] text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border border-[#111415] shadow-[0_0_10px_#ef4444] animate-in zoom-in-50 duration-200">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
         </header>
  
         {/* Balance Card */}

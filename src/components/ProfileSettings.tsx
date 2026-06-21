@@ -173,6 +173,35 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
           />
         </SettingsGroup>
 
+        {/* Developer / Debug Info */}
+        {localStorage.getItem('saukiglobal_fcm_token') && (
+          <SettingsGroup title="Developer / Debug Info">
+            <div className="p-4 text-xs font-mono break-all select-all text-white/50 bg-black/35 rounded-2xl border border-white/5 space-y-2">
+              <div className="text-[9px] font-black uppercase text-[#66df75] tracking-widest">FCM Device Token</div>
+              <div className="text-[10px] select-all leading-normal text-white/70">{localStorage.getItem('saukiglobal_fcm_token')}</div>
+              <button 
+                onClick={() => {
+                  const token = localStorage.getItem('saukiglobal_fcm_token') || '';
+                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(token).then(() => alert('FCM Token copied to clipboard!'));
+                  } else {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = token;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('FCM Token copied to clipboard!');
+                  }
+                }}
+                className="text-[10px] text-[#66df75] hover:text-[#52c860] active:scale-95 transition-all underline uppercase tracking-widest font-black pt-1 block"
+              >
+                Copy Token
+              </button>
+            </div>
+          </SettingsGroup>
+        )}
+
         {/* Logout Button */}
         <button
           onClick={() => {
