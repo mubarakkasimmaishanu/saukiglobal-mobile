@@ -40,6 +40,14 @@ export default function App() {
     setIsInitializing(false);
   }, []);
 
+  useEffect(() => {
+    if (currentView !== 'landing' && currentView !== 'login' && currentView !== 'signup' && !isInitializing) {
+      import('./services/pushNotifications').then(({ initPushNotifications }) => {
+        initPushNotifications(navigateTo);
+      });
+    }
+  }, [currentView, isInitializing]);
+
   const navigateTo = (view: View) => {
     setCurrentView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
