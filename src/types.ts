@@ -30,6 +30,7 @@ export interface Transaction {
   recipient?: string;
   network?: string;
   profit?: number; // Reseller profit margin
+  service_name?: string;
 }
 
 export interface DataPlan {
