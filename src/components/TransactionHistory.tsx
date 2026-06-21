@@ -35,6 +35,55 @@ interface TransactionHistoryProps {
   onBack: () => void;
 }
 
+const cleanErrorMessage = (details: string): string => {
+  if (!details) return 'Unknown error occurred';
+
+  if (details.includes('<html') || details.includes('<!DOCTYPE') || details.includes('<body') || details.includes('<div')) {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(details, 'text/html');
+      
+      const h1 = doc.querySelector('h1')?.textContent?.trim();
+      const h2 = doc.querySelector('h2')?.textContent?.trim();
+      const p = doc.querySelector('p')?.textContent?.trim();
+      const title = doc.title?.trim();
+
+      let error = '';
+      if (h1 && h2) {
+        error = `${h1}: ${h2}`;
+      } else if (h1) {
+        error = h1;
+      } else if (h2) {
+        error = h2;
+      } else if (title) {
+        error = title;
+      } else if (p) {
+        error = p;
+      } else {
+        error = doc.body?.textContent?.trim() || 'Internal Server Error';
+      }
+
+      error = error.replace(/\s+/g, ' ').trim();
+      if (error.length > 150) {
+        error = error.substring(0, 150) + '...';
+      }
+      return error || 'Internal Server Error';
+    } catch (e) {
+      return 'Method Not Allowed (405)';
+    }
+  }
+
+  if (details.includes('Last API log:')) {
+    const parts = details.split('Last API log:');
+    if (parts.length > 1) {
+      const logPart = parts[1].split('. REFUNDED')[0].trim();
+      if (logPart.length > 0) return logPart;
+    }
+  }
+
+  return details;
+};
+
 export default function TransactionHistory({ onBack }: TransactionHistoryProps) {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'in', 'out'
@@ -136,12 +185,12 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
           <div className="fixed inset-0 z-[60] flex items-end justify-center px-6 pb-12 animate-in fade-in duration-300">
             <div className="absolute inset-0 bg-[#111415]/80 backdrop-blur-md" onClick={() => setSelectedTx(null)}></div>
             
-            <div className="w-full max-w-sm glass-panel p-8 relative overflow-hidden animate-in slide-in-from-bottom-8 duration-500 border-emerald-500/20">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#66df75] to-transparent"></div>
+            <div className={`w-full max-w-sm glass-panel p-8 relative overflow-hidden animate-in slide-in-from-bottom-8 duration-500 ${selectedTx.status === 'Failed' ? 'border-red-500/20' : 'border-emerald-500/20'}`}>
+              <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent ${selectedTx.status === 'Failed' ? 'via-[#ef4444]' : 'via-[#66df75]'} to-transparent`}></div>
               
               <div className="flex justify-between items-center mb-10">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-[#66df75] rounded-md flex items-center justify-center text-[#111415]">
+                  <div className={`w-6 h-6 ${selectedTx.status === 'Failed' ? 'bg-[#ef4444]' : 'bg-[#66df75]'} rounded-md flex items-center justify-center text-[#111415]`}>
                     <ShieldCheck size={14} />
                   </div>
                   <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Transaction Receipt</span>
@@ -153,7 +202,7 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
 
               <div className="text-center mb-10">
                 <div className="w-20 h-20 bg-[#111415] rounded-full border border-white/5 flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                  {React.createElement(getIconForType(selectedTx.type), { size: 32, className: "text-[#66df75]" })}
+                  {React.createElement(getIconForType(selectedTx.type), { size: 32, className: selectedTx.status === 'Failed' ? "text-[#ef4444]" : "text-[#66df75]" })}
                 </div>
                 <p className="text-[10px] font-black text-[#e1e3e4]/30 uppercase tracking-[0.3em] mb-2">Total Amount</p>
                 <h2 className="text-4xl font-black text-white tracking-tighter">₦{selectedTx.amount.toLocaleString()}</h2>
@@ -166,8 +215,22 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
               <div className="space-y-5 mb-10">
                 <div className="flex justify-between items-center py-2 border-b border-white/5">
                   <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Recipient</span>
-                  <span className="text-xs font-bold text-white text-right">{selectedTx.details}</span>
+                  <span className="text-xs font-bold text-white text-right">
+                    {selectedTx.status === 'Failed'
+                      ? (selectedTx.service_name 
+                          ? `${selectedTx.service_name}${selectedTx.recipient ? ` (${selectedTx.recipient})` : ''}`
+                          : (selectedTx.recipient || 'N/A')
+                        )
+                      : selectedTx.details
+                    }
+                  </span>
                 </div>
+                {selectedTx.status === 'Failed' && (
+                  <div className="flex justify-between items-center py-2 border-b border-white/5 animate-in fade-in duration-300">
+                    <span className="text-[10px] font-black text-[#ef4444]/60 uppercase tracking-widest">Failure Reason</span>
+                    <span className="text-xs font-bold text-[#ef4444] text-right max-w-[60%]">{cleanErrorMessage(selectedTx.details)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center py-2 border-b border-white/5">
                   <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Date</span>
                   <span className="text-xs font-bold text-white">{selectedTx.date}</span>
