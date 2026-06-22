@@ -34,6 +34,7 @@ export interface Transaction {
   service_name?: string;
   cashback_earned?: number;
   payment_method?: 'wallet' | 'cashback' | 'combined';
+  raw_response?: { phone: string; password: string };
 }
 
 export interface DataPlan {

@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 interface LandingPageProps {
   onGetStarted: () => void;
   onSignIn: () => void;
+  onPrivacy?: () => void;
+  onTerms?: () => void;
 }
 
-export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
+export default function LandingPage({ onGetStarted, onSignIn, onPrivacy, onTerms }: LandingPageProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -88,6 +90,25 @@ export default function LandingPage({ onGetStarted, onSignIn }: LandingPageProps
               className="w-full py-4 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-[1.02] active:scale-95 transition-all"
             >
               Create Account
+            </button>
+          </div>
+        )}
+
+        {/* Legal Links */}
+        {!loading && (
+          <div className="flex items-center justify-center gap-3 mt-6 animate-in fade-in duration-700">
+            <button
+              onClick={onPrivacy}
+              className="text-[9px] text-[#e1e3e4]/30 hover:text-[#66df75]/60 font-bold uppercase tracking-widest transition-colors"
+            >
+              Privacy Policy
+            </button>
+            <span className="w-1 h-1 rounded-full bg-[#e1e3e4]/15"></span>
+            <button
+              onClick={onTerms}
+              className="text-[9px] text-[#e1e3e4]/30 hover:text-[#66df75]/60 font-bold uppercase tracking-widest transition-colors"
+            >
+              Terms of Service
             </button>
           </div>
         )}

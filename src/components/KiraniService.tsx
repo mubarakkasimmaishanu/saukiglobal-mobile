@@ -249,7 +249,7 @@ export default function KiraniService({ onBack }: KiraniServiceProps) {
               <div className="w-20 h-20 bg-[#66df75] text-[#111415] rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 size={40} />
               </div>
-              <h2 className="text-2xl font-black text-white mb-1">eSIM Activated</h2>
+              <h2 className="text-2xl font-black text-white mb-1">Purchase Successful</h2>
               <p className="text-[10px] text-[#66df75] font-black uppercase tracking-[0.3em] mb-8">Kirani eSIM Order Completed</p>
               <div className="space-y-4 text-left my-8 bg-white/5 p-6 rounded-2xl border border-white/5">
                 <div className="flex justify-between items-center py-2 border-b border-white/5">

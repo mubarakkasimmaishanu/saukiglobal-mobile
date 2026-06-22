@@ -170,6 +170,12 @@ export const api = {
     });
   },
 
+  getAppConfig: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getAppConfig', {
+      method: 'POST'
+    });
+  },
+
   getVirtualAccounts: async (): Promise<ApiResponse> => {
     return request('services.php?action=getVirtualAccounts', {
       method: 'POST'
@@ -617,6 +623,13 @@ export const api = {
     return request('services.php?action=registerKiraniEsimClient', {
       method: 'POST',
       body: JSON.stringify(details)
+    });
+  },
+
+  deleteAccount: async (password: string): Promise<ApiResponse> => {
+    return request('services.php?action=delete_account', {
+      method: 'POST',
+      body: JSON.stringify({ password })
     });
   }
 };

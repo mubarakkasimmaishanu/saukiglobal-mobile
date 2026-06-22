@@ -7,10 +7,14 @@ import {
   LogOut,
   Award,
   CheckCircle2,
-  ChevronLeft
+  ChevronLeft,
+  FileText,
+  Trash2
 } from 'lucide-react';
 import SecurityPassword from './profile/SecurityPassword';
 import TransactionPinSettings from './profile/TransactionPinSettings';
+import DeleteAccount from './profile/DeleteAccount';
+import PrivacyTerms from './PrivacyTerms';
 import { useUser } from '../context/UserContext';
 
 interface ProfileSettingsProps {
@@ -20,7 +24,7 @@ interface ProfileSettingsProps {
   onViewSupport: () => void;
 }
 
-type ProfileView = 'main' | 'personal' | 'password' | 'pin';
+type ProfileView = 'main' | 'personal' | 'password' | 'pin' | 'privacy' | 'terms' | 'delete';
 
 export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport }: ProfileSettingsProps) {
   const { user, loading, logout } = useUser();
@@ -85,6 +89,26 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
 
   if (currentView === 'pin') {
     return <TransactionPinSettings onBack={() => setCurrentView('main')} />;
+  }
+
+  if (currentView === 'privacy') {
+    return <PrivacyTerms mode="privacy" onBack={() => setCurrentView('main')} />;
+  }
+
+  if (currentView === 'terms') {
+    return <PrivacyTerms mode="terms" onBack={() => setCurrentView('main')} />;
+  }
+
+  if (currentView === 'delete') {
+    return (
+      <DeleteAccount
+        onBack={() => setCurrentView('main')}
+        onDeleted={() => {
+          logout();
+          onLogout();
+        }}
+      />
+    );
   }
 
   return (
@@ -173,6 +197,35 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
           />
         </SettingsGroup>
 
+        <SettingsGroup title="Legal">
+          <SettingsItem
+            icon={Shield}
+            title="Privacy Policy"
+            subtitle="How we collect and use your data"
+            bg="bg-emerald-500/10" color="text-emerald-400"
+            onClick={() => setCurrentView('privacy')}
+          />
+          <SettingsItem
+            icon={FileText}
+            title="Terms of Service"
+            subtitle="Rules and guidelines for using SaukiGlobal"
+            bg="bg-blue-500/10" color="text-blue-400"
+            isLast={true}
+            onClick={() => setCurrentView('terms')}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title="Danger Zone">
+          <SettingsItem
+            icon={Trash2}
+            title="Delete Account"
+            subtitle="Permanently remove your account and data"
+            bg="bg-red-500/10" color="text-red-400"
+            isLast={true}
+            onClick={() => setCurrentView('delete')}
+          />
+        </SettingsGroup>
+
         {/* Developer / Debug Info */}
         {localStorage.getItem('saukiglobal_fcm_token') && (
           <SettingsGroup title="Developer / Debug Info">
@@ -215,7 +268,7 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
         </button>
 
         <p className="text-center text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-[0.2em] mb-4">
-          SaukiGlobal v2.0.1 • Crafted in Nigeria
+          SaukiGlobal v1.0 • Crafted in Nigeria
         </p>
 
       </div>

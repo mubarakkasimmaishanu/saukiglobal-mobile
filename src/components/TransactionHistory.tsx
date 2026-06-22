@@ -245,6 +245,18 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
                   <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Reference</span>
                   <span className="text-[10px] font-mono font-bold text-white/60">{selectedTx.id}</span>
                 </div>
+                {selectedTx.raw_response && selectedTx.raw_response.phone && selectedTx.raw_response.password ? (
+                  <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
+                    <p className="text-[10px] font-black text-[#66df75] uppercase tracking-widest text-center">Smile E-SIM Credentials</p>
+                    <div className="bg-[#66df75]/10 border border-[#66df75]/20 rounded-xl p-3 flex flex-col items-center gap-1.5">
+                      <span className="text-[9px] font-black text-[#66df75]/80 uppercase tracking-widest">Smile Number</span>
+                      <span className="text-lg font-black text-white font-mono tracking-wider select-all">{selectedTx.raw_response.phone}</span>
+                      <div className="w-full h-px bg-[#66df75]/20 my-1"></div>
+                      <span className="text-[9px] font-black text-[#66df75]/80 uppercase tracking-widest">Password</span>
+                      <span className="text-sm font-bold text-white font-mono tracking-wider select-all">{selectedTx.raw_response.password}</span>
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
