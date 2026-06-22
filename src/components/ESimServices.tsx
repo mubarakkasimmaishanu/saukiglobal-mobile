@@ -159,7 +159,7 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
 
   const getHeaderIcon = () => {
     if (step === 'form' && selectedProvider === 'kirani') {
-      return '/icons/kirani.png';
+      return '/icons/kirani%20icon.png';
     }
     return '/icons/esim.png';
   };
@@ -216,7 +216,7 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
                 }`}
               >
                 <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center p-2 overflow-hidden shrink-0">
-                  <img src="/icons/kirani.png" alt="Kirani" className="w-full h-full object-contain rounded-md" onError={(e) => { (e.target as HTMLImageElement).src = '/icons/others.png' }} />
+                  <img src="/icons/kirani%20icon.png" alt="Kirani" className="w-full h-full object-contain rounded-md" onError={(e) => { (e.target as HTMLImageElement).src = '/icons/others.png' }} />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-white">Kirani eSIM</h3>

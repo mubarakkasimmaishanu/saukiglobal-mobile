@@ -28,8 +28,22 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     ...options.headers,
   };
 
+  let finalOptions = { ...options };
+  if (options.method === 'POST' && typeof options.body === 'string' && endpoint.startsWith('services.php')) {
+    try {
+      const parsedBody = JSON.parse(options.body);
+      const pm = localStorage.getItem('selected_payment_method');
+      if (pm) {
+        parsedBody.payment_method = pm;
+        finalOptions.body = JSON.stringify(parsedBody);
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
+
   const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
+    ...finalOptions,
     headers,
   });
 
@@ -499,11 +513,13 @@ export const api = {
       
       const balance = stats.wallet?.balance !== undefined ? Number(stats.wallet.balance) : (cachedUser.balance || 0);
       const commissionBalance = stats.wallet?.referral_commission !== undefined ? Number(stats.wallet.referral_commission) : (cachedUser.commissionBalance || 0);
+      const cashback = stats.wallet?.cashback !== undefined ? Number(stats.wallet.cashback) : (cachedUser.cashback || 0);
 
       return {
         ...cachedUser,
         balance,
         commissionBalance,
+        cashback,
         isReseller: stats.tier === 'Reseller' || stats.tier === 'Reseller Pro',
         kycStatus: stats.kyc_status,
         tier: stats.tier

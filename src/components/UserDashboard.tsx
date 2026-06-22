@@ -362,9 +362,15 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
                   {showBalance ? <Eye size={14} /> : <EyeOff size={14} />}
                 </button>
               </div>
-              <h2 className="text-3xl font-black tracking-tight text-white">
+              <h2 className="text-3xl font-black tracking-tight text-white mb-1">
                 {showBalance ? `₦${(user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••••••'}
               </h2>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold text-[#e1e3e4]/50 uppercase tracking-widest">Cashback:</span>
+                <span className="text-[11px] font-black text-[#66df75] tracking-widest">
+                  {showBalance ? `₦${(user.cashback || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••'}
+                </span>
+              </div>
             </div>
             <button
               onClick={() => onNavigate('fund')}
