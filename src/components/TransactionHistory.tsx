@@ -231,6 +231,12 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
                     <span className="text-xs font-bold text-[#ef4444] text-right max-w-[60%]">{cleanErrorMessage(selectedTx.details)}</span>
                   </div>
                 )}
+                {selectedTx.cashback_earned && selectedTx.cashback_earned > 0 ? (
+                  <div className="flex justify-between items-center py-2 border-b border-white/5">
+                    <span className="text-[10px] font-black text-[#66df75]/60 uppercase tracking-widest">Cashback Earned</span>
+                    <span className="text-xs font-bold text-[#66df75] text-right">₦{selectedTx.cashback_earned.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                ) : null}
                 <div className="flex justify-between items-center py-2 border-b border-white/5">
                   <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Date</span>
                   <span className="text-xs font-bold text-white">{selectedTx.date}</span>

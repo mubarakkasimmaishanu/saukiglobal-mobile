@@ -11,6 +11,7 @@ export interface User {
   referralCode: string;
   isReseller: boolean;
   // Commission & Tier fields
+  cashback?: number;
   commissionBalance?: number;
   totalEarnings?: number;
   totalReferrals?: number;
@@ -31,6 +32,8 @@ export interface Transaction {
   network?: string;
   profit?: number; // Reseller profit margin
   service_name?: string;
+  cashback_earned?: number;
+  payment_method?: 'wallet' | 'cashback' | 'combined';
 }
 
 export interface DataPlan {
