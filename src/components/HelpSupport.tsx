@@ -39,10 +39,11 @@ export default function HelpSupport({ onBack }: HelpSupportProps) {
   // Transaction History for Dispute Helper
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
+  const [appConfig, setAppConfig] = useState<any>(null);
 
   // Fetch transactions on mount for easy auto-filling
   useEffect(() => {
-    const fetchTransactions = async () => {
+    const fetchData = async () => {
       try {
         const txs = await api.getTransactions(10);
         setTransactions(txs);
@@ -51,8 +52,15 @@ export default function HelpSupport({ onBack }: HelpSupportProps) {
       } finally {
         setIsLoadingTransactions(false);
       }
+      
+      try {
+        const configRes = await api.getAppConfig();
+        if (configRes.success) setAppConfig(configRes.data);
+      } catch (err) {
+        console.error('Failed to load app config', err);
+      }
     };
-    fetchTransactions();
+    fetchData();
   }, []);
 
   // FAQs
@@ -189,37 +197,96 @@ export default function HelpSupport({ onBack }: HelpSupportProps) {
         {/* Tab Contents */}
         {activeTab === 'contact' && (
           <div className="space-y-6 animate-in slide-in-from-left-4 duration-300">
-            {/* WhatsApp Card */}
-            <a 
-              href="https://wa.me/2349068500544" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="glass-panel p-5 flex items-center gap-4 hover:bg-white/5 transition-all group border-emerald-500/10"
-            >
-              <div className="w-12 h-12 rounded-xl bg-[#25D366]/10 text-[#25D366] flex items-center justify-center flex-shrink-0">
-                <MessageCircle size={22} />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-white text-sm">WhatsApp Support</h3>
-                <p className="text-[10px] text-[#e1e3e4]/50 mt-0.5">Fastest response (3-5 mins) • +234 906 850 0544</p>
-              </div>
-              <ChevronRight size={18} className="text-[#e1e3e4]/30 group-hover:text-[#25D366] group-hover:translate-x-0.5 transition-all" />
-            </a>
+            {/* WhatsApp Cards */}
+            {appConfig?.whatsapp && (
+              <a 
+                href={`https://wa.me/${appConfig.whatsapp.replace(/[^0-9]/g, '')}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="glass-panel p-5 flex items-center gap-4 hover:bg-white/5 transition-all group border-emerald-500/10"
+              >
+                <div className="w-12 h-12 rounded-xl bg-[#25D366]/10 text-[#25D366] flex items-center justify-center flex-shrink-0">
+                  <MessageCircle size={22} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white text-sm">WhatsApp Support 1</h3>
+                  <p className="text-[10px] text-[#e1e3e4]/50 mt-0.5">Fastest response (3-5 mins) • {appConfig.whatsapp}</p>
+                </div>
+                <ChevronRight size={18} className="text-[#e1e3e4]/30 group-hover:text-[#25D366] group-hover:translate-x-0.5 transition-all" />
+              </a>
+            )}
+
+            {appConfig?.whatsapp2 && (
+              <a 
+                href={`https://wa.me/${appConfig.whatsapp2.replace(/[^0-9]/g, '')}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="glass-panel p-5 flex items-center gap-4 hover:bg-white/5 transition-all group border-emerald-500/10"
+              >
+                <div className="w-12 h-12 rounded-xl bg-[#25D366]/10 text-[#25D366] flex items-center justify-center flex-shrink-0">
+                  <MessageCircle size={22} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white text-sm">WhatsApp Support 2</h3>
+                  <p className="text-[10px] text-[#e1e3e4]/50 mt-0.5">Alternative line • {appConfig.whatsapp2}</p>
+                </div>
+                <ChevronRight size={18} className="text-[#e1e3e4]/30 group-hover:text-[#25D366] group-hover:translate-x-0.5 transition-all" />
+              </a>
+            )}
+
+            {appConfig?.whatsapp3 && (
+              <a 
+                href={`https://wa.me/${appConfig.whatsapp3.replace(/[^0-9]/g, '')}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="glass-panel p-5 flex items-center gap-4 hover:bg-white/5 transition-all group border-emerald-500/10"
+              >
+                <div className="w-12 h-12 rounded-xl bg-[#25D366]/10 text-[#25D366] flex items-center justify-center flex-shrink-0">
+                  <MessageCircle size={22} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white text-sm">WhatsApp Support 3</h3>
+                  <p className="text-[10px] text-[#e1e3e4]/50 mt-0.5">Alternative line • {appConfig.whatsapp3}</p>
+                </div>
+                <ChevronRight size={18} className="text-[#e1e3e4]/30 group-hover:text-[#25D366] group-hover:translate-x-0.5 transition-all" />
+              </a>
+            )}
+
+            {/* WhatsApp Group Link Card */}
+            {appConfig?.whatsappgroup && (
+              <a 
+                href={appConfig.whatsappgroup.startsWith('http') ? appConfig.whatsappgroup : `https://${appConfig.whatsappgroup}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="glass-panel p-5 flex items-center gap-4 hover:bg-white/5 transition-all group border-teal-500/10"
+              >
+                <div className="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center flex-shrink-0">
+                  <LifeBuoy size={22} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white text-sm">Join Our WhatsApp Group</h3>
+                  <p className="text-[10px] text-[#e1e3e4]/50 mt-0.5">Community updates & fast help</p>
+                </div>
+                <ChevronRight size={18} className="text-[#e1e3e4]/30 group-hover:text-teal-400 group-hover:translate-x-0.5 transition-all" />
+              </a>
+            )}
 
             {/* Email Card */}
-            <a 
-              href="mailto:info@saukiglobal.com" 
-              className="glass-panel p-5 flex items-center gap-4 hover:bg-white/5 transition-all group border-purple-500/10"
-            >
-              <div className="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center flex-shrink-0">
-                <Mail size={22} />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-white text-sm">Email Support</h3>
-                <p className="text-[10px] text-[#e1e3e4]/50 mt-0.5">info@saukiglobal.com • We reply within 1 hour</p>
-              </div>
-              <ChevronRight size={18} className="text-[#e1e3e4]/30 group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all" />
-            </a>
+            {appConfig?.email && (
+              <a 
+                href={`mailto:${appConfig.email}`} 
+                className="glass-panel p-5 flex items-center gap-4 hover:bg-white/5 transition-all group border-purple-500/10"
+              >
+                <div className="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center flex-shrink-0">
+                  <Mail size={22} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white text-sm">Email Support</h3>
+                  <p className="text-[10px] text-[#e1e3e4]/50 mt-0.5">{appConfig.email} • We reply within 1 hour</p>
+                </div>
+                <ChevronRight size={18} className="text-[#e1e3e4]/30 group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all" />
+              </a>
+            )}
 
             {/* Contact Form */}
             <div className="glass-panel p-6 border-white/5 flex flex-col gap-5">
@@ -278,7 +345,7 @@ export default function HelpSupport({ onBack }: HelpSupportProps) {
 
             <div className="text-center pt-4">
               <p className="text-[10px] text-[#e1e3e4]/30 font-black uppercase tracking-widest">Head Office</p>
-              <p className="text-xs font-bold text-[#e1e3e4]/60 mt-1">123 Ahmadu Bello Way, Kaduna, Nigeria.</p>
+              <p className="text-xs font-bold text-[#e1e3e4]/60 mt-1">No. 05, Dagauda Market, Dambam Local Government Area, Bauchi State, Nigeria.</p>
             </div>
           </div>
         )}

@@ -36,6 +36,8 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
   
   // Standard Delivery Email
   const [deliveryEmail, setDeliveryEmail] = useState(user?.email || '');
+  const [smilePhone, setSmilePhone] = useState('');
+  const [smilePassword, setSmilePassword] = useState('');
 
   // Provider statuses
   const [statuses, setStatuses] = useState<Record<string, boolean>>({
@@ -134,6 +136,10 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
       if (res.success) {
         setSuccessRef(res.reference || (res.data as any)?.reference || 'N/A');
         setAssignedDid(res.did || clientDid);
+        if (selectedProvider === 'smile' && (res.data as any)?.raw_response) {
+          setSmilePhone((res.data as any).raw_response.phone || '');
+          setSmilePassword((res.data as any).raw_response.password || '');
+        }
         await refreshUser();
         setStep('success');
       } else {
@@ -501,8 +507,8 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
                 <CheckCircle2 size={40} />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-white">eSIM Generated!</h2>
-                <p className="text-[10px] text-[#66df75] font-black uppercase tracking-[0.3em] mt-1">Registration Complete</p>
+                <h2 className="text-2xl font-black text-white">Purchase Successful</h2>
+                <p className="text-[10px] text-[#66df75] font-black uppercase tracking-[0.3em] mt-1">ORDER COMPLETED</p>
               </div>
 
               {selectedProvider === 'kirani' && (

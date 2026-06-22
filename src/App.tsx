@@ -24,8 +24,9 @@ import ESimServices from './components/ESimServices';
 import CACRegistration from './components/CACRegistration';
 import IntlTopup from './components/IntlTopup';
 import RatelCall from './components/RatelCall';
+import PrivacyTerms from './components/PrivacyTerms';
 
-type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl' | 'ratel';
+type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl' | 'ratel' | 'privacy' | 'terms';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('landing');
@@ -70,6 +71,8 @@ export default function App() {
         <LandingPage
           onGetStarted={() => navigateTo('signup')}
           onSignIn={() => navigateTo('login')}
+          onPrivacy={() => navigateTo('privacy')}
+          onTerms={() => navigateTo('terms')}
         />
       )}
 
@@ -223,6 +226,26 @@ export default function App() {
       {currentView === 'ratel' && (
         <RatelCall
           onBack={() => navigateTo('dashboard')}
+        />
+      )}
+
+      {currentView === 'privacy' && (
+        <PrivacyTerms
+          mode="privacy"
+          onBack={() => {
+            const apiKey = localStorage.getItem('saukiglobal_api_key');
+            navigateTo(apiKey ? 'profile' : 'landing');
+          }}
+        />
+      )}
+
+      {currentView === 'terms' && (
+        <PrivacyTerms
+          mode="terms"
+          onBack={() => {
+            const apiKey = localStorage.getItem('saukiglobal_api_key');
+            navigateTo(apiKey ? 'profile' : 'landing');
+          }}
         />
       )}
     </div>
