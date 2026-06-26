@@ -5,17 +5,23 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Capacitor Core
+-keep class com.getcapacitor.** { *; }
+-keep interface com.getcapacitor.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Firebase & Push Notifications (Required since you use @capacitor/push-notifications)
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Cordova plugins (if any are used by Capacitor)
+-keep class org.apache.cordova.** { *; }
+
+# Splash Screen
+-keep class androidx.core.splashscreen.** { *; }
+
+# Keep line number information for debugging stack traces
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
+
+# Ignore missing Firebase ktx classes
+-dontwarn com.google.firebase.ktx.Firebase
