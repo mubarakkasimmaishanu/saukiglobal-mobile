@@ -40,12 +40,11 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
   const [smilePassword, setSmilePassword] = useState('');
 
   // Provider statuses
-  const [statuses, setStatuses] = useState<Record<string, boolean>>({
-    kirani: true,
-    ratel: true,
-    smile: true,
-    alpha: true,
-    global: true
+  const [statuses, setStatuses] = useState<Record<string, { available: boolean; price: number }>>({
+    kirani: { available: true, price: 6000 },
+    ratel: { available: true, price: 2500 },
+    smile: { available: true, price: 2500 },
+    alpha: { available: true, price: 2500 }
   });
 
   // Fetching available packages simulation & real status check
@@ -101,7 +100,7 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
   };
 
   const getPrice = () => {
-    return selectedProvider === 'kirani' ? 6000 : 2500;
+    return selectedProvider && statuses[selectedProvider] ? statuses[selectedProvider].price : 0;
   };
 
   const handlePurchase = async (pinParam?: string | React.MouseEvent) => {
@@ -212,9 +211,9 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
             <div className="space-y-4">
               {/* Kirani */}
               <div 
-                onClick={() => statuses.kirani && setSelectedProvider('kirani')}
+                onClick={() => statuses.kirani?.available && setSelectedProvider('kirani')}
                 className={`glass-panel p-5 flex items-center gap-4 border transition-all ${
-                  !statuses.kirani
+                  !statuses.kirani?.available
                     ? 'border-white/5 bg-white/2 opacity-50 cursor-not-allowed'
                     : selectedProvider === 'kirani'
                       ? 'border-[#66df75] bg-[#66df75]/5 cursor-pointer'
@@ -229,8 +228,8 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
                   <p className="text-[10px] text-zinc-500">Local number & instant client registration</p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-sm font-black text-[#66df75]">₦6,000</span>
-                  {statuses.kirani ? (
+                  <span className="text-sm font-black text-[#66df75]">₦{(statuses.kirani?.price || 6000).toLocaleString()}</span>
+                  {statuses.kirani?.available ? (
                     <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest text-[#66df75] bg-[#66df75]/10 border border-[#66df75]/20">Available</span>
                   ) : (
                     <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest text-[#ef4444] bg-[#ef4444]/10 border border-[#ef4444]/20">Unavailable</span>
@@ -240,9 +239,9 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
 
               {/* Ratel */}
               <div 
-                onClick={() => statuses.ratel && setSelectedProvider('ratel')}
+                onClick={() => statuses.ratel?.available && setSelectedProvider('ratel')}
                 className={`glass-panel p-5 flex items-center gap-4 border transition-all ${
-                  !statuses.ratel
+                  !statuses.ratel?.available
                     ? 'border-white/5 bg-white/2 opacity-50 cursor-not-allowed'
                     : selectedProvider === 'ratel'
                       ? 'border-[#66df75] bg-[#66df75]/5 cursor-pointer'
@@ -257,8 +256,8 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
                   <p className="text-[10px] text-zinc-500">Instant setup digital calling eSIM</p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-sm font-black text-[#66df75]">₦2,500</span>
-                  {statuses.ratel ? (
+                  <span className="text-sm font-black text-[#66df75]">₦{(statuses.ratel?.price || 2500).toLocaleString()}</span>
+                  {statuses.ratel?.available ? (
                     <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest text-[#66df75] bg-[#66df75]/10 border border-[#66df75]/20">Available</span>
                   ) : (
                     <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest text-[#ef4444] bg-[#ef4444]/10 border border-[#ef4444]/20">Unavailable</span>
@@ -268,9 +267,9 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
 
               {/* Smile */}
               <div 
-                onClick={() => statuses.smile && setSelectedProvider('smile')}
+                onClick={() => statuses.smile?.available && setSelectedProvider('smile')}
                 className={`glass-panel p-5 flex items-center gap-4 border transition-all ${
-                  !statuses.smile
+                  !statuses.smile?.available
                     ? 'border-white/5 bg-white/2 opacity-50 cursor-not-allowed'
                     : selectedProvider === 'smile'
                       ? 'border-[#66df75] bg-[#66df75]/5 cursor-pointer'
@@ -285,8 +284,8 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
                   <p className="text-[10px] text-zinc-500">Fast 4G voice & data eSIM</p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-sm font-black text-[#66df75]">₦2,500</span>
-                  {statuses.smile ? (
+                  <span className="text-sm font-black text-[#66df75]">₦{(statuses.smile?.price || 2500).toLocaleString()}</span>
+                  {statuses.smile?.available ? (
                     <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest text-[#66df75] bg-[#66df75]/10 border border-[#66df75]/20">Available</span>
                   ) : (
                     <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest text-[#ef4444] bg-[#ef4444]/10 border border-[#ef4444]/20">Unavailable</span>
@@ -296,9 +295,9 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
 
               {/* Alpha */}
               <div 
-                onClick={() => statuses.alpha && setSelectedProvider('alpha')}
+                onClick={() => statuses.alpha?.available && setSelectedProvider('alpha')}
                 className={`glass-panel p-5 flex items-center gap-4 border transition-all ${
-                  !statuses.alpha
+                  !statuses.alpha?.available
                     ? 'border-white/5 bg-white/2 opacity-50 cursor-not-allowed'
                     : selectedProvider === 'alpha'
                       ? 'border-[#66df75] bg-[#66df75]/5 cursor-pointer'
@@ -313,8 +312,8 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
                   <p className="text-[10px] text-zinc-500">Standard global voice & data eSIM</p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-sm font-black text-[#66df75]">₦2,500</span>
-                  {statuses.alpha ? (
+                  <span className="text-sm font-black text-[#66df75]">₦{(statuses.alpha?.price || 2500).toLocaleString()}</span>
+                  {statuses.alpha?.available ? (
                     <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest text-[#66df75] bg-[#66df75]/10 border border-[#66df75]/20">Available</span>
                   ) : (
                     <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest text-[#ef4444] bg-[#ef4444]/10 border border-[#ef4444]/20">Unavailable</span>

@@ -61,8 +61,7 @@ export default function CableTV({ onBack }: CableTVProps) {
   const providerBrands: Record<string, { color: string; bg: string }> = {
     dstv: { color: '#009bf6', bg: 'bg-[#009bf6]/10' },
     gotv: { color: '#00af43', bg: 'bg-[#00af43]/10' },
-    startimes: { color: '#f36f21', bg: 'bg-[#f36f21]/10' },
-    showmax: { color: '#e50914', bg: 'bg-[#e50914]/10' }
+    startimes: { color: '#f36f21', bg: 'bg-[#f36f21]/10' }
   };
 
   useEffect(() => {
@@ -75,7 +74,7 @@ export default function CableTV({ onBack }: CableTVProps) {
     try {
       const res = await api.getCableProviders();
       if (res.success && Array.isArray(res.data)) {
-        setProvidersList(res.data);
+        setProvidersList(res.data.filter((p: CableProvider) => p.name.toLowerCase() !== 'showmax' && p.id.toLowerCase() !== 'showmax'));
       } else {
         setError('Failed to fetch television billing channels.');
       }

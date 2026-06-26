@@ -37,6 +37,7 @@ interface DataPlan {
   price: number;
   type: string;
   network_id: string | number;
+  validity?: string;
 }
 
 export default function BuyData({ onBack, onFund }: BuyDataProps) {
@@ -373,7 +374,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                       </option>
                       {dataPlans.map(p => (
                         <option key={p.id} value={p.id} className="bg-[#111415]">
-                          {p.name} — ₦{Number(p.price).toLocaleString()} ({p.type})
+                          {p.name} {p.validity ? `(${p.validity})` : ''} — ₦{Number(p.price).toLocaleString()} ({p.type})
                         </option>
                       ))}
                     </select>
