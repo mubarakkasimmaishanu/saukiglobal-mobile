@@ -30,6 +30,7 @@ import { api } from '../services/api';
 import { Transaction } from '../types';
 import { useUser } from '../context/UserContext';
 import TransactionTable from './TransactionTable';
+import { shareReceiptAsImage, downloadReceiptImage } from '../services/receiptShare';
 
 interface TransactionHistoryProps {
   onBack: () => void;
@@ -214,21 +215,35 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
 
               <div className="space-y-5 mb-10">
                 <div className="flex justify-between items-center py-2 border-b border-white/5">
-                  <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Recipient</span>
-                  <span className="text-xs font-bold text-white text-right">
-                    {selectedTx.status === 'Failed'
-                      ? (selectedTx.service_name 
-                          ? `${selectedTx.service_name}${selectedTx.recipient ? ` (${selectedTx.recipient})` : ''}`
-                          : (selectedTx.recipient || 'N/A')
-                        )
-                      : selectedTx.details
-                    }
-                  </span>
+                  <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Service</span>
+                  <span className="text-xs font-bold text-white text-right">{selectedTx.type}</span>
+                </div>
+                {selectedTx.recipient && (
+                  <div className="flex justify-between items-center py-2 border-b border-white/5">
+                    <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Recipient</span>
+                    <span className="text-xs font-bold text-white text-right">{selectedTx.recipient}</span>
+                  </div>
+                )}
+                {selectedTx.network && (
+                  <div className="flex justify-between items-center py-2 border-b border-white/5">
+                    <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Network</span>
+                    <span className="text-xs font-bold text-white text-right uppercase">{selectedTx.network}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Details</span>
+                  <span className="text-xs font-bold text-white text-right max-w-[60%]">{selectedTx.details}</span>
                 </div>
                 {selectedTx.status === 'Failed' && (
                   <div className="flex justify-between items-center py-2 border-b border-white/5 animate-in fade-in duration-300">
                     <span className="text-[10px] font-black text-[#ef4444]/60 uppercase tracking-widest">Failure Reason</span>
                     <span className="text-xs font-bold text-[#ef4444] text-right max-w-[60%]">{cleanErrorMessage(selectedTx.details)}</span>
+                  </div>
+                )}
+                {selectedTx.payment_method && (
+                  <div className="flex justify-between items-center py-2 border-b border-white/5">
+                    <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Payment Method</span>
+                    <span className="text-xs font-bold text-white text-right uppercase">{selectedTx.payment_method}</span>
                   </div>
                 )}
                 {selectedTx.cashback_earned && selectedTx.cashback_earned > 0 ? (
@@ -260,10 +275,16 @@ export default function TransactionHistory({ onBack }: TransactionHistoryProps) 
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <button className="btn-primary py-4 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest font-black">
+                <button 
+                  onClick={() => downloadReceiptImage(selectedTx)}
+                  className="btn-primary py-4 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest font-black"
+                >
                   <Download size={16} /> Save
                 </button>
-                <button className="glass-panel py-4 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest font-black hover:bg-white/10 transition-all border-white/10">
+                <button 
+                  onClick={() => shareReceiptAsImage(selectedTx)}
+                  className="glass-panel py-4 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest font-black hover:bg-white/10 transition-all border-white/10"
+                >
                   <Share2 size={16} /> Share
                 </button>
               </div>

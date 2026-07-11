@@ -22,11 +22,12 @@ interface ProfileSettingsProps {
   onLogout: () => void;
   onViewPricing: () => void;
   onViewSupport: () => void;
+  appConfig?: any;
 }
 
 type ProfileView = 'main' | 'personal' | 'password' | 'pin' | 'privacy' | 'terms' | 'delete';
 
-export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport }: ProfileSettingsProps) {
+export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport, appConfig }: ProfileSettingsProps) {
   const { user, loading, logout } = useUser();
   const [currentView, setCurrentView] = useState<ProfileView>('main');
 
@@ -193,7 +194,10 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
             subtitle="Chat with us directly on WhatsApp"
             bg="bg-emerald-500/10" color="text-emerald-400"
             isLast={true}
-            onClick={() => window.open('https://wa.me/2349068500544', '_blank')}
+            onClick={() => {
+              const num = appConfig?.whatsapp || '2349031384954';
+              window.open(`https://wa.me/${num.replace(/[^0-9]/g, '')}`, '_blank');
+            }}
           />
         </SettingsGroup>
 
@@ -227,7 +231,7 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
         </SettingsGroup>
 
         {/* Developer / Debug Info */}
-        {localStorage.getItem('saukiglobal_fcm_token') && (
+        {!import.meta.env.PROD && localStorage.getItem('saukiglobal_fcm_token') && (
           <SettingsGroup title="Developer / Debug Info">
             <div className="p-4 text-xs font-mono break-all select-all text-white/50 bg-black/35 rounded-2xl border border-white/5 space-y-2">
               <div className="text-[9px] font-black uppercase text-[#66df75] tracking-widest">FCM Device Token</div>

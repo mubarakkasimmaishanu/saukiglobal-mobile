@@ -23,12 +23,66 @@ import {
   Cpu,
   Globe2,
   Briefcase,
-  PhoneCall
+  PhoneCall,
+  Download,
+  Share2,
+  X,
+  ShieldCheck
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { api } from '../services/api';
 import { Transaction } from '../types';
 import TransactionTable from './TransactionTable';
+import { shareReceiptAsImage, downloadReceiptImage } from '../services/receiptShare';
+
+const cleanErrorMessage = (details: string): string => {
+  if (!details) return 'Unknown error occurred';
+
+  if (details.includes('<html') || details.includes('<!DOCTYPE') || details.includes('<body') || details.includes('<div')) {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(details, 'text/html');
+      
+      const h1 = doc.querySelector('h1')?.textContent?.trim();
+      const h2 = doc.querySelector('h2')?.textContent?.trim();
+      const p = doc.querySelector('p')?.textContent?.trim();
+      const title = doc.title?.trim();
+
+      let error = '';
+      if (h1 && h2) {
+        error = `${h1}: ${h2}`;
+      } else if (h1) {
+        error = h1;
+      } else if (h2) {
+        error = h2;
+      } else if (title) {
+        error = title;
+      } else if (p) {
+        error = p;
+      } else {
+        error = doc.body?.textContent?.trim() || 'Internal Server Error';
+      }
+
+      error = error.replace(/\s+/g, ' ').trim();
+      if (error.length > 150) {
+        error = error.substring(0, 150) + '...';
+      }
+      return error || 'Internal Server Error';
+    } catch (e) {
+      return 'Method Not Allowed (405)';
+    }
+  }
+
+  if (details.includes('Last API log:')) {
+    const parts = details.split('Last API log:');
+    if (parts.length > 1) {
+      const logPart = parts[1].split('. REFUNDED')[0].trim();
+      if (logPart.length > 0) return logPart;
+    }
+  }
+
+  return details;
+};
 
 interface UserDashboardProps {
   onNavigate: (view: any) => void;
@@ -42,6 +96,32 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [greeting, setGreeting] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+
+  const getIconForType = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'airtime': return Smartphone;
+      case 'data': return Wifi;
+      case 'transfer': return Send;
+      case 'electricity': return Lightbulb;
+      case 'cable': return Tv;
+      case 'exam': return BookOpen;
+      case 'nin': return FileText;
+      case 'funding': return Wallet;
+      case 'ratel_call':
+      case 'ratel': return PhoneCall;
+      default: return Zap;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Success': return 'text-[#66df75]';
+      case 'Failed': return 'text-[#ef4444]';
+      case 'Pending': return 'text-[#f59e0b]';
+      default: return 'text-[#e1e3e4]/40';
+    }
+  };
 
   // Pull to Refresh & Manual Refresh States
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -463,6 +543,7 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             <TransactionTable 
               transactions={recentTransactions} 
               isLoading={isLoading} 
+              onRowClick={setSelectedTx}
             />
           </div>
         </section>
@@ -572,6 +653,119 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
                 </button>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Receipt Modal */}
+      {selectedTx && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center px-6 pb-12 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-[#111415]/80 backdrop-blur-md" onClick={() => setSelectedTx(null)}></div>
+          
+          <div className={`w-full max-w-sm glass-panel p-8 relative overflow-hidden animate-in slide-in-from-bottom-8 duration-500 z-[110] ${selectedTx.status === 'Failed' ? 'border-red-500/20' : 'border-emerald-500/20'}`}>
+            <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent ${selectedTx.status === 'Failed' ? 'via-[#ef4444]' : 'via-[#66df75]'} to-transparent`}></div>
+            
+            <div className="flex justify-between items-center mb-10">
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 ${selectedTx.status === 'Failed' ? 'bg-[#ef4444]' : 'bg-[#66df75]'} rounded-md flex items-center justify-center text-[#111415]`}>
+                  <ShieldCheck size={14} />
+                </div>
+                <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Transaction Receipt</span>
+              </div>
+              <button onClick={() => setSelectedTx(null)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#e1e3e4]/40 hover:text-white transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="text-center mb-10">
+              <div className="w-20 h-20 bg-[#111415] rounded-full border border-white/5 flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                {React.createElement(getIconForType(selectedTx.type), { size: 32, className: selectedTx.status === 'Failed' ? "text-[#ef4444]" : "text-[#66df75]" })}
+              </div>
+              <p className="text-[10px] font-black text-[#e1e3e4]/30 uppercase tracking-[0.3em] mb-2">Total Amount</p>
+              <h2 className="text-4xl font-black text-white tracking-tighter">₦{selectedTx.amount.toLocaleString()}</h2>
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 mt-4 text-[10px] font-black uppercase tracking-widest ${getStatusColor(selectedTx.status)}`}>
+                <div className="w-1.5 h-1.5 rounded-full bg-current"></div>
+                {selectedTx.status}
+              </div>
+            </div>
+
+            <div className="space-y-5 mb-10">
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Service</span>
+                <span className="text-xs font-bold text-white text-right">{selectedTx.type}</span>
+              </div>
+              {selectedTx.recipient && (
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Recipient</span>
+                  <span className="text-xs font-bold text-white text-right">{selectedTx.recipient}</span>
+                </div>
+              )}
+              {selectedTx.network && (
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Network</span>
+                  <span className="text-xs font-bold text-white text-right uppercase">{selectedTx.network}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Details</span>
+                <span className="text-xs font-bold text-white text-right max-w-[60%]">{selectedTx.details}</span>
+              </div>
+              {selectedTx.status === 'Failed' && (
+                <div className="flex justify-between items-center py-2 border-b border-white/5 animate-in fade-in duration-300">
+                  <span className="text-[10px] font-black text-[#ef4444]/60 uppercase tracking-widest">Failure Reason</span>
+                  <span className="text-xs font-bold text-[#ef4444] text-right max-w-[60%]">{cleanErrorMessage(selectedTx.details)}</span>
+                </div>
+              )}
+              {selectedTx.payment_method && (
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Payment Method</span>
+                  <span className="text-xs font-bold text-white text-right uppercase">{selectedTx.payment_method}</span>
+                </div>
+              )}
+              {selectedTx.cashback_earned && selectedTx.cashback_earned > 0 ? (
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-[10px] font-black text-[#66df75]/60 uppercase tracking-widest">Cashback Earned</span>
+                  <span className="text-xs font-bold text-[#66df75] text-right">₦{selectedTx.cashback_earned.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                </div>
+              ) : null}
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Date</span>
+                <span className="text-xs font-bold text-white">{selectedTx.date}</span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-widest">Reference</span>
+                <span className="text-[10px] font-mono font-bold text-white/60">{selectedTx.id}</span>
+              </div>
+              {selectedTx.raw_response && selectedTx.raw_response.phone && selectedTx.raw_response.password ? (
+                <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
+                  <p className="text-[10px] font-black text-[#66df75] uppercase tracking-widest text-center">Smile E-SIM Credentials</p>
+                  <div className="bg-[#66df75]/10 border border-[#66df75]/20 rounded-xl p-3 flex flex-col items-center gap-1.5">
+                    <span className="text-[9px] font-black text-[#66df75]/80 uppercase tracking-widest">Smile Number</span>
+                    <span className="text-lg font-black text-white font-mono tracking-wider select-all">{selectedTx.raw_response.phone}</span>
+                    <div className="w-full h-px bg-[#66df75]/20 my-1"></div>
+                    <span className="text-[9px] font-black text-[#66df75]/80 uppercase tracking-widest">Password</span>
+                    <span className="text-sm font-bold text-white font-mono tracking-wider select-all">{selectedTx.raw_response.password}</span>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button 
+                onClick={() => downloadReceiptImage(selectedTx)}
+                className="btn-primary py-4 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest font-black"
+              >
+                <Download size={16} /> Save
+              </button>
+              <button 
+                onClick={() => shareReceiptAsImage(selectedTx)}
+                className="glass-panel py-4 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest font-black hover:bg-white/10 transition-all border-white/10"
+              >
+                <Share2 size={16} /> Share
+              </button>
+            </div>
+
+            <p className="text-center mt-8 text-[8px] font-black text-[#e1e3e4]/10 uppercase tracking-[0.4em]">SaukiGlobal Automation</p>
           </div>
         </div>
       )}

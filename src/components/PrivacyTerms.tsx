@@ -131,7 +131,7 @@ function PrivacyContent() {
           For any privacy-related questions or requests, contact us at:
         </p>
         <p className="text-[#66df75] font-bold">Email: support@saukiglobal.com</p>
-        <p className="text-[#66df75] font-bold">WhatsApp: +234 906 850 0544</p>
+        <p className="text-[#66df75] font-bold">WhatsApp: +234 903 138 4954</p>
         <p className="text-[#66df75] font-bold">Website: https://saukiglobal.com</p>
       </Section>
     </>
@@ -232,7 +232,7 @@ function TermsContent() {
           For questions about these terms, contact us at:
         </p>
         <p className="text-[#66df75] font-bold">Email: support@saukiglobal.com</p>
-        <p className="text-[#66df75] font-bold">WhatsApp: +234 906 850 0544</p>
+        <p className="text-[#66df75] font-bold">WhatsApp: +234 903 138 4954</p>
         <p className="text-[#66df75] font-bold">Website: https://saukiglobal.com</p>
       </Section>
     </>
