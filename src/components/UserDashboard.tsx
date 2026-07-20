@@ -27,7 +27,8 @@ import {
   Download,
   Share2,
   X,
-  ShieldCheck
+  ShieldCheck,
+  BookOpen
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { api } from '../services/api';
