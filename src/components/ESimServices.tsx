@@ -40,7 +40,7 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
   const [smilePassword, setSmilePassword] = useState('');
 
   // Provider statuses
-  const [statuses, setStatuses] = useState<Record<string, { available: boolean; price: number }>>({
+  const [statuses, setStatuses] = useState<Record<string, { available: boolean; price: number; delivery_mode?: string }>>({
     kirani: { available: true, price: 6000 },
     ratel: { available: true, price: 2500 },
     smile: { available: true, price: 2500 },
@@ -94,6 +94,10 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
     if (!selectedProvider) return;
     setError(null);
     if (selectedProvider === 'kirani') {
+      if (statuses.kirani?.delivery_mode === 'manual') {
+        setStep('pin');
+        return;
+      }
       loadKiraniDids();
     }
     setStep('form');
@@ -134,7 +138,7 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
 
       if (res.success) {
         setSuccessRef(res.reference || (res.data as any)?.reference || 'N/A');
-        setAssignedDid(res.did || clientDid);
+        setAssignedDid(res.did || (res.data as any)?.did || (res.data as any)?.kirani_number || clientDid);
         if (selectedProvider === 'smile' && (res.data as any)?.raw_response) {
           setSmilePhone((res.data as any).raw_response.phone || '');
           setSmilePassword((res.data as any).raw_response.password || '');
@@ -143,12 +147,20 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
         setStep('success');
       } else {
         setError(res.message || 'Transaction failed');
-        setStep('form');
+        if (selectedProvider === 'kirani' && statuses.kirani?.delivery_mode === 'manual') {
+          setStep('pin');
+        } else {
+          setStep('form');
+        }
         setTransactionPin(['', '', '', '']);
       }
     } catch (err: any) {
       setError(err.message || 'Transaction failed');
-      setStep('form');
+      if (selectedProvider === 'kirani' && statuses.kirani?.delivery_mode === 'manual') {
+        setStep('pin');
+      } else {
+        setStep('form');
+      }
       setTransactionPin(['', '', '', '']);
     } finally {
       setIsProcessing(false);
