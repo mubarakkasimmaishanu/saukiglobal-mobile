@@ -72,7 +72,7 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
     setError(null);
     try {
       const res = await api.getKiraniAvailableDids();
-      if (res.success && Array.isArray(res.data)) {
+      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
         const parsedDids = res.data.map((d: any) => {
           return typeof d === 'object' ? (d.did || d.number || '') : d;
         }).filter(Boolean);
@@ -81,10 +81,12 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
           setClientDid(parsedDids[0]);
         }
       } else {
-        setError(res.message || 'Failed to fetch available Kirani numbers.');
+        console.warn("Kirani DIDs lookup notice:", res.message);
+        setDids([]);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch available numbers.');
+      console.warn("Kirani DIDs fetch error:", err.message);
+      setDids([]);
     } finally {
       setIsLoadingDids(false);
     }
@@ -434,23 +436,31 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1">Kirani Number</label>
-                      <select
-                        value={clientDid}
-                        onChange={(e) => setClientDid(e.target.value)}
-                        disabled={isLoadingDids}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none disabled:opacity-50"
-                        required
-                      >
-                        {isLoadingDids ? (
-                          <option value="">Loading...</option>
-                        ) : dids.length > 0 ? (
-                          dids.map(d => (
+                      {isLoadingDids ? (
+                        <div className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-xs font-bold text-zinc-500 animate-pulse">
+                          Loading available numbers...
+                        </div>
+                      ) : dids.length > 0 ? (
+                        <select
+                          value={clientDid}
+                          onChange={(e) => setClientDid(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none"
+                          required
+                        >
+                          {dids.map(d => (
                             <option key={d} value={d} className="bg-[#111415]">{d}</option>
-                          ))
-                        ) : (
-                          <option value="">No numbers available</option>
-                        )}
-                      </select>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="tel"
+                          value={clientDid}
+                          onChange={(e) => setClientDid(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all"
+                          placeholder="e.g. 08012345678"
+                          required
+                        />
+                      )}
                     </div>
                   </div>
                 </>
