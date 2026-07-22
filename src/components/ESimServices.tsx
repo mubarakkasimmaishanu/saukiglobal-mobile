@@ -396,7 +396,7 @@ export default function ESimServices({ onBack }: ESimServicesProps) {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div class="space-y-2">
+                    <div className="space-y-2">
                       <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1">Contact Phone</label>
                       <input
                         type="tel"
