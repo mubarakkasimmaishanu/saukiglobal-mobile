@@ -461,54 +461,6 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               <span>Add Money</span>
             </button>
           </div>
- 
-          {/* Virtual Accounts inside Dashboard Card (Mirroring wallet.php) */}
-          <div className="border-t border-white/5 pt-4 space-y-3">
-            {virtualAccounts.length > 0 ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-black uppercase tracking-[0.15em] text-[#66df75]">Your Virtual Transfer Accounts</span>
-                </div>
-                <div className="grid grid-cols-1 gap-2.5">
-                  {virtualAccounts.map((va: any, idx: number) => (
-                    <div key={idx} className="bg-black/30 backdrop-blur-md rounded-2xl p-3.5 border border-white/5 flex items-center justify-between">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-xs text-white">{va.bank_name}</span>
-                          <span className="text-[7px] bg-[#66df75]/25 text-[#66df75] px-1.5 py-0.5 rounded font-black tracking-widest uppercase">Instant</span>
-                        </div>
-                        <div className="flex items-center gap-2.5 mt-1">
-                          <span className="font-black text-sm text-white tracking-wider font-mono">{va.account_number}</span>
-                          <button 
-                            onClick={() => handleCopy(va.account_number)} 
-                            className="text-xs text-white/50 hover:text-white transition-colors"
-                          >
-                            {copiedText === va.account_number ? (
-                              <span className="text-[10px] text-[#66df75] font-black uppercase tracking-widest">Copied</span>
-                            ) : (
-                              <span className="text-[10px] text-white/40 uppercase tracking-widest underline">Copy</span>
-                            )}
-                          </button>
-                        </div>
-                        <p className="text-[8px] text-white/30 font-bold uppercase tracking-wider truncate mt-0.5">{va.account_name}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center p-3 text-center bg-black/20 rounded-2xl border border-white/5">
-                <p className="text-[10px] text-white/40 font-semibold mb-2 leading-relaxed">No transfer account generated. Fund instantly via direct bank transfer to your personal virtual account.</p>
-                <button 
-                  onClick={() => setShowKycModal(true)} 
-                  className="w-full bg-[#66df75]/10 border border-[#66df75]/20 text-[#66df75] font-black py-2.5 rounded-xl text-[10px] uppercase tracking-wider hover:bg-[#66df75]/20 active:scale-95 transition-all flex items-center justify-center gap-2"
-                >
-                  <PlusCircle size={12} />
-                  <span>Get Transfer Accounts</span>
-                </button>
-              </div>
-            )}
-          </div>
         </div>
  
         {/* Services Grid */}
