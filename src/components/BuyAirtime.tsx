@@ -199,41 +199,6 @@ export default function BuyAirtime({ onBack }: BuyAirtimeProps) {
               <span className="text-[10px] font-bold text-[#66df75] bg-[#66df75]/10 px-2 py-1 rounded-lg">Instant</span>
             </div>
 
-            {/* Dynamic branding header */}
-            {selectedNetworkId && (() => {
-              const net = networksList.find(n => n.id === selectedNetworkId);
-              if (!net) return null;
-              const lowerName = net.network.toLowerCase();
-              const style = networkStyles[lowerName] || { color: '#888888', label: net.network };
-              return (
-                <div className="glass-panel p-4 mb-6 flex items-center justify-between border-white/5 animate-in slide-in-from-top-4 duration-300">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center p-1.5 border border-white/10">
-                      <img
-                        src={`/icons/${lowerName}.png`}
-                        alt={style.label}
-                        className="w-full h-full object-contain rounded-lg"
-                        onError={(e) => {
-                          e.currentTarget.src = '/icons/others.png';
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Selected Network</p>
-                      <p className="text-sm font-black text-white">{style.label}</p>
-                    </div>
-                  </div>
-                  <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border ${
-                    net.networkStatus.toLowerCase() === 'on' 
-                      ? 'bg-[#66df75]/10 text-[#66df75] border-[#66df75]/10' 
-                      : 'bg-red-500/10 text-red-500 border-red-500/10'
-                  }`}>
-                    {net.networkStatus.toLowerCase() === 'on' ? 'Online' : 'Offline'}
-                  </span>
-                </div>
-              );
-            })()}
-
             {error && (
               <div className="mb-6 p-4 bg-[#ef4444]/10 border border-[#ef4444]/20 text-[#ef4444] text-xs font-bold rounded-xl animate-in shake">
                 {error}
