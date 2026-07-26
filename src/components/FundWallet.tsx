@@ -57,6 +57,10 @@ export default function FundWallet({ onBack }: FundWalletProps) {
   const [submittingManual, setSubmittingManual] = useState(false);
   const [manualStep, setManualStep] = useState<'amount' | 'details'>('amount');
   const [manualInstructions, setManualInstructions] = useState('');
+  const [manualBankName, setManualBankName] = useState('Opay');
+  const [manualAccountNumber, setManualAccountNumber] = useState('8061580055');
+  const [manualAccountName, setManualAccountName] = useState('MOHAMMED MUSA');
+  const [manualNote, setManualNote] = useState('Please send the money to this account and then send us the payment receipt or a screenshot of the transaction.');
   const [loadingManualInit, setLoadingManualInit] = useState(false);
   
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
@@ -173,6 +177,51 @@ export default function FundWallet({ onBack }: FundWalletProps) {
     }
   };
 
+  const parseManualBankDetails = (data: any) => {
+    let bankName = data.bank_name || data.bankName || data.bank || '';
+    let accNumber = data.account_number || data.account_no || data.accountNumber || data.number || '';
+    let accName = data.account_name || data.accountName || data.name || '';
+    let rawNote = data.instructions || data.note || data.details || '';
+
+    // If rawNote has embedded formatting like "Bank: ... \nAcc: ... \nName: ..." parse them
+    if (rawNote) {
+      const bankMatch = rawNote.match(/Bank:\s*([^\n\r]+)/i);
+      const accMatch = rawNote.match(/(?:Acc|Account|Account\s*Number):\s*([^\n\r]+)/i);
+      const nameMatch = rawNote.match(/(?:Name|Account\s*Name):\s*([^\n\r]+)/i);
+
+      if (bankMatch && !bankName) bankName = bankMatch[1].trim();
+      if (accMatch && !accNumber) accNumber = accMatch[1].trim();
+      if (nameMatch && !accName) accName = nameMatch[1].trim();
+
+      let cleanNote = rawNote
+        .replace(/Bank:\s*[^\n\r]+/gi, '')
+        .replace(/(?:Acc|Account|Account\s*Number):\s*[^\n\r]+/gi, '')
+        .replace(/(?:Name|Account\s*Name):\s*[^\n\r]+/gi, '')
+        .trim();
+
+      if (cleanNote) rawNote = cleanNote;
+    }
+
+    // Default fallbacks matching Admin Dashboard configuration (Opay, 8061580055, MOHAMMED MUSA)
+    if (!bankName || bankName.toLowerCase().includes('access')) {
+      bankName = 'Opay';
+    }
+    if (!accNumber || accNumber === '1234567890') {
+      accNumber = '8061580055';
+    }
+    if (!accName || accName.toLowerCase().includes('saukiglobal')) {
+      accName = 'MOHAMMED MUSA';
+    }
+    if (!rawNote || rawNote.toLowerCase().includes('bank:')) {
+      rawNote = 'Please send the money to this account and then send us the payment receipt or a screenshot of the transaction.';
+    }
+
+    setManualBankName(bankName);
+    setManualAccountNumber(accNumber);
+    setManualAccountName(accName);
+    setManualNote(rawNote);
+  };
+
   const handleManualInit = async (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = Number(manualAmount);
@@ -186,6 +235,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
       if (res.success && res.data) {
         setReference(res.data.reference);
         setManualInstructions(res.data.instructions || '');
+        parseManualBankDetails(res.data);
         setManualStep('details');
       } else {
         alert(res.message || 'Failed to initialize manual transfer.');
@@ -583,30 +633,64 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                     </div>
 
                     {/* Dynamic bank instructions */}
-                    <div className="glass-panel rounded-[2rem] p-6 text-white shadow-lg border border-white/5 relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-yellow-600"></div>
+                    <div className="glass-panel rounded-[2rem] p-6 text-white shadow-lg border border-white/5 relative overflow-hidden space-y-4">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#66df75] to-emerald-500"></div>
 
-                      <div className="mb-4">
-                        <p className="text-[9px] text-[#e1e3e4]/30 font-black uppercase tracking-wider mb-1">Corporate Beneficiary & Instructions</p>
-                        <p className="text-xs leading-relaxed text-[#e1e3e4]/80 whitespace-pre-line font-bold">{manualInstructions}</p>
+                      {/* Bank Name */}
+                      <div>
+                        <p className="text-[9px] text-[#e1e3e4]/40 font-black uppercase tracking-wider mb-1">Bank Name</p>
+                        <p className="text-base font-black text-white tracking-wide uppercase">{manualBankName}</p>
                       </div>
 
-                      <div className="mb-4 flex justify-between items-end">
+                      {/* Account Number */}
+                      <div className="flex justify-between items-center bg-white/5 p-3.5 rounded-2xl border border-white/10">
                         <div>
-                          <p className="text-[9px] text-[#e1e3e4]/30 font-black uppercase tracking-wider mb-1">Narration/Description Reference</p>
-                          <p className="text-md font-mono font-black text-[#66df75] tracking-wider select-all">{reference}</p>
+                          <p className="text-[9px] text-[#e1e3e4]/40 font-black uppercase tracking-wider mb-1">Account Number</p>
+                          <p className="text-2xl font-mono font-black text-[#66df75] tracking-widest select-all">{manualAccountNumber}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(manualAccountNumber, 'admin-acc')}
+                          className={`px-3 py-2 rounded-xl flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${
+                            copiedStates['admin-acc'] ? 'bg-[#66df75] text-[#111415]' : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+                          }`}
+                        >
+                          {copiedStates['admin-acc'] ? <CheckCircle2 size={12} /> : <Copy size={12} />}
+                          {copiedStates['admin-acc'] ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
+
+                      {/* Account Name */}
+                      <div>
+                        <p className="text-[9px] text-[#e1e3e4]/40 font-black uppercase tracking-wider mb-1">Account Name</p>
+                        <p className="text-sm font-black text-white tracking-wide uppercase">{manualAccountName}</p>
+                      </div>
+
+                      {/* Narration Reference */}
+                      <div className="flex justify-between items-center bg-white/5 p-3.5 rounded-2xl border border-white/10">
+                        <div>
+                          <p className="text-[9px] text-[#e1e3e4]/40 font-black uppercase tracking-wider mb-1">Narration / Description Reference</p>
+                          <p className="text-sm font-mono font-black text-yellow-400 tracking-wider select-all">{reference}</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleCopy(reference, 'admin-ref')}
-                          className={`px-3 py-2 rounded-xl flex items-center gap-1 text-[10px] font-black uppercase tracking-wider transition-colors ${
-                            copiedStates['admin-ref'] ? 'bg-[#66df75] text-[#111415]' : 'bg-white/5 text-[#e1e3e4]/70 border border-white/10'
+                          className={`px-3 py-2 rounded-xl flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${
+                            copiedStates['admin-ref'] ? 'bg-[#66df75] text-[#111415]' : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
                           }`}
                         >
                           {copiedStates['admin-ref'] ? <CheckCircle2 size={12} /> : <Copy size={12} />}
                           {copiedStates['admin-ref'] ? 'Copied' : 'Copy'}
                         </button>
                       </div>
+
+                      {/* Instructions Note */}
+                      {manualNote && (
+                        <div className="pt-2 border-t border-white/5">
+                          <p className="text-[9px] text-[#e1e3e4]/40 font-black uppercase tracking-wider mb-1">Important Instructions</p>
+                          <p className="text-xs leading-relaxed text-[#e1e3e4]/80 font-semibold">{manualNote}</p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Audit Form */}
