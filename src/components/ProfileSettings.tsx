@@ -15,6 +15,7 @@ import SecurityPassword from './profile/SecurityPassword';
 import TransactionPinSettings from './profile/TransactionPinSettings';
 import DeleteAccount from './profile/DeleteAccount';
 import PrivacyTerms from './PrivacyTerms';
+import DeveloperAttribution from './DeveloperAttribution';
 import { useUser } from '../context/UserContext';
 
 interface ProfileSettingsProps {
@@ -271,10 +272,7 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
           <span className="uppercase font-black text-xs tracking-wider">Secure Logout</span>
         </button>
 
-        <p className="text-center text-[10px] font-black text-[#e1e3e4]/20 uppercase tracking-[0.2em] mb-4">
-          SaukiGlobal v1.0 • Crafted in Nigeria
-        </p>
-
+        <DeveloperAttribution className="mt-4 mb-8" />
       </div>
     </div>
   );
