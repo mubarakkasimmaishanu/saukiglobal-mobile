@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DeveloperAttribution from './DeveloperAttribution';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -94,22 +95,26 @@ export default function LandingPage({ onGetStarted, onSignIn, onPrivacy, onTerms
           </div>
         )}
 
-        {/* Legal Links */}
+        {/* Legal Links & Developer Attribution */}
         {!loading && (
-          <div className="flex items-center justify-center gap-3 mt-6 animate-in fade-in duration-700">
-            <button
-              onClick={onPrivacy}
-              className="text-[9px] text-[#e1e3e4]/30 hover:text-[#66df75]/60 font-bold uppercase tracking-widest transition-colors"
-            >
-              Privacy Policy
-            </button>
-            <span className="w-1 h-1 rounded-full bg-[#e1e3e4]/15"></span>
-            <button
-              onClick={onTerms}
-              className="text-[9px] text-[#e1e3e4]/30 hover:text-[#66df75]/60 font-bold uppercase tracking-widest transition-colors"
-            >
-              Terms of Service
-            </button>
+          <div className="flex flex-col items-center gap-4 mt-6 animate-in fade-in duration-700">
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={onPrivacy}
+                className="text-[9px] text-[#e1e3e4]/40 hover:text-[#66df75] font-bold uppercase tracking-widest transition-colors"
+              >
+                Privacy Policy
+              </button>
+              <span className="w-1 h-1 rounded-full bg-[#e1e3e4]/20"></span>
+              <button
+                onClick={onTerms}
+                className="text-[9px] text-[#e1e3e4]/40 hover:text-[#66df75] font-bold uppercase tracking-widest transition-colors"
+              >
+                Terms of Service
+              </button>
+            </div>
+
+            <DeveloperAttribution />
           </div>
         )}
       </div>

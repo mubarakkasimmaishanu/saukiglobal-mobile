@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DeveloperAttribution from './components/DeveloperAttribution';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
 import { api } from './services/api';
@@ -77,11 +78,13 @@ export default function App() {
 
   if (isInitializing) {
     return (
-      <div className="min-h-screen bg-[#111415] flex items-center justify-center">
+      <div className="min-h-screen bg-[#111415] flex flex-col items-center justify-between py-12 px-6">
+        <div className="h-6"></div>
         <div className="flex flex-col items-center gap-6">
           <img src="/saukilogo.png" alt="SaukiGlobal Logo" className="w-20 h-20 object-contain animate-pulse drop-shadow-[0_0_20px_rgba(102,223,117,0.3)]" />
           <div className="w-8 h-8 border-4 border-[#66df75] border-t-transparent rounded-full animate-spin"></div>
         </div>
+        <DeveloperAttribution />
       </div>
     );
   }
