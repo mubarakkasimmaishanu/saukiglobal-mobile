@@ -443,7 +443,7 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                     </button>
                   </form>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {accounts.map((acc, index) => {
                       const bankName = acc.bank || acc.bankName || acc.bank_name || 'Dynamic Bank';
                       const accountNumber = acc.accountNumber || acc.account_number || acc.number || '';
@@ -451,38 +451,39 @@ export default function FundWallet({ onBack }: FundWalletProps) {
                       const id = `${bankName}-${index}`;
 
                       return (
-                        <div key={id} className="glass-panel rounded-3xl p-6 relative overflow-hidden shadow-lg border border-white/5">
-                          <div className="absolute top-0 left-0 w-1 h-full bg-[#66df75]"></div>
-
-                          <div className="mb-4">
-                            <p className="text-[9px] text-[#e1e3e4]/30 font-black uppercase tracking-wider mb-1">Account Holder</p>
-                            <p className="text-sm font-bold text-white uppercase tracking-wide">{accountName}</p>
+                        <div key={id} className="bg-[#181c1e] backdrop-blur-md rounded-2xl p-4 border border-[#66df75]/20 relative overflow-hidden shadow-md flex flex-col gap-2.5 transition-all hover:border-[#66df75]/40">
+                          <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2.5">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-8 h-8 rounded-xl bg-[#66df75]/15 flex items-center justify-center text-[#66df75] flex-shrink-0">
+                                <Landmark size={15} />
+                              </div>
+                              <div className="truncate">
+                                <p className="text-xs font-black text-white uppercase tracking-wide truncate">{bankName}</p>
+                                <p className="text-[9px] text-[#e1e3e4]/50 font-medium uppercase tracking-wider truncate">{accountName}</p>
+                              </div>
+                            </div>
+                            <span className="text-[8px] font-black bg-[#66df75]/20 text-[#66df75] px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0 border border-[#66df75]/30">
+                              Auto-Credit
+                            </span>
                           </div>
 
-                          <div className="mb-4 flex justify-between items-end">
+                          <div className="flex items-center justify-between pt-0.5">
                             <div>
-                              <p className="text-[9px] text-[#e1e3e4]/30 font-black uppercase tracking-wider mb-1">Smart account number</p>
-                              <p className="text-xl font-mono font-black text-white tracking-widest select-all">{accountNumber}</p>
+                              <p className="text-[9px] text-[#e1e3e4]/40 font-bold uppercase tracking-widest">Account Number</p>
+                              <p className="text-base font-mono font-black text-white tracking-widest select-all">{accountNumber}</p>
                             </div>
                             <button
                               type="button"
                               onClick={() => handleCopy(accountNumber, id)}
-                              className={`px-3 py-2 rounded-xl flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${
+                              className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 ${
                                 copiedStates[id] 
-                                  ? 'bg-[#66df75] text-[#111415]' 
-                                  : 'bg-white/5 text-[#e1e3e4]/70 border border-white/10 hover:bg-white/10'
+                                  ? 'bg-[#66df75] text-[#111415] shadow-[0_2px_8px_rgba(102,223,117,0.3)]' 
+                                  : 'bg-white/5 text-[#e1e3e4] border border-white/10 hover:bg-white/10 hover:text-white'
                               }`}
                             >
-                              {copiedStates[id] ? <CheckCircle2 size={12} /> : <Copy size={12} />}
+                              {copiedStates[id] ? <CheckCircle2 size={13} /> : <Copy size={13} />}
                               {copiedStates[id] ? 'Copied' : 'Copy'}
                             </button>
-                          </div>
-
-                          <div className="pt-4 border-t border-white/5 flex justify-between items-center">
-                            <div>
-                              <p className="text-[9px] text-[#e1e3e4]/30 font-black uppercase tracking-wider mb-0.5">Assigned Bank</p>
-                              <p className="text-xs font-black text-[#66df75] uppercase tracking-widest">{bankName}</p>
-                            </div>
                           </div>
                         </div>
                       );
