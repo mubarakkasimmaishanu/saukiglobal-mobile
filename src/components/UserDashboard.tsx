@@ -358,6 +358,8 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
     { id: 'nin', title: 'NIN', icon: FileText, onClick: () => onNavigate('nin'), visible: false },
     { id: 'history', title: 'History', icon: History, onClick: () => onNavigate('history'), visible: false },
     { id: 'esim', title: 'eSIM', icon: Cpu, onClick: () => onNavigate('esim'), visible: true, image: '/icons/esim.png' },
+    { id: 'reseller', title: 'Reseller', icon: Briefcase, onClick: () => onNavigate('reseller-upgrade'), visible: true },
+    { id: 'referrals', title: 'Referrals', icon: Share2, onClick: () => onNavigate('referrals'), visible: true },
     { id: 'cac', title: 'CAC', icon: Briefcase, onClick: () => onNavigate('cac'), visible: false },
     { id: 'intl', title: 'Intl Topup', icon: Globe2, onClick: () => onNavigate('intl'), visible: false },
     { id: 'more', title: 'More', icon: PlusCircle, onClick: () => onNavigate('pricing'), visible: false },
@@ -425,25 +427,25 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
         </header>
  
         {/* Balance Card */}
-        <div className="card-mesh rounded-3xl p-6 mb-6 relative overflow-hidden shadow-2xl border border-white/5">
-          <div className="absolute top-0 right-0 p-4">
-            <span className="text-[9px] font-black bg-[#66df75]/20 text-[#66df75] px-2.5 py-1 rounded-full border border-[#66df75]/30 uppercase tracking-widest">
-              {user.isReseller ? 'Reseller Pro' : 'Premium'}
+        <div className="card-mesh rounded-3xl p-4 sm:p-5 mb-4 relative overflow-hidden shadow-xl border border-white/5">
+          <div className="absolute top-3 right-3">
+            <span className="text-[9px] font-black bg-[#66df75]/20 text-[#66df75] px-2.5 py-0.5 rounded-full border border-[#66df75]/30 uppercase tracking-widest">
+              {user.tier || (user.isReseller ? 'Reseller' : 'Member')}
             </span>
           </div>
- 
-          <div className="flex justify-between items-end mb-6">
+
+          <div className="flex justify-between items-end mb-2">
             <div>
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-2 mb-1">
                 <p className="text-[10px] font-bold text-[#e1e3e4]/50 uppercase tracking-widest">Available Balance</p>
                 <button 
                   onClick={() => setShowBalance(!showBalance)}
-                  className="text-[#66df75] p-1 rounded-lg hover:bg-white/5 transition-colors"
+                  className="text-[#66df75] p-0.5 rounded-lg hover:bg-white/5 transition-colors"
                 >
-                  {showBalance ? <Eye size={14} /> : <EyeOff size={14} />}
+                  {showBalance ? <Eye size={13} /> : <EyeOff size={13} />}
                 </button>
               </div>
-              <h2 className="text-3xl font-black tracking-tight text-white mb-1">
+              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-0.5">
                 {showBalance ? `₦${(user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••••••'}
               </h2>
               <div className="flex items-center gap-1.5">
@@ -455,16 +457,16 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             </div>
             <button
               onClick={() => onNavigate('fund')}
-              className="bg-[#66df75] text-[#111415] hover:bg-[#52c860] active:scale-95 py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider transition-all shadow-[0_4px_12px_rgba(102,223,117,0.2)]"
+              className="bg-[#66df75] text-[#111415] hover:bg-[#52c860] active:scale-95 py-2 px-3.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider transition-all shadow-[0_4px_12px_rgba(102,223,117,0.2)]"
             >
-              <PlusCircle size={15} />
+              <PlusCircle size={14} />
               <span>Add Money</span>
             </button>
           </div>
         </div>
- 
+
         {/* Services Grid */}
-        <section className="mb-12">
+        <section className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#66df75]">Ecosystem Services</h3>
             <span className="w-12 h-[1px] bg-[#66df75]/30"></span>
@@ -479,6 +481,27 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
             }
           </div>
         </section>
+
+        {/* Reseller Banner (Prompts Non-Reseller Users) */}
+        {!user.isReseller && (
+          <div className="mb-8 p-5 rounded-3xl bg-gradient-to-r from-emerald-950 via-[#111415] to-black border border-[#66df75]/30 relative overflow-hidden shadow-xl flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full bg-[#66df75]/20 text-[#66df75] text-[9px] font-black uppercase tracking-widest border border-[#66df75]/30">
+                  Upgrade Tier
+                </span>
+                <span className="text-xs font-black text-white">Earn 2x Referral Bonus</span>
+              </div>
+              <p className="text-[11px] text-[#e1e3e4]/70 font-medium">Upgrade to Reseller for wholesale data rates & 2% referral earnings!</p>
+            </div>
+            <button
+              onClick={() => onNavigate('reseller-upgrade')}
+              className="px-4 py-2.5 rounded-xl bg-[#66df75] hover:bg-[#52c860] text-[#111415] font-black text-xs uppercase tracking-wider shrink-0 shadow-[0_4px_12px_rgba(102,223,117,0.2)] active:scale-95 transition-all"
+            >
+              Upgrade
+            </button>
+          </div>
+        )}
 
         {/* Recent Transactions */}
         <section>

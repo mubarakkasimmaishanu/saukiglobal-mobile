@@ -510,7 +510,7 @@ export const api = {
   },
 
   getUser: async (): Promise<User | null> => {
-    // For compatibility with the legacy components, we return the dashboard stats mapped into User.
+    // For compatibility with legacy components, map dashboard stats into User object
     const res = await api.getDashboardStats();
     if (res.success && res.data) {
       const stats = res.data;
@@ -520,9 +520,15 @@ export const api = {
       const balance = stats.wallet?.balance !== undefined ? Number(stats.wallet.balance) : (cachedUser.balance || 0);
       const commissionBalance = stats.wallet?.referral_commission !== undefined ? Number(stats.wallet.referral_commission) : (cachedUser.commissionBalance || 0);
       const cashback = stats.wallet?.cashback !== undefined ? Number(stats.wallet.cashback) : (cachedUser.cashback || 0);
+      const phone = stats.user?.phone || stats.user?.referral_code || cachedUser.phone || cachedUser.referralCode || '';
+      const referralCode = phone || cachedUser.referralCode || '';
+      const totalReferrals = stats.user?.referrals_count ?? cachedUser.totalReferrals ?? 0;
 
-      return {
+      const userObj = {
         ...cachedUser,
+        phone,
+        referralCode,
+        totalReferrals,
         balance,
         commissionBalance,
         cashback,
@@ -530,6 +536,9 @@ export const api = {
         kycStatus: stats.kyc_status,
         tier: stats.tier
       } as User;
+
+      localStorage.setItem('saukiglobal_data', JSON.stringify(userObj));
+      return userObj;
     }
     return null;
   },
@@ -630,6 +639,19 @@ export const api = {
     return request('services.php?action=delete_account', {
       method: 'POST',
       body: JSON.stringify({ password })
+    });
+  },
+
+  getResellerInfo: async (): Promise<ApiResponse> => {
+    return request('services.php?action=get_reseller_info', {
+      method: 'POST'
+    });
+  },
+
+  upgradeReseller: async (pin: string): Promise<ApiResponse> => {
+    return request('services.php?action=upgrade_reseller', {
+      method: 'POST',
+      body: JSON.stringify({ pin, transaction_pin: pin })
     });
   }
 };

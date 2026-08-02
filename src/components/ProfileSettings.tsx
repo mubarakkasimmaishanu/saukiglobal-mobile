@@ -23,12 +23,13 @@ interface ProfileSettingsProps {
   onLogout: () => void;
   onViewPricing: () => void;
   onViewSupport: () => void;
+  onNavigate?: (view: any) => void;
   appConfig?: any;
 }
 
 type ProfileView = 'main' | 'personal' | 'password' | 'pin' | 'privacy' | 'terms' | 'delete';
 
-export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport, appConfig }: ProfileSettingsProps) {
+export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport, onNavigate, appConfig }: ProfileSettingsProps) {
   const { user, loading, logout } = useUser();
   const [currentView, setCurrentView] = useState<ProfileView>('main');
 
@@ -153,6 +154,64 @@ export default function ProfileSettings({ onBack, onLogout, onViewPricing, onVie
             <h2 className="text-base font-bold text-white leading-tight">{user?.firstName} {user?.lastName}</h2>
             <p className="text-xs text-[#e1e3e4]/50 font-medium mt-1">{user?.phone}</p>
           </div>
+        </div>
+
+        {/* Referral & Reseller Summary Card */}
+        <div className="glass-panel p-5 border-white/5 mb-6 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-[#66df75] uppercase tracking-widest">Referral & Commission</span>
+            </div>
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('referrals')}
+                className="text-[10px] font-bold text-[#66df75] uppercase tracking-widest hover:underline flex items-center gap-1"
+              >
+                View Hub <ChevronRight size={12} />
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="p-3 rounded-xl bg-black/40 border border-white/5">
+              <p className="text-[9px] font-bold text-[#e1e3e4]/40 uppercase tracking-widest mb-1">Code (Phone)</p>
+              <p className="text-xs font-mono font-bold text-white truncate">{user?.phone || user?.referralCode || 'N/A'}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-black/40 border border-white/5">
+              <p className="text-[9px] font-bold text-[#e1e3e4]/40 uppercase tracking-widest mb-1">Total Referrals</p>
+              <p className="text-base font-black text-white">{user?.totalReferrals || 0}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-black/40 border border-white/5">
+              <p className="text-[9px] font-bold text-[#e1e3e4]/40 uppercase tracking-widest mb-1">Commission</p>
+              <p className="text-base font-black text-[#66df75]">₦{(user?.commissionBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+            </div>
+          </div>
+
+          {onNavigate && (
+            <div className="flex gap-2 pt-1">
+              {!isReseller ? (
+                <button
+                  onClick={() => onNavigate('reseller-upgrade')}
+                  className="flex-1 py-2.5 rounded-xl bg-[#66df75] text-[#111415] font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all"
+                >
+                  <Award size={12} /> Upgrade to Reseller
+                </button>
+              ) : (
+                <button
+                  onClick={() => onNavigate('reseller-upgrade')}
+                  className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 hover:bg-white/10 transition-all"
+                >
+                  <Award size={12} /> Reseller Benefits
+                </button>
+              )}
+              <button
+                onClick={() => onNavigate('referrals')}
+                className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[#66df75] font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 hover:bg-white/10 transition-all"
+              >
+                Share Referral Link
+              </button>
+            </div>
+          )}
         </div>
 
 
