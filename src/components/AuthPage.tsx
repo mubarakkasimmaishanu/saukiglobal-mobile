@@ -24,6 +24,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
   const [kycType, setKycType] = useState('none');
   const [bvn, setBvn] = useState('');
   const [nin, setNin] = useState('');
+  const [referralCode, setReferralCode] = useState('');
 
   // Password Reset Fields
   const [resetEmail, setResetEmail] = useState('');
@@ -184,7 +185,7 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
           phone,
           password,
           transactionPin,
-          '', // No referral code on simple form
+          referralCode,
           kycType,
           bvn,
           nin
@@ -493,6 +494,17 @@ export default function AuthPage({ initialMode = 'login', onBack, onSuccess }: A
                   />
                 </div>
               )}
+
+              <div>
+                <label className="block text-[10px] font-black text-[#66df75] uppercase tracking-[0.2em] mb-2">Referral Code / Phone Number (Optional)</label>
+                <input
+                  type="text"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all font-mono placeholder:text-white/20"
+                  placeholder="Referrer's phone (e.g. 08012345678)"
+                />
+              </div>
 
               <button
                 type="submit"

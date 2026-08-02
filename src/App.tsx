@@ -27,8 +27,10 @@ import CACRegistration from './components/CACRegistration';
 import IntlTopup from './components/IntlTopup';
 import RatelCall from './components/RatelCall';
 import PrivacyTerms from './components/PrivacyTerms';
+import ResellerUpgrade from './components/ResellerUpgrade';
+import ReferralsHub from './components/ReferralsHub';
 
-type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl' | 'ratel' | 'privacy' | 'terms';
+type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl' | 'ratel' | 'privacy' | 'terms' | 'reseller-upgrade' | 'referrals';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('landing');
@@ -122,7 +124,16 @@ export default function App() {
           }}
           onViewPricing={() => navigateTo('pricing')}
           onViewSupport={() => navigateTo('support')}
+          onNavigate={navigateTo}
         />
+      )}
+
+      {currentView === 'reseller-upgrade' && (
+        <ResellerUpgrade onBack={() => navigateTo('dashboard')} />
+      )}
+
+      {currentView === 'referrals' && (
+        <ReferralsHub onBack={() => navigateTo('dashboard')} />
       )}
 
       {currentView === 'notifications' && (
