@@ -30,7 +30,7 @@ export default function ResellerUpgrade({ onBack }: ResellerUpgradeProps) {
     try {
       const res = await api.getResellerInfo();
       if (res.success && res.data) {
-        setUpgradeFee(Number(res.data.fee ?? 2000));
+        setUpgradeFee(Number(res.data.upgrade_fee ?? res.data.fee ?? 2000));
         setAutoApprove(!!res.data.auto_approve);
       }
     } catch (err: any) {
