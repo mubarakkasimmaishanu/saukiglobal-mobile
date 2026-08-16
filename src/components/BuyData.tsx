@@ -118,7 +118,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
       fetchPlansAndTypes(selectedNetworkId);
     } else {
       setDataPlans([]);
-      setPlanTypesList(['SME', 'Corporate Gifting', 'Gifting', 'Direct']);
+      setPlanTypesList([]);
       setSelectedPlanType('');
       setSelectedPlanId('');
     }
@@ -148,20 +148,10 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
         types = Array.from(new Set([...types, ...extracted]));
       }
 
-      // Default fallback if no custom types returned
-      if (types.length === 0) {
-        types = ['SME', 'Corporate Gifting', 'Gifting', 'Direct'];
-      }
-
       setPlanTypesList(types);
 
-      // Default to first plan type or keep existing selection if valid
-      if (types.length > 0) {
-        setSelectedPlanType((prev) => (prev && types.includes(prev) ? prev : ''));
-      } else {
-        setSelectedPlanType('');
-      }
-
+      // Default to '' (All Plan Types) so all plans are loaded and visible immediately
+      setSelectedPlanType('');
       setSelectedPlanId('');
 
       if (!plansRes.success && fetchedPlans.length === 0) {
@@ -169,7 +159,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
       }
     } catch (err) {
       setDataPlans([]);
-      setPlanTypesList(['SME', 'Corporate Gifting', 'Gifting', 'Direct']);
+      setPlanTypesList([]);
       setError('Failed to download bundles. Retry.');
     } finally {
       setIsLoadingPlans(false);
@@ -200,12 +190,15 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
     }
   }, [phone, networksList]);
 
-  // Filter plans based on selected plan type
-  const filteredPlans = dataPlans.filter((p) => {
-    if (!selectedPlanType || selectedPlanType.trim() === "" || selectedPlanType.toLowerCase() === "all" || selectedPlanType.toLowerCase() === "all plan types") return true;
+  // Filter plans based on selected plan type with graceful fallback to all plans if zero match
+  const matchingPlans = dataPlans.filter((p) => {
+    if (!selectedPlanType) return true;
     const pType = getPlanTypeFromObject(p).toLowerCase();
-    return pType === selectedPlanType.toLowerCase();
+    const selType = selectedPlanType.toLowerCase();
+    return pType === selType || pType.includes(selType) || selType.includes(pType);
   });
+
+  const filteredPlans = (matchingPlans.length > 0 || !selectedPlanType) ? matchingPlans : dataPlans;
 
   const selectedPlan = dataPlans.find(p => p.id.toString() === selectedPlanId.toString());
   const activeNetwork = networksList.find(n => n.id === selectedNetworkId);
