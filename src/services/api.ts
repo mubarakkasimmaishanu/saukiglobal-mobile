@@ -204,7 +204,8 @@ export const api = {
   },
 
   getDataPlans: async (networkId: number | string, planType?: string): Promise<ApiResponse> => {
-    const payload: Record<string, any> = { network_id: Number(networkId) };
+    const netVal = isNaN(Number(networkId)) ? networkId : Number(networkId);
+      const payload: Record<string, any> = { network_id: netVal, network: netVal };
     if (planType) {
       payload.plan_type = planType;
       payload.type = planType;
