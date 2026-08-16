@@ -32,6 +32,8 @@ import ReferralsHub from './components/ReferralsHub';
 import InAppBannerModal, { AppBannersData } from './components/InAppBannerModal';
 import { NavigationProvider, useNavigation } from './context/NavigationContext';
 
+const CURRENT_APP_VERSION = '1.0.8';
+
 function AppContent() {
   const { currentView, navigateTo, goBack } = useNavigation();
   const [isInitializing, setIsInitializing] = useState(true);
@@ -48,7 +50,7 @@ function AppContent() {
         initPushNotifications(navigateTo);
       });
     }
-  }, [currentView, isInitializing]);
+  }, [currentView, isInitializing, navigateTo]);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -56,8 +58,11 @@ function AppContent() {
       if (apiKey) {
         try {
           const res = await api.getAppConfig();
-          if (res.success) {
+          if (res.success && res.data) {
             setAppConfig(res.data);
+            if (res.data.banners) {
+              setAppBanners(res.data.banners);
+            }
           }
         } catch (err) {
           console.error('Failed to fetch app config', err);
@@ -65,7 +70,7 @@ function AppContent() {
       }
     };
     if (currentView !== 'landing' && currentView !== 'login' && currentView !== 'signup' && !isInitializing) {
-      fetchConfigAndBanners();
+      fetchConfig();
     }
   }, [currentView, isInitializing]);
 
@@ -306,6 +311,3 @@ export default function App() {
     </NavigationProvider>
   );
 }
-
-
-
