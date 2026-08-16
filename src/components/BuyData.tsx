@@ -112,25 +112,25 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
     return 'General';
   };
 
-  // Automatically fetch plans and plan types when selected network changes
+  // Automatically fetch plans and plan types when selected network or plan type changes
   useEffect(() => {
     if (selectedNetworkId) {
-      fetchPlansAndTypes(selectedNetworkId);
+      fetchPlansAndTypes(selectedNetworkId, selectedPlanType);
     } else {
       setDataPlans([]);
       setPlanTypesList([]);
       setSelectedPlanType('');
       setSelectedPlanId('');
     }
-  }, [selectedNetworkId]);
+  }, [selectedNetworkId, selectedPlanType]);
 
-  const fetchPlansAndTypes = async (netId: string | number) => {
+  const fetchPlansAndTypes = async (netId: string | number, planType?: string) => {
     setIsLoadingPlans(true);
     setError(null);
     try {
       // Fetch data plans and plan types dynamically from backend
       const [plansRes, typesRes] = await Promise.all([
-        api.getDataPlans(netId),
+        api.getDataPlans(netId, planType),
         api.getDataPlanTypes(netId).catch(() => ({ success: false, data: [] }))
       ]);
 
@@ -148,11 +148,10 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
         types = Array.from(new Set([...types, ...extracted]));
       }
 
-      setPlanTypesList(types);
+      // Filter out duplicate or empty plan types
+      types = Array.from(new Set(types.filter(t => t && t.trim() !== '' && t.toLowerCase() !== 'all')));
 
-      // Default to '' (All Plan Types) so all plans are loaded and visible immediately
-      setSelectedPlanType('');
-      setSelectedPlanId('');
+      setPlanTypesList(types);
 
       if (!plansRes.success && fetchedPlans.length === 0) {
         setError(plansRes.message || 'No packages found for this network.');
@@ -185,6 +184,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
         );
         if (match && selectedNetworkId !== match.id) {
           setSelectedNetworkId(match.id);
+          setSelectedPlanId('');
         }
       }
     }
@@ -192,13 +192,15 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
 
   // Filter plans based on selected plan type with graceful fallback to all plans if zero match
   const matchingPlans = dataPlans.filter((p) => {
-    if (!selectedPlanType) return true;
+    if (!selectedPlanType || selectedPlanType.trim() === '' || selectedPlanType.toLowerCase() === 'all' || selectedPlanType.toLowerCase() === 'all plan types') {
+      return true;
+    }
     const pType = getPlanTypeFromObject(p).toLowerCase();
     const selType = selectedPlanType.toLowerCase();
     return pType === selType || pType.includes(selType) || selType.includes(pType);
   });
 
-  const filteredPlans = (matchingPlans.length > 0 || !selectedPlanType) ? matchingPlans : dataPlans;
+  const filteredPlans = (matchingPlans.length > 0) ? matchingPlans : dataPlans;
 
   const selectedPlan = dataPlans.find(p => p.id.toString() === selectedPlanId.toString());
   const activeNetwork = networksList.find(n => n.id === selectedNetworkId);
