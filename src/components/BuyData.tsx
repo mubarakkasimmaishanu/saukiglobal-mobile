@@ -95,13 +95,30 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
     }
   };
 
+  // Robust helper to extract plan type from plan properties or plan name
+  const getPlanTypeFromObject = (p: DataPlan): string => {
+    if (p.type && typeof p.type === 'string' && p.type.trim()) return p.type.trim();
+    if ((p as any).plan_type && typeof (p as any).plan_type === 'string' && (p as any).plan_type.trim()) return (p as any).plan_type.trim();
+    if ((p as any).network_type && typeof (p as any).network_type === 'string' && (p as any).network_type.trim()) return (p as any).network_type.trim();
+    if ((p as any).category && typeof (p as any).category === 'string' && (p as any).category.trim()) return (p as any).category.trim();
+    
+    // Parse plan type from name string if no explicit type field exists
+    const name = (p.name || '').toUpperCase();
+    if (name.includes('CORPORATE') || name.includes('CG')) return 'Corporate Gifting';
+    if (name.includes('SME')) return 'SME';
+    if (name.includes('GIFTING')) return 'Gifting';
+    if (name.includes('DIRECT') || name.includes('VTU')) return 'Direct';
+    
+    return 'General';
+  };
+
   // Automatically fetch plans and plan types when selected network changes
   useEffect(() => {
     if (selectedNetworkId) {
       fetchPlansAndTypes(selectedNetworkId);
     } else {
       setDataPlans([]);
-      setPlanTypesList([]);
+      setPlanTypesList(['SME', 'Corporate Gifting', 'Gifting', 'Direct']);
       setSelectedPlanType('');
       setSelectedPlanId('');
     }
@@ -126,15 +143,21 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
         types = typesRes.data.map((t: any) => typeof t === 'string' ? t : (t.type || t.plan_type || t.name)).filter(Boolean);
       }
       
-      if (types.length === 0 && fetchedPlans.length > 0) {
-        types = Array.from(new Set(fetchedPlans.map((p) => p.type || (p as any).plan_type).filter(Boolean))) as string[];
+      if (fetchedPlans.length > 0) {
+        const extracted = Array.from(new Set(fetchedPlans.map((p) => getPlanTypeFromObject(p)).filter(Boolean)));
+        types = Array.from(new Set([...types, ...extracted]));
+      }
+
+      // Default fallback if no custom types returned
+      if (types.length === 0) {
+        types = ['SME', 'Corporate Gifting', 'Gifting', 'Direct'];
       }
 
       setPlanTypesList(types);
 
-      // Auto-select first plan type if available
+      // Default to first plan type or keep existing selection if valid
       if (types.length > 0) {
-        setSelectedPlanType(types[0]);
+        setSelectedPlanType((prev) => (types.includes(prev) ? prev : types[0]));
       } else {
         setSelectedPlanType('');
       }
@@ -146,7 +169,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
       }
     } catch (err) {
       setDataPlans([]);
-      setPlanTypesList([]);
+      setPlanTypesList(['SME', 'Corporate Gifting', 'Gifting', 'Direct']);
       setError('Failed to download bundles. Retry.');
     } finally {
       setIsLoadingPlans(false);
@@ -180,7 +203,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
   // Filter plans based on selected plan type
   const filteredPlans = dataPlans.filter((p) => {
     if (!selectedPlanType) return true;
-    const pType = (p.type || (p as any).plan_type || '').toString().toLowerCase();
+    const pType = getPlanTypeFromObject(p).toLowerCase();
     return pType === selectedPlanType.toLowerCase();
   });
 
@@ -351,9 +374,16 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
 
                 {/* Plan Type Selector (Dynamic from Backend) */}
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">
-                    Plan Type
-                  </label>
+                  <div className="flex justify-between items-center px-1">
+                    <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest">
+                      Plan Type
+                    </label>
+                    {selectedPlanType && (
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-[#66df75]/10 text-[#66df75] border border-[#66df75]/20">
+                        {selectedPlanType}
+                      </span>
+                    )}
+                  </div>
                   <div className="relative">
                     <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[#66df75] pointer-events-none">
                       <ChevronDown size={20} />
@@ -364,17 +394,15 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                         setSelectedPlanType(e.target.value);
                         setSelectedPlanId('');
                       }}
-                      disabled={!selectedNetworkId || isLoadingPlans || planTypesList.length === 0}
+                      disabled={!selectedNetworkId || isLoadingPlans}
                       className="w-full bg-[#111415] border border-white/10 rounded-2xl py-5 pl-14 pr-12 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none disabled:opacity-30 cursor-pointer"
                     >
-                      <option value="" disabled className="bg-[#111415]">
+                      <option value="" className="bg-[#111415]">
                         {!selectedNetworkId
                           ? 'Select network first'
                           : isLoadingPlans
                             ? 'Loading plan types...'
-                            : planTypesList.length === 0
-                              ? 'All Plan Types'
-                              : 'Select Plan Type'}
+                            : 'All Plan Types'}
                       </option>
                       {planTypesList.map((type) => (
                         <option key={type} value={type} className="bg-[#111415]">
