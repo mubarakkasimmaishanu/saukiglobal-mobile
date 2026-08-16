@@ -29,20 +29,14 @@ import RatelCall from './components/RatelCall';
 import PrivacyTerms from './components/PrivacyTerms';
 import ResellerUpgrade from './components/ResellerUpgrade';
 import ReferralsHub from './components/ReferralsHub';
+import { NavigationProvider, useNavigation } from './context/NavigationContext';
 
-type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'profile' | 'notifications' | 'pricing' | 'support' | 'airtime' | 'history' | 'exams' | 'fund' | 'data' | 'transfer' | 'cable' | 'electricity' | 'nin' | 'requests' | 'alpha' | 'kirani' | 'smile' | 'a2c' | 'esim' | 'cac' | 'intl' | 'ratel' | 'privacy' | 'terms' | 'reseller-upgrade' | 'referrals';
-
-export default function App() {
-  const [currentView, setCurrentView] = useState<View>('landing');
+function AppContent() {
+  const { currentView, navigateTo, goBack } = useNavigation();
   const [isInitializing, setIsInitializing] = useState(true);
   const [appConfig, setAppConfig] = useState<any>(null);
 
   useEffect(() => {
-    // Check if API key exists to auto-login
-    const apiKey = localStorage.getItem('saukiglobal_api_key');
-    if (apiKey) {
-      setCurrentView('dashboard');
-    }
     setIsInitializing(false);
   }, []);
 
@@ -73,11 +67,6 @@ export default function App() {
     }
   }, [currentView, isInitializing]);
 
-  const navigateTo = (view: View) => {
-    setCurrentView(view);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   if (isInitializing) {
     return (
       <div className="min-h-screen bg-[#111415] flex flex-col items-center justify-between py-12 px-6">
@@ -105,8 +94,8 @@ export default function App() {
       {(currentView === 'login' || currentView === 'signup') && (
         <AuthPage
           initialMode={currentView === 'login' ? 'login' : 'signup'}
-          onBack={() => navigateTo('landing')}
-          onSuccess={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
+          onSuccess={() => navigateTo('dashboard', { resetStack: true })}
         />
       )}
 
@@ -117,10 +106,10 @@ export default function App() {
       {currentView === 'profile' && (
         <ProfileSettings
           appConfig={appConfig}
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
           onLogout={() => {
             localStorage.removeItem('saukiglobal_api_key');
-            navigateTo('landing');
+            navigateTo('landing', { resetStack: true });
           }}
           onViewPricing={() => navigateTo('pricing')}
           onViewSupport={() => navigateTo('support')}
@@ -129,159 +118,151 @@ export default function App() {
       )}
 
       {currentView === 'reseller-upgrade' && (
-        <ResellerUpgrade onBack={() => navigateTo('dashboard')} />
+        <ResellerUpgrade onBack={() => goBack()} />
       )}
 
       {currentView === 'referrals' && (
-        <ReferralsHub onBack={() => navigateTo('dashboard')} />
+        <ReferralsHub onBack={() => goBack()} />
       )}
 
       {currentView === 'notifications' && (
         <Notifications
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'pricing' && (
         <PricingList
-          onBack={() => navigateTo('profile')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'support' && (
         <HelpSupport
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'airtime' && (
         <BuyAirtime
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'history' && (
         <TransactionHistory
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'exams' && (
         <ExamPins
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
-
-
       {currentView === 'fund' && (
         <FundWallet
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'data' && (
         <BuyData
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
           onFund={() => navigateTo('fund')}
         />
       )}
 
       {currentView === 'transfer' && (
         <WalletTransfer
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'alpha' && (
         <AlphaTopup
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'kirani' && (
         <KiraniService
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'smile' && (
         <SmileServices
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'a2c' && (
         <AirtimeToCash
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'cable' && (
         <CableTV
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'electricity' && (
         <ElectricityBill
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'nin' && (
         <NINPrint
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'requests' && (
         <RequestedServices
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'esim' && (
         <ESimServices
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'cac' && (
         <CACRegistration
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'intl' && (
         <IntlTopup
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'ratel' && (
         <RatelCall
-          onBack={() => navigateTo('dashboard')}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'privacy' && (
         <PrivacyTerms
           mode="privacy"
-          onBack={() => {
-            const apiKey = localStorage.getItem('saukiglobal_api_key');
-            navigateTo(apiKey ? 'profile' : 'landing');
-          }}
+          onBack={() => goBack()}
         />
       )}
 
       {currentView === 'terms' && (
         <PrivacyTerms
           mode="terms"
-          onBack={() => {
-            const apiKey = localStorage.getItem('saukiglobal_api_key');
-            navigateTo(apiKey ? 'profile' : 'landing');
-          }}
+          onBack={() => goBack()}
         />
       )}
 
@@ -306,5 +287,14 @@ export default function App() {
     </div>
   );
 }
+
+export default function App() {
+  return (
+    <NavigationProvider>
+      <AppContent />
+    </NavigationProvider>
+  );
+}
+
 
 

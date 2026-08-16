@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Shield,
   Lock,
@@ -17,6 +17,7 @@ import DeleteAccount from './profile/DeleteAccount';
 import PrivacyTerms from './PrivacyTerms';
 import DeveloperAttribution from './DeveloperAttribution';
 import { useUser } from '../context/UserContext';
+import { useNavigation } from '../context/NavigationContext';
 
 interface ProfileSettingsProps {
   onBack: () => void;
@@ -31,7 +32,18 @@ type ProfileView = 'main' | 'personal' | 'password' | 'pin' | 'privacy' | 'terms
 
 export default function ProfileSettings({ onBack, onLogout, onViewPricing, onViewSupport, onNavigate, appConfig }: ProfileSettingsProps) {
   const { user, loading, logout } = useUser();
+  const { registerBackHandler } = useNavigation();
   const [currentView, setCurrentView] = useState<ProfileView>('main');
+
+  useEffect(() => {
+    if (currentView !== 'main') {
+      const unregister = registerBackHandler(() => {
+        setCurrentView('main');
+        return true;
+      });
+      return unregister;
+    }
+  }, [currentView, registerBackHandler]);
 
   if (loading) {
     return (

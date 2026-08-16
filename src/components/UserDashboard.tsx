@@ -31,6 +31,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { useNavigation } from '../context/NavigationContext';
 import { api } from '../services/api';
 import { Transaction } from '../types';
 import TransactionTable from './TransactionTable';
@@ -91,6 +92,7 @@ interface UserDashboardProps {
 
 export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   const { user, refreshUser } = useUser();
+  const { registerBackHandler } = useNavigation();
   const [showBalance, setShowBalance] = useState(true);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [virtualAccounts, setVirtualAccounts] = useState<any[]>([]);
@@ -98,6 +100,16 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
   const [greeting, setGreeting] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+
+  useEffect(() => {
+    if (selectedTx !== null) {
+      const unregister = registerBackHandler(() => {
+        setSelectedTx(null);
+        return true;
+      });
+      return unregister;
+    }
+  }, [selectedTx, registerBackHandler]);
 
   const getIconForType = (type: string) => {
     switch (type?.toLowerCase()) {
