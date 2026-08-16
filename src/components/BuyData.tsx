@@ -202,7 +202,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
 
   // Filter plans based on selected plan type
   const filteredPlans = dataPlans.filter((p) => {
-    if (!selectedPlanType) return true;
+    if (!selectedPlanType || selectedPlanType.trim() === "" || selectedPlanType.toLowerCase() === "all" || selectedPlanType.toLowerCase() === "all plan types") return true;
     const pType = getPlanTypeFromObject(p).toLowerCase();
     return pType === selectedPlanType.toLowerCase();
   });
