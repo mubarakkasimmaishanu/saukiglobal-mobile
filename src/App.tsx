@@ -65,7 +65,7 @@ function AppContent() {
       }
     };
     if (currentView !== 'landing' && currentView !== 'login' && currentView !== 'signup' && !isInitializing) {
-      fetchConfig();
+      fetchConfigAndBanners();
     }
   }, [currentView, isInitializing]);
 
@@ -272,7 +272,7 @@ function AppContent() {
       {currentView !== 'landing' && currentView !== 'login' && currentView !== 'signup' && (
         <InAppBannerModal
           banners={appBanners}
-          currentAppVersion="1.0.0"
+          currentAppVersion={CURRENT_APP_VERSION}
           onNavigate={navigateTo}
         />
       )}

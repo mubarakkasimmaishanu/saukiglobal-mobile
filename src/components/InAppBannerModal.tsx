@@ -50,8 +50,9 @@ export default function InAppBannerModal({
     // 1. Check Force Update first
     const update = banners.force_update;
     if (update && update.enabled) {
-      const isVersionLower = isAppOutdated(currentAppVersion, update.min_version || update.latest_version || '1.0.0');
-      if (isVersionLower || update.is_mandatory) {
+      const targetVersion = update.min_version || update.latest_version || '1.0.0';
+      const isVersionLower = isAppOutdated(currentAppVersion, targetVersion);
+      if (isVersionLower) {
         setActiveModal('update');
         return;
       }
