@@ -46,7 +46,9 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
   const [phone, setPhone] = useState('');
   const [networksList, setNetworksList] = useState<NetworkProvider[]>([]);
   const [dataPlans, setDataPlans] = useState<DataPlan[]>([]);
+  const [planTypesList, setPlanTypesList] = useState<string[]>([]);
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | number>('');
+  const [selectedPlanType, setSelectedPlanType] = useState<string>('');
   const [selectedPlanId, setSelectedPlanId] = useState<string | number>('');
   
   // UI states
@@ -93,29 +95,58 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
     }
   };
 
-  // Automatically fetch plans when selected network changes
+  // Automatically fetch plans and plan types when selected network changes
   useEffect(() => {
     if (selectedNetworkId) {
-      fetchPlans(selectedNetworkId);
+      fetchPlansAndTypes(selectedNetworkId);
     } else {
       setDataPlans([]);
+      setPlanTypesList([]);
+      setSelectedPlanType('');
       setSelectedPlanId('');
     }
   }, [selectedNetworkId]);
 
-  const fetchPlans = async (netId: string | number) => {
+  const fetchPlansAndTypes = async (netId: string | number) => {
     setIsLoadingPlans(true);
     setError(null);
     try {
-      const res = await api.getDataPlans(netId);
-      if (res.success && Array.isArray(res.data)) {
-        setDataPlans(res.data);
+      // Fetch data plans and plan types dynamically from backend
+      const [plansRes, typesRes] = await Promise.all([
+        api.getDataPlans(netId),
+        api.getDataPlanTypes(netId).catch(() => ({ success: false, data: [] }))
+      ]);
+
+      const fetchedPlans: DataPlan[] = (plansRes.success && Array.isArray(plansRes.data)) ? plansRes.data : [];
+      setDataPlans(fetchedPlans);
+
+      // Dynamically extract active plan types from API or plan objects
+      let types: string[] = [];
+      if (typesRes.success && Array.isArray(typesRes.data) && typesRes.data.length > 0) {
+        types = typesRes.data.map((t: any) => typeof t === 'string' ? t : (t.type || t.plan_type || t.name)).filter(Boolean);
+      }
+      
+      if (types.length === 0 && fetchedPlans.length > 0) {
+        types = Array.from(new Set(fetchedPlans.map((p) => p.type || (p as any).plan_type).filter(Boolean))) as string[];
+      }
+
+      setPlanTypesList(types);
+
+      // Auto-select first plan type if available
+      if (types.length > 0) {
+        setSelectedPlanType(types[0]);
       } else {
-        setDataPlans([]);
-        setError(res.message || 'No packages found for this network.');
+        setSelectedPlanType('');
+      }
+
+      setSelectedPlanId('');
+
+      if (!plansRes.success && fetchedPlans.length === 0) {
+        setError(plansRes.message || 'No packages found for this network.');
       }
     } catch (err) {
       setDataPlans([]);
+      setPlanTypesList([]);
       setError('Failed to download bundles. Retry.');
     } finally {
       setIsLoadingPlans(false);
@@ -145,6 +176,13 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
       }
     }
   }, [phone, networksList]);
+
+  // Filter plans based on selected plan type
+  const filteredPlans = dataPlans.filter((p) => {
+    if (!selectedPlanType) return true;
+    const pType = (p.type || (p as any).plan_type || '').toString().toLowerCase();
+    return pType === selectedPlanType.toLowerCase();
+  });
 
   const selectedPlan = dataPlans.find(p => p.id.toString() === selectedPlanId.toString());
   const activeNetwork = networksList.find(n => n.id === selectedNetworkId);
@@ -236,7 +274,33 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                 <p className="text-xs text-[#e1e3e4]/50 font-bold uppercase tracking-wider">Retrieving billing nodes...</p>
               </div>
             ) : (
-              <form onSubmit={handleProcessForm} className="space-y-8">
+              <form onSubmit={handleProcessForm} className="space-y-6">
+                {/* Phone Input */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center px-1">
+                    <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest">Recipient Number</label>
+                    {activeStyle && (
+                      <span className="text-[9px] font-black uppercase px-2 py-1 rounded-md bg-white/5 text-white flex items-center gap-1.5 border border-white/5">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: activeStyle.color }}></div>
+                        {activeStyle.label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      maxLength={11}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all tracking-widest"
+                      placeholder="0800 000 0000"
+                    />
+                    <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-[#66df75] hover:bg-[#66df75]/10 rounded-xl transition-colors">
+                      <Contact size={20} />
+                    </button>
+                  </div>
+                </div>
+
                 {/* Network Selection Grid (Dynamic) */}
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Network Provider</label>
@@ -285,37 +349,50 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                   </div>
                 </div>
 
-                {/* Phone Input */}
+                {/* Plan Type Selector (Dynamic from Backend) */}
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center px-1">
-                    <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest">Recipient Number</label>
-                    {activeStyle && (
-                      <span className="text-[9px] font-black uppercase px-2 py-1 rounded-md bg-white/5 text-white flex items-center gap-1.5 border border-white/5">
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: activeStyle.color }}></div>
-                        {activeStyle.label}
-                      </span>
-                    )}
-                  </div>
+                  <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">
+                    Plan Type
+                  </label>
                   <div className="relative">
-                    <input
-                      type="tel"
-                      maxLength={11}
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all tracking-widest"
-                      placeholder="0800 000 0000"
-                    />
-                    <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-[#66df75] hover:bg-[#66df75]/10 rounded-xl transition-colors">
-                      <Contact size={20} />
-                    </button>
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[#66df75] pointer-events-none">
+                      <ChevronDown size={20} />
+                    </div>
+                    <select
+                      value={selectedPlanType}
+                      onChange={(e) => {
+                        setSelectedPlanType(e.target.value);
+                        setSelectedPlanId('');
+                      }}
+                      disabled={!selectedNetworkId || isLoadingPlans || planTypesList.length === 0}
+                      className="w-full bg-[#111415] border border-white/10 rounded-2xl py-5 pl-14 pr-12 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none disabled:opacity-30 cursor-pointer"
+                    >
+                      <option value="" disabled className="bg-[#111415]">
+                        {!selectedNetworkId
+                          ? 'Select network first'
+                          : isLoadingPlans
+                            ? 'Loading plan types...'
+                            : planTypesList.length === 0
+                              ? 'All Plan Types'
+                              : 'Select Plan Type'}
+                      </option>
+                      {planTypesList.map((type) => (
+                        <option key={type} value={type} className="bg-[#111415]">
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-[#e1e3e4]/30">
+                      <ChevronDown size={20} />
+                    </div>
                   </div>
                 </div>
 
-                {/* Bundle / Package Selector (Dynamic) */}
+                {/* Data Plan Selector (Filtered by Network + Plan Type) */}
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest px-1">Select Data Plan</label>
                   <div className="relative">
-                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[#66df75]">
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[#66df75] pointer-events-none">
                       {isLoadingPlans ? (
                         <RefreshCcw size={20} className="animate-spin" />
                       ) : (
@@ -325,21 +402,21 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                     <select
                       value={selectedPlanId}
                       onChange={(e) => setSelectedPlanId(e.target.value)}
-                      disabled={!selectedNetworkId || isLoadingPlans || dataPlans.length === 0}
-                      className="w-full bg-[#111415] border border-white/10 rounded-2xl py-5 pl-14 pr-12 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none disabled:opacity-30"
+                      disabled={!selectedNetworkId || isLoadingPlans || filteredPlans.length === 0}
+                      className="w-full bg-[#111415] border border-white/10 rounded-2xl py-5 pl-14 pr-12 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all appearance-none disabled:opacity-30 cursor-pointer"
                     >
                       <option value="" disabled className="bg-[#111415]">
                         {isLoadingPlans 
                           ? 'Loading plans...' 
                           : selectedNetworkId 
-                            ? dataPlans.length === 0 
-                              ? 'No data plans allocated' 
+                            ? filteredPlans.length === 0 
+                              ? 'No packages available for selected type' 
                               : 'Select package' 
                             : 'Select network first'}
                       </option>
-                      {dataPlans.map(p => (
+                      {filteredPlans.map(p => (
                         <option key={p.id} value={p.id} className="bg-[#111415]">
-                          {p.name} {p.validity ? `(${p.validity})` : ''} — ₦{Number(p.price).toLocaleString()} ({p.type})
+                          {p.name} {p.validity ? `(${p.validity})` : ''} — ₦{Number(p.price).toLocaleString()}
                         </option>
                       ))}
                     </select>
@@ -348,6 +425,34 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                     </div>
                   </div>
                 </div>
+
+                {/* Selected Plan Details & Price Display Card */}
+                {selectedPlan && (
+                  <div className="glass-panel p-5 border-[#66df75]/20 bg-[#66df75]/5 rounded-2xl space-y-3 animate-in fade-in duration-300">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-black text-[#66df75] uppercase tracking-widest">Plan Name</span>
+                      <span className="text-sm font-bold text-white">{selectedPlan.name}</span>
+                    </div>
+                    {selectedPlan.validity && (
+                      <div className="flex justify-between items-center border-t border-white/5 pt-2">
+                        <span className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Validity</span>
+                        <span className="text-xs font-bold text-[#e1e3e4]">{selectedPlan.validity}</span>
+                      </div>
+                    )}
+                    {(selectedPlan.type || (selectedPlan as any).plan_type) && (
+                      <div className="flex justify-between items-center border-t border-white/5 pt-2">
+                        <span className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Plan Type</span>
+                        <span className="text-xs font-bold text-[#66df75] px-2.5 py-0.5 rounded-full bg-[#66df75]/10 border border-[#66df75]/20">
+                          {selectedPlan.type || (selectedPlan as any).plan_type}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center border-t border-white/5 pt-2">
+                      <span className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Selling Price</span>
+                      <span className="text-xl font-black text-[#66df75]">₦{Number(selectedPlan.price).toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="submit"

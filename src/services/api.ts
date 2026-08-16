@@ -196,10 +196,22 @@ export const api = {
     });
   },
 
-  getDataPlans: async (networkId: number | string): Promise<ApiResponse> => {
-    return request('services.php?action=getDataPlans', {
+  getDataPlanTypes: async (networkId: number | string): Promise<ApiResponse> => {
+    return request('services.php?action=getDataPlanTypes', {
       method: 'POST',
       body: JSON.stringify({ network_id: Number(networkId) })
+    });
+  },
+
+  getDataPlans: async (networkId: number | string, planType?: string): Promise<ApiResponse> => {
+    const payload: Record<string, any> = { network_id: Number(networkId) };
+    if (planType) {
+      payload.plan_type = planType;
+      payload.type = planType;
+    }
+    return request('services.php?action=getDataPlans', {
+      method: 'POST',
+      body: JSON.stringify(payload)
     });
   },
 
