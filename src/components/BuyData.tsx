@@ -200,7 +200,9 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
     return pType === selType || pType.includes(selType) || selType.includes(pType);
   });
 
-  const filteredPlans = (matchingPlans.length > 0) ? matchingPlans : dataPlans;
+  const filteredPlans = ((matchingPlans.length > 0) ? matchingPlans : dataPlans)
+    .slice()
+    .sort((a, b) => Number(a.price) - Number(b.price));
 
   const selectedPlan = dataPlans.find(p => p.id.toString() === selectedPlanId.toString());
   const activeNetwork = networksList.find(n => n.id === selectedNetworkId);
