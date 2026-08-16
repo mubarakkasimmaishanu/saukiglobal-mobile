@@ -29,12 +29,14 @@ import RatelCall from './components/RatelCall';
 import PrivacyTerms from './components/PrivacyTerms';
 import ResellerUpgrade from './components/ResellerUpgrade';
 import ReferralsHub from './components/ReferralsHub';
+import InAppBannerModal, { AppBannersData } from './components/InAppBannerModal';
 import { NavigationProvider, useNavigation } from './context/NavigationContext';
 
 function AppContent() {
   const { currentView, navigateTo, goBack } = useNavigation();
   const [isInitializing, setIsInitializing] = useState(true);
   const [appConfig, setAppConfig] = useState<any>(null);
+  const [appBanners, setAppBanners] = useState<AppBannersData | null>(null);
 
   useEffect(() => {
     setIsInitializing(false);
@@ -263,6 +265,15 @@ function AppContent() {
         <PrivacyTerms
           mode="terms"
           onBack={() => goBack()}
+        />
+      )}
+
+      {/* In-App Popup Announcements & Force Update Modal */}
+      {currentView !== 'landing' && currentView !== 'login' && currentView !== 'signup' && (
+        <InAppBannerModal
+          banners={appBanners}
+          currentAppVersion="1.0.0"
+          onNavigate={navigateTo}
         />
       )}
 

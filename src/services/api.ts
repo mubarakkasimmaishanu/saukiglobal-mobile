@@ -176,6 +176,19 @@ export const api = {
     });
   },
 
+  getAppBanners: async (): Promise<ApiResponse> => {
+    return request('services.php?action=getAppBanners', {
+      method: 'POST'
+    });
+  },
+
+  saveAppBanners: async (banners: any): Promise<ApiResponse> => {
+    return request('services.php?action=saveAppBanners', {
+      method: 'POST',
+      body: JSON.stringify({ banners })
+    });
+  },
+
   getVirtualAccounts: async (): Promise<ApiResponse> => {
     return request('services.php?action=getVirtualAccounts', {
       method: 'POST'
