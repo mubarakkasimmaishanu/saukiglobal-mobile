@@ -157,7 +157,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
 
       // Default to first plan type or keep existing selection if valid
       if (types.length > 0) {
-        setSelectedPlanType((prev) => (types.includes(prev) ? prev : types[0]));
+        setSelectedPlanType((prev) => (prev && types.includes(prev) ? prev : ''));
       } else {
         setSelectedPlanType('');
       }
