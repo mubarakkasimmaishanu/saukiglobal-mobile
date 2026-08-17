@@ -473,7 +473,7 @@ export default function BuyData({ onBack, onFund }: BuyDataProps) {
                       </div>
                     )}
                     <div className="flex justify-between items-center border-t border-white/5 pt-2">
-                      <span className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Selling Price</span>
+                      <span className="text-[10px] font-black text-[#e1e3e4]/40 uppercase tracking-widest">Price</span>
                       <span className="text-xl font-black text-[#66df75]">₦{Number(selectedPlan.price).toLocaleString()}</span>
                     </div>
                   </div>
