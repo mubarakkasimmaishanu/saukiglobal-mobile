@@ -510,43 +510,44 @@ export default function ExamPins({ onBack, onFund }: ExamPinsProps) {
                 </div>
 
                 {/* 4. FINANCIAL SUMMARY */}
-                <div className="bg-black/20 rounded-2xl p-4 border border-white/5 space-y-2 text-xs">
-                  <div className="flex justify-between items-center text-[#e1e3e4]/60">
-                    <span>Available Balance</span>
-                    <span className="font-bold text-white">₦{(user?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <div className="bg-white/5 rounded-2xl p-4 border border-white/10 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold text-[#e1e3e4]/50 uppercase tracking-widest block mb-0.5">
+                      Total Payable
+                    </span>
+                    <span className="text-xl font-black text-[#66df75] font-mono">
+                      ₦{totalAmount.toLocaleString()}
+                    </span>
                   </div>
-                  <div className="flex justify-between items-center text-[#e1e3e4]/60">
-                    <span>Total Cost ({quantity}x)</span>
-                    <span className="font-bold text-white">₦{totalAmount.toLocaleString()}</span>
-                  </div>
-                  <div className="pt-2 border-t border-white/5 flex justify-between items-center">
-                    <span className="font-bold text-slate-300">Balance After Payment</span>
-                    <span className={`font-mono font-bold ${hasSufficientBalance ? 'text-[#66df75]' : 'text-[#ef4444]'}`}>
-                      ₦{((user?.balance || 0) - totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold text-[#e1e3e4]/50 uppercase tracking-widest block mb-0.5">
+                      Units Selected
+                    </span>
+                    <span className="text-sm font-bold text-white">
+                      {quantity} {quantity === 1 ? 'PIN' : 'PINs'}
                     </span>
                   </div>
                 </div>
 
                 {/* 5. PRIMARY ACTION BUTTON */}
-                <button
-                  type="submit"
-                  disabled={!selectedExam}
-                  className="w-full py-4.5 rounded-2xl bg-[#66df75] hover:bg-[#58c766] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed text-[#111415] font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_4px_25px_rgba(102,223,117,0.35)] transition-all cursor-pointer"
-                >
-                  <span>{!hasSufficientBalance ? 'INSUFFICIENT BALANCE' : `PAY ₦${totalAmount.toLocaleString()}`}</span>
-                  <ArrowRight size={18} strokeWidth={2.5} />
-                </button>
-
-                {!hasSufficientBalance && (
-                  <div className="text-center pt-1">
-                    <button
-                      type="button"
-                      onClick={onFund}
-                      className="text-xs font-bold text-[#66df75] hover:underline"
-                    >
-                      Click here to top up your wallet
-                    </button>
-                  </div>
+                {hasSufficientBalance ? (
+                  <button
+                    type="submit"
+                    disabled={!selectedExam}
+                    className="w-full py-4.5 rounded-2xl bg-[#66df75] hover:bg-[#58c766] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed text-[#111415] font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_4px_25px_rgba(102,223,117,0.35)] transition-all cursor-pointer"
+                  >
+                    <span>PAY ₦{totalAmount.toLocaleString()}</span>
+                    <ArrowRight size={18} strokeWidth={2.5} />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onFund}
+                    className="w-full py-4.5 rounded-2xl bg-[#66df75] hover:bg-[#58c766] active:scale-[0.98] text-[#111415] font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_4px_25px_rgba(102,223,117,0.35)] transition-all cursor-pointer"
+                  >
+                    <span>FUND WALLET TO CONTINUE</span>
+                    <ArrowRight size={18} strokeWidth={2.5} />
+                  </button>
                 )}
 
               </form>
