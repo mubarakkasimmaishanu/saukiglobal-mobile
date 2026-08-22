@@ -165,6 +165,7 @@ function AppContent() {
       {currentView === 'exams' && (
         <ExamPins
           onBack={() => goBack()}
+          onFund={() => navigateTo('fund')}
         />
       )}
 
