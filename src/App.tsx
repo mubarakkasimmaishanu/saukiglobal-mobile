@@ -29,7 +29,7 @@ import RatelCall from './components/RatelCall';
 import PrivacyTerms from './components/PrivacyTerms';
 import ResellerUpgrade from './components/ResellerUpgrade';
 import ReferralsHub from './components/ReferralsHub';
-import InAppBannerModal, { AppBannersData } from './components/InAppBannerModal';
+import InAppBannerModal, { AppBannersData, normalizeBannerData } from './components/InAppBannerModal';
 import { NavigationProvider, useNavigation } from './context/NavigationContext';
 
 const CURRENT_APP_VERSION = '1.0.10';
@@ -53,24 +53,39 @@ function AppContent() {
   }, [currentView, isInitializing, navigateTo]);
 
   useEffect(() => {
-    const fetchConfig = async () => {
-      const apiKey = localStorage.getItem('saukiglobal_api_key');
-      if (apiKey) {
-        try {
-          const res = await api.getAppConfig();
-          if (res.success && res.data) {
-            setAppConfig(res.data);
-            if (res.data.banners) {
-              setAppBanners(res.data.banners);
+    const fetchConfigAndBanners = async () => {
+      // 1. Fetch banners from dedicated endpoint
+      try {
+        const bannerRes = await api.getAppBanners();
+        if (bannerRes.success && bannerRes.data) {
+          const normalized = normalizeBannerData(bannerRes.data);
+          if (normalized) {
+            setAppBanners(normalized);
+          }
+        }
+      } catch (err) {
+        console.warn('Dedicated banner fetch error, falling back to config', err);
+      }
+
+      // 2. Fetch app config
+      try {
+        const res = await api.getAppConfig();
+        if (res.success && res.data) {
+          setAppConfig(res.data);
+          if (res.data.banners || res.data.popup_banner || res.data.announcement || res.data.popup) {
+            const configBanners = normalizeBannerData(res.data.banners || res.data);
+            if (configBanners) {
+              setAppBanners(prev => prev || configBanners);
             }
           }
-        } catch (err) {
-          console.error('Failed to fetch app config', err);
         }
+      } catch (err) {
+        console.error('Failed to fetch app config', err);
       }
     };
+
     if (currentView !== 'landing' && currentView !== 'login' && currentView !== 'signup' && !isInitializing) {
-      fetchConfig();
+      fetchConfigAndBanners();
     }
   }, [currentView, isInitializing]);
 

@@ -177,8 +177,24 @@ export const api = {
   },
 
   getAppBanners: async (): Promise<ApiResponse> => {
+    try {
+      const res = await request('services.php?action=getAppBanners', {
+        method: 'POST'
+      });
+      if (res.success && res.data) return res;
+    } catch (e) {
+      // try fallback
+    }
+    try {
+      const res = await request('banners.php', {
+        method: 'GET'
+      });
+      if (res.success && res.data) return res;
+    } catch (e) {
+      // fallback
+    }
     return request('services.php?action=getAppBanners', {
-      method: 'POST'
+      method: 'GET'
     });
   },
 
@@ -242,7 +258,29 @@ export const api = {
     });
   },
 
+  verifyCable: async (provider: string, smartcardNumber: string): Promise<ApiResponse> => {
+    return request('services.php?action=verifyCable', {
+      method: 'POST',
+      body: JSON.stringify({
+        provider,
+        smartcard_number: smartcardNumber,
+        iuc_number: smartcardNumber,
+        customer_id: smartcardNumber
+      })
+    });
+  },
+
   getElectricityProviders: async (): Promise<ApiResponse> => {
+    try {
+      const res = await request('electricity.php', {
+        method: 'GET'
+      });
+      if (res.success && Array.isArray(res.data)) {
+        return res;
+      }
+    } catch (err) {
+      // Fallback to services.php
+    }
     return request('services.php?action=getElectricityProviders', {
       method: 'POST'
     });
@@ -335,6 +373,21 @@ export const api = {
   },
 
   verifyMeter: async (meterNumber: string, provider: string, meterType = 'prepaid'): Promise<ApiResponse> => {
+    try {
+      const res = await request('electricity.php?action=verify', {
+        method: 'POST',
+        body: JSON.stringify({
+          meter_number: meterNumber,
+          provider,
+          meter_type: meterType
+        })
+      });
+      if (res.success && res.data) {
+        return res;
+      }
+    } catch (err) {
+      // Fallback
+    }
     return request('services.php?action=verifyMeter', {
       method: 'POST',
       body: JSON.stringify({
@@ -346,17 +399,34 @@ export const api = {
   },
 
   payElectricity: async (provider: string, customerId: string, amount: number, pin: string, meterType = 'prepaid') => {
-    const res = await request('services.php?type=bills', {
-      method: 'POST',
-      body: JSON.stringify({
-        type: 'electricity',
-        provider,
-        customer_id: customerId,
-        meter_type: meterType,
-        amount,
-        pin
-      })
-    });
+    let res: ApiResponse;
+    try {
+      res = await request('electricity.php?action=purchase', {
+        method: 'POST',
+        body: JSON.stringify({
+          provider,
+          customer_id: customerId,
+          meter_type: meterType,
+          amount,
+          pin
+        })
+      });
+      if (!res.success && res.message && (res.message.includes('404') || res.message.includes('Endpoint'))) {
+        throw new Error(res.message);
+      }
+    } catch (err) {
+      res = await request('services.php?type=bills', {
+        method: 'POST',
+        body: JSON.stringify({
+          type: 'electricity',
+          provider,
+          customer_id: customerId,
+          meter_type: meterType,
+          amount,
+          pin
+        })
+      });
+    }
 
     if (res.status === 'processing' && (res.data as any)?.reference) {
       return await pollTransaction((res.data as any).reference);

@@ -5,8 +5,8 @@ import { View } from '../context/NavigationContext';
 export interface AnnouncementBanner {
   id?: string;
   enabled: boolean;
-  title: string;
-  message: string;
+  title?: string;
+  message?: string;
   image_url?: string;
   action_text?: string;
   action_url?: string;
@@ -37,6 +37,146 @@ interface InAppBannerModalProps {
   onNavigate: (view: View) => void;
 }
 
+/**
+ * Resolves relative image URLs (e.g. uploads/ads/..., /vtu/...) to absolute CDN / server URLs.
+ */
+export function resolveBannerImageUrl(path: string | null | undefined): string | undefined {
+  if (!path || typeof path !== 'string' || !path.trim()) return undefined;
+  const clean = path.trim();
+  if (clean.startsWith('http://') || clean.startsWith('https://') || clean.startsWith('data:')) {
+    return clean;
+  }
+  let cleanPath = clean.replace(/^\/+/, '');
+  cleanPath = cleanPath.replace(/saukiglobal\/vtu\//gi, '');
+  cleanPath = cleanPath.replace(/vtu\//gi, '');
+  cleanPath = cleanPath.replace(/saukiglobal\//gi, '');
+
+  if (!cleanPath.startsWith('uploads/') && !cleanPath.startsWith('assets/')) {
+    if (cleanPath.startsWith('ads/')) {
+      cleanPath = 'uploads/' + cleanPath;
+    } else {
+      cleanPath = 'uploads/ads/' + cleanPath;
+    }
+  }
+  return `https://saukiglobal.com/${cleanPath}`;
+}
+
+/**
+ * Normalizes backend banner responses from various API schemas into standard AppBannersData.
+ */
+export function normalizeBannerData(rawData: any): AppBannersData | null {
+  if (!rawData) return null;
+
+  let data = rawData;
+  if (typeof data === 'string') {
+    try {
+      data = JSON.parse(data);
+    } catch {
+      return null;
+    }
+  }
+
+  // Handle nested wraps: { status: true, data: ... } or { banners: ... }
+  if (data.data && (typeof data.data === 'object' || Array.isArray(data.data))) {
+    data = data.data;
+  }
+  if (data.banners && typeof data.banners === 'object') {
+    data = data.banners;
+  }
+
+  const result: AppBannersData = {};
+
+  // Case 1: Array of banners (e.g. from MySQL table)
+  if (Array.isArray(data)) {
+    const activeItem = data.find((item: any) => {
+      const isEnabled = item.enabled === true || item.enabled === 1 || item.enabled === '1' || item.enabled === 'true'
+        || item.status === 'On' || item.status === 'active' || item.status === 1 || item.status === '1' || item.status === true
+        || item.is_active === 1 || item.is_active === true || item.is_active === '1';
+      return isEnabled && (item.title || item.banner_title || item.message || item.body || item.image || item.image_url);
+    }) || data[0];
+
+    if (activeItem) {
+      result.announcement = normalizeAnnouncement(activeItem);
+    }
+    return result;
+  }
+
+  // Case 2: Object with announcement / popup_banner / popup keys
+  if (data.announcement || data.popup_banner || data.popup || data.banner) {
+    const ann = data.announcement || data.popup_banner || data.popup || data.banner;
+    result.announcement = normalizeAnnouncement(ann);
+  } else if (data.title || data.banner_title || data.message || data.body || data.image_url || data.image) {
+    // Data is directly the announcement banner object
+    result.announcement = normalizeAnnouncement(data);
+  }
+
+  if (data.force_update || data.update || data.app_update) {
+    const upd = data.force_update || data.update || data.app_update;
+    result.force_update = normalizeForceUpdate(upd);
+  }
+
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+function normalizeAnnouncement(item: any): AnnouncementBanner | undefined {
+  if (!item || typeof item !== 'object') return undefined;
+
+  const isEnabled = item.enabled === true || item.enabled === 1 || item.enabled === '1' || item.enabled === 'true'
+    || item.status === 'On' || item.status === 'active' || item.status === 1 || item.status === '1' || item.status === true
+    || item.is_active === 1 || item.is_active === true || item.active === true || item.active === 1
+    || (item.enabled === undefined && item.status === undefined);
+
+  const title = item.title || item.banner_title || item.heading || item.subject || '';
+  const message = item.message || item.body || item.content || item.description || item.text || '';
+  const rawImage = item.image_url || item.image || item.img || item.banner_img || item.photo || item.upload_path || item.banner_image || '';
+  const imageUrl = resolveBannerImageUrl(rawImage);
+  const actionText = item.action_text || item.button_text || item.btn_text || item.action || (item.action_url || item.link ? 'View Details' : undefined);
+  const actionUrl = item.action_url || item.link || item.button_link || item.target_url || item.url || '';
+  const isDismissible = item.is_dismissible !== false && item.dismissible !== false && item.can_dismiss !== false;
+  const badge = item.badge || item.tag || item.category || 'Announcement';
+
+  return {
+    id: item.id ? String(item.id) : undefined,
+    enabled: !!isEnabled,
+    title,
+    message,
+    image_url: imageUrl,
+    action_text: actionText,
+    action_url: actionUrl,
+    is_dismissible: isDismissible,
+    badge
+  };
+}
+
+function normalizeForceUpdate(item: any): ForceUpdateBanner | undefined {
+  if (!item || typeof item !== 'object') return undefined;
+
+  const isEnabled = item.enabled === true || item.enabled === 1 || item.enabled === '1' || item.enabled === 'true'
+    || item.status === 'On' || item.status === 'active' || item.status === 1 || item.status === '1' || item.status === true;
+
+  const title = item.title || 'New Version Available';
+  const message = item.message || item.body || item.description || 'Please update your SaukiGlobal app to continue enjoying seamless automated VTU services and security improvements.';
+  const minVersion = item.min_version || item.minVersion || '1.0.0';
+  const latestVersion = item.latest_version || item.latestVersion || item.version || '1.0.0';
+  const isMandatory = item.is_mandatory !== false && item.mandatory !== false && item.force !== false;
+  const updateUrl = item.update_url || item.url || item.playstore_url || 'https://play.google.com/store/apps/details?id=com.saukiglobal.app';
+  const rawImage = item.image_url || item.image || item.banner_img || '';
+  const imageUrl = resolveBannerImageUrl(rawImage);
+  const actionText = item.action_text || item.button_text || 'Update App Now';
+
+  return {
+    enabled: !!isEnabled,
+    title,
+    message,
+    min_version: minVersion,
+    latest_version: latestVersion,
+    is_mandatory: isMandatory,
+    update_url: updateUrl,
+    image_url: imageUrl,
+    action_text: actionText
+  };
+}
+
 export default function InAppBannerModal({
   banners,
   currentAppVersion = '1.0.0',
@@ -60,9 +200,13 @@ export default function InAppBannerModal({
 
     // 2. Check Announcement Banner
     const ann = banners.announcement;
-    if (ann && ann.enabled && ann.title) {
-      const bannerKey = `saukiglobal_banner_dismissed_${ann.id || 'default'}`;
+    if (ann && ann.enabled && (ann.title || ann.message || ann.image_url)) {
+      // Dynamic dismissal key based on id and content so new admin updates display automatically
+      const idPart = ann.id || 'banner';
+      const contentPart = (ann.title || ann.message || ann.image_url || 'promo').replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+      const bannerKey = `saukiglobal_banner_dismissed_${idPart}_${contentPart}`;
       const dismissedAt = localStorage.getItem(bannerKey);
+
       if (!dismissedAt || (Date.now() - parseInt(dismissedAt, 10)) > 24 * 60 * 60 * 1000) {
         setActiveModal('announcement');
       }
@@ -87,7 +231,10 @@ export default function InAppBannerModal({
 
   const handleDismissAnnouncement = () => {
     if (banners?.announcement) {
-      const bannerKey = `saukiglobal_banner_dismissed_${banners.announcement.id || 'default'}`;
+      const ann = banners.announcement;
+      const idPart = ann.id || 'banner';
+      const contentPart = (ann.title || ann.message || ann.image_url || 'promo').replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+      const bannerKey = `saukiglobal_banner_dismissed_${idPart}_${contentPart}`;
       localStorage.setItem(bannerKey, Date.now().toString());
     }
     setActiveModal(null);
@@ -211,38 +358,42 @@ export default function InAppBannerModal({
           )}
 
           {ann.image_url && (
-            <div className="w-full h-44 overflow-hidden border-b border-white/10 relative bg-[#111415]">
+            <div className="w-full max-h-56 overflow-hidden border-b border-white/10 relative bg-[#111415] flex items-center justify-center">
               <img
                 src={ann.image_url}
-                alt={ann.title}
+                alt={ann.title || 'Announcement'}
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#181b1c] via-transparent to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#181b1c] via-transparent to-transparent pointer-events-none"></div>
             </div>
           )}
 
-          <div className={`p-6 ${ann.image_url ? 'pt-2' : 'pt-6'} text-center`}>
+          <div className={`p-6 ${ann.image_url ? 'pt-4' : 'pt-6'} text-center`}>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#66df75]/10 border border-[#66df75]/20 text-[#66df75] text-[10px] font-black uppercase tracking-widest mb-3">
               <Sparkles size={12} />
               {ann.badge || 'Announcement'}
             </div>
 
-            <h3 className="text-xl font-black text-white mb-2 leading-snug">
-              {ann.title}
-            </h3>
+            {ann.title && (
+              <h3 className="text-xl font-black text-white mb-2 leading-snug">
+                {ann.title}
+              </h3>
+            )}
 
-            <p className="text-xs text-[#e1e3e4]/70 leading-relaxed mb-6 whitespace-pre-line font-medium">
-              {ann.message}
-            </p>
+            {ann.message && (
+              <p className="text-xs text-[#e1e3e4]/70 leading-relaxed mb-6 whitespace-pre-line font-medium">
+                {ann.message}
+              </p>
+            )}
 
             <div className="space-y-2.5">
               {ann.action_text && (
                 <button
                   onClick={handleAnnouncementAction}
-                  className="w-full btn-primary py-4 px-6 flex items-center justify-center gap-2 uppercase tracking-wider font-black text-xs shadow-[0_4px_25px_rgba(102,223,117,0.3)]"
+                  className="w-full btn-primary py-4 px-6 flex items-center justify-center gap-2 uppercase tracking-wider font-black text-xs shadow-[0_4px_25px_rgba(102,223,117,0.3)] cursor-pointer"
                 >
                   <span>{ann.action_text}</span>
                   <ArrowRight size={16} />
@@ -252,7 +403,7 @@ export default function InAppBannerModal({
               {ann.is_dismissible !== false && (
                 <button
                   onClick={handleDismissAnnouncement}
-                  className="w-full py-2.5 text-xs font-bold text-[#e1e3e4]/40 hover:text-white transition-colors"
+                  className="w-full py-2.5 text-xs font-bold text-[#e1e3e4]/40 hover:text-white transition-colors cursor-pointer"
                 >
                   Dismiss
                 </button>
