@@ -334,13 +334,25 @@ export const api = {
     return res;
   },
 
-  payElectricity: async (provider: string, customerId: string, amount: number, pin: string) => {
+  verifyMeter: async (meterNumber: string, provider: string, meterType = 'prepaid'): Promise<ApiResponse> => {
+    return request('services.php?action=verifyMeter', {
+      method: 'POST',
+      body: JSON.stringify({
+        meter_number: meterNumber,
+        provider,
+        meter_type: meterType
+      })
+    });
+  },
+
+  payElectricity: async (provider: string, customerId: string, amount: number, pin: string, meterType = 'prepaid') => {
     const res = await request('services.php?type=bills', {
       method: 'POST',
       body: JSON.stringify({
         type: 'electricity',
         provider,
         customer_id: customerId,
+        meter_type: meterType,
         amount,
         pin
       })
