@@ -97,7 +97,7 @@ export default function ExamPins({ onBack, onFund }: ExamPinsProps) {
         { 
           code: 'NBAIS', 
           name: 'NBAIS Token', 
-          icon: '/icons/nbais.png', 
+          icon: '/icons/nbaislogo.png', 
           defaultPrice: 1500,
           portalUrl: 'https://nbais.gov.ng',
           description: 'National Board for Arabic and Islamic Studies (SAISSCE) result PIN.'

@@ -460,11 +460,21 @@ export default function UserDashboard({ onNavigate }: UserDashboardProps) {
               <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-0.5">
                 {showBalance ? `₦${(user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••••••'}
               </h2>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-bold text-[#e1e3e4]/50 uppercase tracking-widest">Cashback:</span>
-                <span className="text-[11px] font-black text-[#66df75] tracking-widest">
-                  {showBalance ? `₦${(user.cashback || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••'}
-                </span>
+              <div className="flex items-center gap-3 mt-1 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-[#e1e3e4]/50 uppercase tracking-widest">Cashback:</span>
+                  <span className="text-[11px] font-black text-[#66df75] tracking-widest">
+                    {showBalance ? `₦${(user.cashback || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••'}
+                  </span>
+                </div>
+                {(user.isReseller || user.tier === 'Reseller' || user.tier === 'Reseller Pro') && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-[#e1e3e4]/50 uppercase tracking-widest">Commission:</span>
+                    <span className="text-[11px] font-black text-[#66df75] tracking-widest">
+                      {showBalance ? `₦${(user.commissionBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
             <button

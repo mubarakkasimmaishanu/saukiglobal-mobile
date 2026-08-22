@@ -73,17 +73,26 @@ export default function CableTV({ onBack, onFund }: CableTVProps) {
     try {
       const res = await api.getCableProviders();
       if (res.success && Array.isArray(res.data)) {
-        setProvidersList(res.data);
-        if (res.data.length > 0 && !provider) {
-          setProvider(res.data[0].id);
+        const filtered = res.data.filter((p: CableProvider) => {
+          const id = String(p.id || '').toLowerCase();
+          const name = String(p.name || '').toLowerCase();
+          return !id.includes('showmax') && !name.includes('showmax');
+        });
+        const finalProviders = filtered.length > 0 ? filtered : [
+          { id: 'dstv', name: 'DSTV' },
+          { id: 'gotv', name: 'GOTV' },
+          { id: 'startimes', name: 'StarTimes' }
+        ];
+        setProvidersList(finalProviders);
+        if (finalProviders.length > 0 && !provider) {
+          setProvider(finalProviders[0].id);
         }
       } else {
-        // Fallback default list
+        // Fallback default 3 providers
         const defaultList: CableProvider[] = [
           { id: 'dstv', name: 'DSTV' },
           { id: 'gotv', name: 'GOTV' },
-          { id: 'startimes', name: 'StarTimes' },
-          { id: 'showmax', name: 'Showmax' }
+          { id: 'startimes', name: 'StarTimes' }
         ];
         setProvidersList(defaultList);
         setProvider('dstv');
@@ -251,7 +260,7 @@ export default function CableTV({ onBack, onFund }: CableTVProps) {
             ) : (
               <form onSubmit={handleVerifyIUC} className="space-y-6">
                 
-                {/* Provider Selection (Horizontal Cards) */}
+                {/* Provider Selection (Balanced 3-Column Grid) */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-center px-1">
                     <label className="text-[10px] font-black text-[#66df75] uppercase tracking-widest">
@@ -264,8 +273,8 @@ export default function CableTV({ onBack, onFund }: CableTVProps) {
                     )}
                   </div>
 
-                  {/* Horizontal Scrollable Cards with Solid White Squircle Logos */}
-                  <div className="flex gap-2.5 overflow-x-auto pb-2 pt-1 scrollbar-none snap-x">
+                  {/* 3-Column Grid evenly distributed across screen width */}
+                  <div className="grid grid-cols-3 gap-3">
                     {providersList.map((p) => {
                       const isSelected = provider.toLowerCase() === p.id.toLowerCase();
                       
@@ -278,7 +287,7 @@ export default function CableTV({ onBack, onFund }: CableTVProps) {
                             setSelectedPackage(''); 
                             setError(null); 
                           }}
-                          className={`min-w-[96px] max-w-[110px] flex-shrink-0 snap-start relative flex flex-col items-center justify-between p-2.5 pt-3 pb-2.5 rounded-2xl border transition-all duration-200 cursor-pointer ${
+                          className={`relative flex flex-col items-center justify-center p-3 pt-3.5 pb-3 rounded-2xl border transition-all duration-200 cursor-pointer ${
                             isSelected 
                               ? 'border-2 border-[#66df75] bg-[#66df75]/10 shadow-[0_0_20px_rgba(102,223,117,0.3)] scale-[1.02]' 
                               : 'bg-white/5 border-white/10 text-[#e1e3e4]/70 hover:bg-white/10 hover:border-white/20 active:scale-95'
@@ -292,7 +301,7 @@ export default function CableTV({ onBack, onFund }: CableTVProps) {
                           )}
 
                           {/* Solid White Logo Squircle */}
-                          <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center p-1 mb-2 shadow-sm ring-1 ring-black/5 overflow-hidden">
+                          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-1.5 mb-2 shadow-sm ring-1 ring-black/5 overflow-hidden">
                             <img
                               src={getProviderIcon(p)}
                               alt={p.name}
@@ -304,7 +313,7 @@ export default function CableTV({ onBack, onFund }: CableTVProps) {
                           </div>
 
                           {/* Provider Name */}
-                          <span className={`text-[10px] font-black uppercase tracking-wider text-center truncate w-full ${
+                          <span className={`text-[11px] font-black uppercase tracking-wider text-center truncate w-full ${
                             isSelected ? 'text-[#66df75]' : 'text-white'
                           }`}>
                             {p.name}

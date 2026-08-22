@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   Award,
@@ -9,9 +9,11 @@ import {
   Lightbulb,
   Info,
   ChevronLeft,
-  Crown
+  Crown,
+  RefreshCw
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { api } from '../services/api';
 
 interface PricingListProps {
   onBack: () => void;
@@ -19,14 +21,15 @@ interface PricingListProps {
 
 export default function PricingList({ onBack }: PricingListProps) {
   const { user } = useUser();
-  const [activeTab, setActiveTab] = useState('data');
+  const [activeTab, setActiveTab] = useState<'data' | 'airtime' | 'exams' | 'utilities'>('data');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const isReseller = user?.isReseller ?? false;
-  const tierLabel = isReseller ? 'Reseller Pro' : 'Basic';
+  const tierLabel = isReseller ? 'Reseller Pro' : 'Member';
 
-  // Pricing Data
-  const pricingData: Record<string, any[]> = {
+  // Dynamic pricing state
+  const [dynamicPricing, setDynamicPricing] = useState<Record<string, any[]>>({
     data: [
       { id: 1, network: 'MTN', name: '1GB Corporate Gifting (30 Days)', retail: 300, reseller: 255 },
       { id: 2, network: 'MTN', name: '2GB Corporate Gifting (30 Days)', retail: 600, reseller: 510 },
@@ -44,191 +47,220 @@ export default function PricingList({ onBack }: PricingListProps) {
     exams: [
       { id: 12, network: 'WAEC', name: 'WAEC Result Checker', retail: 3800, reseller: 3500 },
       { id: 13, network: 'NECO', name: 'NECO Token', retail: 1400, reseller: 1200 },
-      { id: 14, network: 'NIMC', name: 'Print NIN Slip (Standard)', retail: 700, reseller: 500 },
+      { id: 14, network: 'NBAIS', name: 'NBAIS Result Token', retail: 1600, reseller: 1500 },
+      { id: 15, network: 'NABTEB', name: 'NABTEB Scratch Card', retail: 1200, reseller: 1000 },
     ],
     utilities: [
-      { id: 15, network: 'Electricity', name: 'KEDCO, AEDC, IKEDC, etc.', retail: '₦100 Fee', reseller: '₦35 Fee' },
-      { id: 16, network: 'Cable TV', name: 'DSTV, GOTV, Startimes', retail: '₦50 Fee', reseller: '₦15 Fee' },
+      { id: 16, network: 'Electricity', name: 'All DisCos (IKEDC, AEDC, EKEDC, etc.)', retail: '₦100 Fee', reseller: '₦35 Fee' },
+      { id: 17, network: 'Cable TV', name: 'DSTV, GOTV, StarTimes', retail: '₦50 Fee', reseller: '₦15 Fee' },
     ]
-  };
+  });
 
-  const getNetworkColor = (network: string) => {
-    switch (network) {
-      case 'MTN': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Airtel': return 'bg-red-100 text-red-800 border-red-200';
-      case 'GLO': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case '9Mobile': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'WAEC': case 'NECO': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+  // Fetch live prices from admin API
+  useEffect(() => {
+    const fetchLivePrices = async () => {
+      setIsLoading(true);
+      try {
+        // 1. Fetch exam provider prices
+        const examRes = await api.getExamProviders();
+        if (examRes.success && Array.isArray(examRes.data)) {
+          const liveExams = examRes.data.map((ex: any, idx: number) => ({
+            id: ex.id || idx + 100,
+            network: ex.name?.split(' ')[0] || ex.code || 'EXAM',
+            name: ex.name || ex.exam_name || 'Result Token',
+            retail: Number(ex.price || ex.amount || 1500),
+            reseller: Number(ex.reseller_price || ex.resellerPrice || (ex.price ? ex.price * 0.95 : 1400))
+          }));
+          if (liveExams.length > 0) {
+            setDynamicPricing(prev => ({ ...prev, exams: liveExams }));
+          }
+        }
+
+        // 2. Fetch airtime discounts
+        const airtimeRes = await api.getAirtimeNetworks();
+        if (airtimeRes.success && Array.isArray(airtimeRes.data)) {
+          const liveAirtime = airtimeRes.data.map((net: any, idx: number) => ({
+            id: net.id || idx + 200,
+            network: net.name || net.network || 'VTU',
+            name: `${net.name || 'VTU'} Airtime Top-up`,
+            retail: 'Face Value (1% Cashback)',
+            reseller: `${net.reseller_discount || net.discount || '3 - 4%'} Discount`
+          }));
+          if (liveAirtime.length > 0) {
+            setDynamicPricing(prev => ({ ...prev, airtime: liveAirtime }));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch live pricing from API', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLivePrices();
+  }, []);
+
+  const getNetworkBadge = (network: string) => {
+    const net = (network || '').toUpperCase();
+    if (net.includes('MTN')) return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+    if (net.includes('AIRTEL')) return 'bg-red-500/20 text-red-400 border-red-500/30';
+    if (net.includes('GLO')) return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+    if (net.includes('9MOBILE') || net.includes('ETISALAT')) return 'bg-lime-500/20 text-lime-400 border-lime-500/30';
+    if (net.includes('WAEC') || net.includes('NECO') || net.includes('NBAIS') || net.includes('NABTEB')) {
+      return 'bg-[#66df75]/20 text-[#66df75] border-[#66df75]/30';
     }
+    return 'bg-white/10 text-white border-white/20';
   };
 
-  const filteredData = pricingData[activeTab].filter(item =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.network.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredData = (dynamicPricing[activeTab] || []).filter(item =>
+    (item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.network || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans md:py-8 relative">
-      <div className="max-w-md mx-auto bg-white min-h-screen md:min-h-[auto] md:rounded-3xl md:shadow-xl overflow-hidden relative flex flex-col">
+    <div className="min-h-screen bg-[#111415] text-[#e1e3e4] font-sans pb-24 relative overflow-x-hidden selection:bg-[#66df75] selection:text-[#111415]">
+      <div className="max-w-md mx-auto relative px-5 pt-4">
 
         {/* Header */}
-        <header className="px-5 pt-6 pb-4 bg-slate-900 text-white sticky top-0 z-20 shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center">
-              <button
-                onClick={onBack}
-                className="p-2 -ml-2 hover:bg-slate-800 rounded-full transition-colors"
-              >
-                <ChevronLeft size={24} />
-              </button>
-              <h1 className="text-lg font-bold ml-2">Pricing & Discounts</h1>
+        <header className="py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onBack}
+              className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-95 flex items-center justify-center text-white transition-all border border-white/10 shadow-sm cursor-pointer"
+            >
+              <ChevronLeft size={22} />
+            </button>
+            <div className="leading-tight">
+              <h1 className="text-base font-black text-white tracking-tight">Pricing & Rates</h1>
+              <p className="text-xs text-[#66df75] font-bold">Live API Synced</p>
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={18} className="text-slate-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search plans or networks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
-            />
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+            {isReseller ? <Crown size={14} className="text-[#66df75]" /> : <Award size={14} className="text-white/60" />}
+            <span className={`text-[10px] font-black uppercase tracking-wider ${isReseller ? 'text-[#66df75]' : 'text-white/70'}`}>
+              {tierLabel}
+            </span>
           </div>
         </header>
 
-        {/* Current Package Banner */}
-        {isReseller ? (
-          <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 px-5 py-4 border-b border-emerald-100 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-100 text-emerald-600 rounded-full">
-                <Crown size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Your Account Tier</p>
-                <p className="text-sm font-black text-emerald-700">{tierLabel} ✓</p>
-              </div>
-            </div>
-            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200">
-              Wholesale Prices Active
-            </span>
+        {/* Search Bar */}
+        <div className="relative mt-2 mb-4">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/40">
+            <Search size={16} />
           </div>
-        ) : (
-          <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-5 py-4 border-b border-slate-200 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-slate-200 text-slate-600 rounded-full">
-                <Award size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Your Account Tier</p>
-                <p className="text-sm font-black text-slate-700">{tierLabel}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Category Tabs */}
-        <div className="px-5 py-3 border-b border-gray-100 bg-white sticky top-[132px] z-10 overflow-x-auto hide-scrollbar">
-          <div className="flex gap-2 min-w-max">
-            <button
-              onClick={() => setActiveTab('data')}
-              className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${activeTab === 'data' ? 'bg-slate-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-            >
-              <Wifi size={14} /> Data Plans
-            </button>
-            <button
-              onClick={() => setActiveTab('airtime')}
-              className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${activeTab === 'airtime' ? 'bg-slate-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-            >
-              <Smartphone size={14} /> Airtime
-            </button>
-            <button
-              onClick={() => setActiveTab('exams')}
-              className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${activeTab === 'exams' ? 'bg-slate-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-            >
-              <GraduationCap size={14} /> Exams & Pins
-            </button>
-            <button
-              onClick={() => setActiveTab('utilities')}
-              className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${activeTab === 'utilities' ? 'bg-slate-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-            >
-              <Lightbulb size={14} /> Utilities
-            </button>
-          </div>
+          <input
+            type="text"
+            placeholder="Search plans or networks..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-xs text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#66df75]/50 transition-all"
+          />
         </div>
 
-        {/* Pricing List Body */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 p-5">
+        {/* Category Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 hide-scrollbar">
+          <button
+            onClick={() => setActiveTab('data')}
+            className={`px-4 py-2 text-xs font-black rounded-xl transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
+              activeTab === 'data' ? 'btn-primary' : 'bg-white/5 text-[#e1e3e4]/70 hover:bg-white/10'
+            }`}
+          >
+            <Wifi size={13} /> Data Plans
+          </button>
+          <button
+            onClick={() => setActiveTab('airtime')}
+            className={`px-4 py-2 text-xs font-black rounded-xl transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
+              activeTab === 'airtime' ? 'btn-primary' : 'bg-white/5 text-[#e1e3e4]/70 hover:bg-white/10'
+            }`}
+          >
+            <Smartphone size={13} /> Airtime
+          </button>
+          <button
+            onClick={() => setActiveTab('exams')}
+            className={`px-4 py-2 text-xs font-black rounded-xl transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
+              activeTab === 'exams' ? 'btn-primary' : 'bg-white/5 text-[#e1e3e4]/70 hover:bg-white/10'
+            }`}
+          >
+            <GraduationCap size={13} /> Exams & Pins
+          </button>
+          <button
+            onClick={() => setActiveTab('utilities')}
+            className={`px-4 py-2 text-xs font-black rounded-xl transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
+              activeTab === 'utilities' ? 'btn-primary' : 'bg-white/5 text-[#e1e3e4]/70 hover:bg-white/10'
+            }`}
+          >
+            <Lightbulb size={13} /> Utilities
+          </button>
+        </div>
 
-          <div className="bg-blue-50 p-3 rounded-xl flex gap-3 mb-4 border border-blue-100">
-            <Info size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-blue-800 font-medium">
-              {isReseller
-                ? <>Prices in <span className="font-bold text-emerald-700">green</span> are your exclusive Reseller wholesale rates.</>
-                : <>Showing our standard retail pricing plan below.</>
-              }
-            </p>
+        {/* Info Banner */}
+        <div className="bg-[#66df75]/10 border border-[#66df75]/25 p-3 rounded-2xl flex items-center gap-2.5 mb-4 text-xs">
+          <Info size={16} className="text-[#66df75] flex-shrink-0" />
+          <p className="text-[11px] text-[#e1e3e4]/80 font-medium">
+            {isReseller
+              ? <>You are enjoying exclusive <strong className="text-[#66df75]">Wholesale Reseller Rates</strong> across all services.</>
+              : <>Standard <strong className="text-white">Member Rates</strong>. Upgrade to Reseller to enjoy wholesale discounts!</>
+            }
+          </p>
+        </div>
+
+        {/* Pricing List Cards */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <RefreshCw size={24} className="animate-spin text-[#66df75]" />
+            <p className="text-xs text-[#e1e3e4]/50 font-bold uppercase tracking-wider">Syncing Rates with API...</p>
           </div>
-
+        ) : (
           <div className="space-y-3">
             {filteredData.length > 0 ? (
               filteredData.map((item) => {
                 const isNumeric = typeof item.reseller === 'number';
                 const profit = isNumeric ? item.retail - item.reseller : null;
-                const yourPrice = isReseller
-                  ? (isNumeric ? `₦${item.reseller}` : item.reseller)
-                  : (isNumeric ? `₦${item.retail}` : item.retail);
 
                 return (
-                  <div key={item.id} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:border-slate-300 transition-colors">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1 pr-3">
-                        <span className={`inline-block text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border mb-1.5 ${getNetworkColor(item.network)}`}>
+                  <div key={item.id} className="bg-[#181b1c] border border-white/5 rounded-2xl p-4 shadow-sm hover:border-[#66df75]/30 transition-all">
+                    <div className="flex justify-between items-start mb-2.5">
+                      <div className="flex-1 pr-2">
+                        <span className={`inline-block text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border mb-1.5 ${getNetworkBadge(item.network)}`}>
                           {item.network}
                         </span>
-                        <h3 className="text-sm font-bold text-gray-900 leading-tight">{item.name}</h3>
+                        <h3 className="text-xs font-bold text-white leading-tight">{item.name}</h3>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-100">
-                      {/* Left: Retail / Other Tier */}
-                      <div className="text-center flex-1 border-r border-gray-200">
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">
-                          {isReseller ? 'Retail Price' : 'Basic Price'}
+                    <div className="flex items-center justify-between bg-black/40 rounded-xl p-2.5 border border-white/5">
+                      {/* Left: Standard Member Price */}
+                      <div className="text-center flex-1 border-r border-white/10">
+                        <p className="text-[9px] text-[#e1e3e4]/50 font-bold uppercase tracking-wider mb-0.5">
+                          {isReseller ? 'Member Rate' : 'Your Rate'}
                         </p>
-                        <p className={`text-sm font-semibold ${isReseller ? 'text-gray-600 line-through decoration-gray-400' : 'text-gray-900 font-black'}`}>
-                          {isNumeric ? `₦${item.retail}` : item.retail}
+                        <p className={`text-xs ${isReseller ? 'text-white/50 line-through' : 'text-white font-black'}`}>
+                          {isNumeric ? `₦${item.retail.toLocaleString()}` : item.retail}
                         </p>
                       </div>
-                      {/* Right: Your Price */}
+
+                      {/* Right: Reseller Price */}
                       <div className="text-center flex-1">
-                        <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${isReseller ? 'text-emerald-700' : 'text-emerald-600'}`}>
-                          {isReseller ? 'Your Price' : 'Reseller Price'}
+                        <p className="text-[9px] text-[#66df75] font-black uppercase tracking-wider mb-0.5">
+                          {isReseller ? 'Your Reseller Rate' : 'Wholesale Rate'}
                         </p>
-                        <p className={`font-black ${isReseller ? 'text-lg text-emerald-600' : 'text-sm text-emerald-500'}`}>
-                          {isNumeric ? `₦${item.reseller}` : item.reseller}
+                        <p className="text-xs font-black text-[#66df75]">
+                          {isNumeric ? `₦${item.reseller.toLocaleString()}` : item.reseller}
                         </p>
                       </div>
                     </div>
 
-                    {/* Profit badge for Resellers, Savings teaser for Basic */}
+                    {/* Profit Margin or Upgrade Hint */}
                     {isNumeric && profit !== null && profit > 0 && (
-                      <div className="mt-3 text-right">
+                      <div className="mt-2 text-right">
                         {isReseller ? (
-                          <span className="inline-block bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-emerald-100">
-                            Your Profit: ₦{profit}
+                          <span className="inline-block text-[10px] font-black text-[#66df75] bg-[#66df75]/10 px-2 py-0.5 rounded-md border border-[#66df75]/20">
+                            Margin: +₦{profit.toLocaleString()} / sale
                           </span>
                         ) : (
-                          <span className="inline-block bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-amber-100">
-                            Save ₦{profit} as Reseller
+                          <span className="inline-block text-[10px] font-bold text-[#e1e3e4]/60 bg-white/5 px-2 py-0.5 rounded-md border border-white/10">
+                            Save ₦{profit.toLocaleString()} with Reseller
                           </span>
                         )}
                       </div>
@@ -237,14 +269,12 @@ export default function PricingList({ onBack }: PricingListProps) {
                 );
               })
             ) : (
-              <div className="text-center py-10">
-                <p className="text-sm font-medium text-gray-500">No plans found matching "{searchQuery}"</p>
+              <div className="text-center py-12">
+                <p className="text-xs font-bold text-[#e1e3e4]/40">No plans found matching "{searchQuery}"</p>
               </div>
             )}
           </div>
-
-
-        </div>
+        )}
 
       </div>
     </div>

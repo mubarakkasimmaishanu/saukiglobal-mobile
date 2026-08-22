@@ -761,5 +761,15 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ pin, transaction_pin: pin })
     });
+  },
+
+  transferCommission: async (amount: number, pin?: string): Promise<ApiResponse> => {
+    return request('services.php?action=transfer_commission', {
+      method: 'POST',
+      body: JSON.stringify({
+        amount: Number(amount),
+        pin: pin || ''
+      })
+    });
   }
 };
