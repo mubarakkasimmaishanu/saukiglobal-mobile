@@ -32,7 +32,7 @@ import ReferralsHub from './components/ReferralsHub';
 import InAppBannerModal, { AppBannersData, normalizeBannerData } from './components/InAppBannerModal';
 import { NavigationProvider, useNavigation } from './context/NavigationContext';
 
-const CURRENT_APP_VERSION = '1.0.10';
+const CURRENT_APP_VERSION = '1.0.11';
 
 function AppContent() {
   const { currentView, navigateTo, goBack } = useNavigation();
