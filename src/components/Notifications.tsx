@@ -15,6 +15,45 @@ import {
 import { api } from '../services/api';
 import { useUser } from '../context/UserContext';
 
+// Multi-stage Unicode Mojibake dictionary for instant client repair
+const MOJIBAKE_MAP: Record<string, string> = {
+  'ðŸ”¥': '🔥',
+  'ðŸ”¦': '🔹',
+  'ðŸ•Œ': '🕌',
+  'ðŸ¤²': '🤲',
+  'ðŸŸ¢': '🟢',
+  'ðŸ”´': '🔴',
+  'ðŸ’°': '💰',
+  'ðŸ“²': '📲',
+  'ðŸ“¢': '📢',
+  'ðŸš€': '🚀',
+  'â€“': '–',
+  'â€”': '—',
+  'â€™': '’',
+  'â€˜': '‘',
+  'â€œ': '“',
+  'â€': '"',
+  'â‚¦': '₦',
+  'Ã¢â‚¬"': '-',
+  'Ã¢â€šÂ¦': '₦',
+  'Ã‚': '',
+  'É“': 'ɓ',
+  'É—': 'ɗ',
+  'Æ™': 'ƙ',
+  'Æ´': 'ƴ',
+};
+
+function cleanMojibake(text: string): string {
+  if (!text) return '';
+  let cleaned = text;
+  for (const [bad, good] of Object.entries(MOJIBAKE_MAP)) {
+    if (cleaned.includes(bad)) {
+      cleaned = cleaned.replaceAll(bad, good);
+    }
+  }
+  return cleaned.trim();
+}
+
 interface NotificationsProps {
   onBack: () => void;
 }
@@ -55,8 +94,8 @@ export default function Notifications({ onBack }: NotificationsProps) {
       if (res.success && res.data && Array.isArray(res.data.notifications)) {
         const mappedNotifs: NotificationItem[] = res.data.notifications.map((n: any) => ({
           id: Number(n.id),
-          title: n.title || 'Broadcast Update',
-          message: n.message || '',
+          title: cleanMojibake(n.title || 'Broadcast Update'),
+          message: cleanMojibake(n.message || ''),
           upload_path: n.upload_path || null,
           created_at: n.created_at || '',
           isRead: Number(n.is_read) === 1
@@ -120,6 +159,51 @@ export default function Notifications({ onBack }: NotificationsProps) {
       return { icon: Sparkles, color: 'text-purple-500', bg: 'bg-purple-500/10' };
     }
     return { icon: Megaphone, color: 'text-blue-500', bg: 'bg-blue-500/10' };
+  };
+
+  // Clean, structured message formatter with support for price lists, plan tables, and prayers
+  const renderFormattedMessage = (message: string, isRead: boolean, isDetail = false) => {
+    const cleaned = cleanMojibake(message);
+    const lines = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
+
+    if (lines.length > 1) {
+      return (
+        <div className={`space-y-1.5 ${isDetail ? 'my-4' : 'my-2'}`}>
+          {lines.map((line, i) => {
+            const isPlanRow = line.includes('₦') || line.includes('|') || line.includes('MB') || line.includes('GB');
+            if (isPlanRow && line.includes('|')) {
+              const parts = line.split('|').map(p => p.trim());
+              return (
+                <div 
+                  key={i} 
+                  className={`flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl border border-white/5 transition-colors ${
+                    isDetail ? 'bg-white/[0.04] text-sm' : 'bg-white/[0.025] text-xs'
+                  } font-mono`}
+                >
+                  <span className="font-semibold text-white truncate">{parts[0]}</span>
+                  {parts[1] && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#66df75]/10 text-[#66df75] border border-[#66df75]/20 flex-shrink-0">
+                      {parts[1]}
+                    </span>
+                  )}
+                </div>
+              );
+            }
+            return (
+              <p key={i} className={`${isDetail ? 'text-sm' : 'text-xs'} leading-relaxed ${!isRead ? 'text-[#e1e3e4]' : 'text-[#e1e3e4]/70'}`}>
+                {line}
+              </p>
+            );
+          })}
+        </div>
+      );
+    }
+
+    return (
+      <p className={`${isDetail ? 'text-sm mb-6' : 'text-xs mb-3'} leading-relaxed break-words whitespace-pre-wrap ${!isRead ? 'text-[#e1e3e4]' : 'text-[#e1e3e4]/65'}`}>
+        {cleaned}
+      </p>
+    );
   };
 
   // Convert MySQL DATETIME to client relative timestamp string
@@ -201,12 +285,10 @@ export default function Notifications({ onBack }: NotificationsProps) {
 
               {/* Title & Body */}
               <h2 className="text-xl font-black text-white mb-4 leading-tight tracking-tight break-words">
-                {selectedNotification.title}
+                {cleanMojibake(selectedNotification.title)}
               </h2>
               
-              <p className="text-sm leading-relaxed text-[#e1e3e4]/85 mb-6 whitespace-pre-wrap break-words">
-                {selectedNotification.message}
-              </p>
+              {renderFormattedMessage(selectedNotification.message, false, true)}
 
               {/* Large banner attachment */}
               {selectedNotification.upload_path && (
@@ -349,15 +431,13 @@ export default function Notifications({ onBack }: NotificationsProps) {
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-2 mb-1">
                         <h3 className={`text-sm tracking-tight truncate ${!notification.isRead ? 'font-black text-white' : 'font-bold text-[#e1e3e4]/80'}`}>
-                          {notification.title}
+                          {cleanMojibake(notification.title)}
                         </h3>
                         {!notification.isRead && (
                           <span className="w-1.5 h-1.5 rounded-full bg-[#66df75] mt-1.5 flex-shrink-0 shadow-[0_0_6px_#66df75]"></span>
                         )}
                       </div>
-                      <p className={`text-xs leading-relaxed mb-3 break-words whitespace-pre-wrap ${!notification.isRead ? 'text-[#e1e3e4]' : 'text-[#e1e3e4]/65'}`}>
-                        {notification.message}
-                      </p>
+                      {renderFormattedMessage(notification.message, notification.isRead, false)}
 
                       {/* Display image attachments */}
                       {notification.upload_path && (
