@@ -31,6 +31,7 @@ import ResellerUpgrade from './components/ResellerUpgrade';
 import ReferralsHub from './components/ReferralsHub';
 import InAppBannerModal, { AppBannersData, normalizeBannerData } from './components/InAppBannerModal';
 import { NavigationProvider, useNavigation } from './context/NavigationContext';
+import { isWebPortal, consumePostAuthView } from './services/webRouting';
 
 const CURRENT_APP_VERSION = '1.0.12';
 
@@ -117,7 +118,14 @@ function AppContent() {
         <AuthPage
           initialMode={currentView === 'login' ? 'login' : 'signup'}
           onBack={() => goBack()}
-          onSuccess={() => navigateTo('dashboard', { resetStack: true })}
+          onSuccess={() => {
+            navigateTo('dashboard', { resetStack: true });
+            // Web: continue to the dashboard page the user originally requested (e.g. /app/airtime)
+            const pendingView = isWebPortal() ? consumePostAuthView() : null;
+            if (pendingView) {
+              navigateTo(pendingView);
+            }
+          }}
         />
       )}
 
@@ -131,6 +139,11 @@ function AppContent() {
           onBack={() => goBack()}
           onLogout={() => {
             localStorage.removeItem('saukiglobal_api_key');
+            if (isWebPortal()) {
+              // Web: end the PHP session too, then return to the website landing page
+              api.endWebSession().finally(() => navigateTo('landing', { resetStack: true }));
+              return;
+            }
             navigateTo('landing', { resetStack: true });
           }}
           onViewPricing={() => navigateTo('pricing')}

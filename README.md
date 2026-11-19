@@ -108,3 +108,18 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 <p align="center">
   Authored & Maintained by <a href="https://github.com/mubarakkasimmaishanu"><strong>Mubarak Kasim Mashanu</strong></a>
 </p>
+
+---
+
+## 🌐 Web Portal Integration (saukiglobal.com)
+
+The same React code also powers the web login/registration and post-login dashboard on saukiglobal.com (same approach as eData):
+
+```bash
+npm run build:web   # vite build --mode portal -> dist-web/, then synced to C:/xampp/htdocs/saukiglobal/webapp
+```
+
+- Set `SAUKIGLOBAL_WEB_DIR` to deploy to a different web root.
+- Portal mode (`src/services/webRouting.ts`) is active only in this build: URL-driven views, same-origin `/api/v1`, and no mobile landing page (the PHP homepage stays the landing page).
+- Web routes: `/auth` and `/login` (login), `/register` and `/signup` (sign-up), `/app/` (dashboard), `/app/<view>` (post-login screens). The web root `.htaccess` (section 4c) forwards these to `webapp/index.html`.
+- Native builds (`npm run build` + `cap sync`) and `npm run dev` work exactly as before.

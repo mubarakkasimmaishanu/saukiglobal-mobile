@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
+    "build:web": "vite build --mode portal --base=/webapp/ --outDir dist-web --emptyOutDir && node scripts/deploy-web.cjs",
+    "dev:web": "vite --mode portal --port=3000 --host=0.0.0.0",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"

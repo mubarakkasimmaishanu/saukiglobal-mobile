@@ -1,7 +1,12 @@
 import { User, Transaction } from '../types';
+import { isWebPortal, getWebPrefix } from './webRouting';
 
 // SaukiGlobal Unified API Configuration
-const envBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://saukiglobal.com/api/v1/';
+// Web portal build (served from saukiglobal.com/webapp): talk to the same-origin API,
+// exactly like the eData web portal. Native/dev builds use the configured API host.
+const envBaseUrl = isWebPortal() && !import.meta.env.DEV
+  ? `${window.location.origin}${getWebPrefix()}/api/v1/`
+  : (import.meta.env.VITE_API_BASE_URL || 'https://saukiglobal.com/api/v1/');
 const BASE_URL = envBaseUrl.replace(/\/+$/, '') + '/';
 const API_KEY_KEY = 'saukiglobal_api_key';
 
@@ -139,6 +144,15 @@ export const api = {
   
   logout: () => {
     localStorage.removeItem(API_KEY_KEY);
+  },
+
+  /** Web portal only: also end the shared PHP web session (used by the landing page/legacy pages). */
+  endWebSession: async (): Promise<void> => {
+    try {
+      await fetch(`${BASE_URL}auth.php?action=logout`, { credentials: 'same-origin' });
+    } catch {
+      // Ignore network errors; local token is already cleared
+    }
   },
 
   // Forgot Password Flow
